@@ -148,7 +148,5 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>BackendAPIs</module>
-		<module>EurekaService</module>
-		<module>APIGateway</module>
 	</modules>
 </project>

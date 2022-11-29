@@ -25,8 +25,14 @@ public class RoleConfig {
 		JSONObject roleAdmin = new JSONObject();
 		roleAdmin.put(RoleConfig.REPRESENTATION,"ADMIN");
 		roleAdmin.put(RoleConfig.NAME,DefaultRoles.ROLE_ADMIN);
-		roleAdmin.put(RoleConfig.DESCRIPTION,"The user with this role have all the rights");
+		roleAdmin.put(RoleConfig.DESCRIPTION,"The user with this role have all the rights of admin");
 		this.roles.put(roleAdmin);
+
+		JSONObject roleBanker = new JSONObject();
+		roleBanker.put(RoleConfig.REPRESENTATION,"BANKER");
+		roleBanker.put(RoleConfig.NAME,DefaultRoles.ROLE_BANKER);
+		roleBanker.put(RoleConfig.DESCRIPTION,"The user with this role have all the rights of Banker");
+		this.roles.put(roleBanker);
 
 		JSONObject roleVerifier = new JSONObject();
 		roleVerifier.put(RoleConfig.REPRESENTATION,"VERIFIER");

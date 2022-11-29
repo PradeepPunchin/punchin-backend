@@ -80,6 +80,18 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setUserName("Admin");
                 users.add(user);
             }
+            if (!userRepository.existsByEmail("banker@yopmail.com")) {
+                User user = new User();
+                user.setEmail("banker@yopmail.com");
+                user.setFirstName("banker");
+                user.setLastName("test");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("123"));
+                user.setRole(roleRepository.findByName(String.valueOf(DefaultRoles.ROLE_BANKER)));
+                user.setUserName("Banker");
+                users.add(user);
+            }
             if (!userRepository.existsByEmail("verifier@yopmail.com")) {
                 User user = new User();
                 user.setEmail("verifier@yopmail.com");

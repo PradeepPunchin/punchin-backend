@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableJpaRepositories
 @EnableCaching
 @EnableScheduling
 @EnableAsync

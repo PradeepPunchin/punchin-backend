@@ -1,23 +1,24 @@
 package com.punchin.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.punchin.enums.RoleEnum;
 import com.punchin.enums.UserStatus;
 import com.punchin.utility.UserSequenceIdGenerator;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 @Entity
 @Table(name = "users")
-public class User extends BasicEntity {
+public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "user_id_generator")
     @GenericGenerator(name = "user_id_generator", strategy = "com.punchin.utility.UserSequenceIdGenerator", parameters = {
@@ -26,15 +27,13 @@ public class User extends BasicEntity {
             @Parameter(name = UserSequenceIdGenerator.NUMBER_FORMAT_PARAMETER, value = "%05d") })
     private Long id;
 
-    /** The user name. */
-    private String userName;
+    /** The user id. */
+    @Column(unique = true)
+    private String userId;
 
     /** The first name. */
     @NotNull(message = "{validation.firstname.notnull}")
     private String firstName;
-
-    /** The middle name. */
-    private String middleName;
 
     /** The last name. */
     private String lastName;
@@ -50,12 +49,14 @@ public class User extends BasicEntity {
     @JsonIgnore
     private String password;
 
-    /** The email. */
-    @Email(message = "{validation.email}")
-    private String email;
-
 
     /** The roles. */
-    @ManyToOne
-    private Roles role;
+    @Enumerated(EnumType.STRING)
+    private RoleEnum role;
+
+    @CreationTimestamp
+    private Date createdAt;
+
+    @UpdateTimestamp
+    private Date updatedAt;
 }

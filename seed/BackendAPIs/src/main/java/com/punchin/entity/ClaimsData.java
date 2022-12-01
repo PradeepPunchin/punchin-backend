@@ -5,6 +5,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Entity
@@ -74,7 +75,7 @@ public class ClaimsData extends BasicEntity {
     private ClaimStatus claimStatus;
 
     @OneToMany
-    private ClaimDocuments claimDocuments;
+    private List<ClaimDocuments> claimDocuments;
 
 
 

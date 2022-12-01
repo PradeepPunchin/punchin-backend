@@ -1,6 +1,6 @@
 package com.punchin.controllers;
 
-import com.punchin.Service.AuthenticationService;
+import com.punchin.service.AuthenticationService;
 import com.punchin.dto.LoginRequestDTO;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;

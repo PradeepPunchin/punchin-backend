@@ -1,12 +1,10 @@
-package com.punchin.Service;
+package com.punchin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.punchin.dto.LoginRequestDTO;
 import com.punchin.dto.SessionDTO;
-import com.punchin.entity.Session;
 import com.punchin.entity.User;
 import com.punchin.repository.UserRepository;
-import com.punchin.utility.GenericUtils;
 import com.punchin.utility.constant.Headers;
 import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.jws.soap.SOAPBinding;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;

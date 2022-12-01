@@ -50,7 +50,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("123"));
-                user.setRole(RoleEnum.ROLE_ADMIN);
+                user.setRole(RoleEnum.ADMIN);
                 users.add(user);
             }
             if (!userRepository.existsByUserIdIgnoreCase("banker")) {
@@ -61,7 +61,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("123"));
-                user.setRole(RoleEnum.ROLE_BANKER);
+                user.setRole(RoleEnum.BANKER);
                 users.add(user);
             }
             if (!userRepository.existsByUserIdIgnoreCase("verifier")) {
@@ -72,7 +72,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("123"));
-                user.setRole(RoleEnum.ROLE_VERIFIER);
+                user.setRole(RoleEnum.VERIFIER);
                 users.add(user);
             }
             if (!userRepository.existsByUserIdIgnoreCase("agent")) {
@@ -83,7 +83,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("123"));
-                user.setRole(RoleEnum.ROLE_AGENT);
+                user.setRole(RoleEnum.AGENT);
                 users.add(user);
             }
             userRepository.saveAll(users);

@@ -1,4 +1,4 @@
-package com.punchin.Service;
+package com.punchin.service;
 
 import com.punchin.dto.LoginRequestDTO;
 

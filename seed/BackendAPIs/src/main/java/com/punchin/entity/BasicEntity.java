@@ -2,15 +2,13 @@ package com.punchin.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.EntityListeners;
+import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
 
 @Data
+@MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(
         value = {"updatedAt"},
@@ -18,9 +16,73 @@ import java.util.Date;
 )
 public class BasicEntity implements Serializable {
 
-    @CreationTimestamp
-    private Date createdAt;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(updatable = false, unique = true)
+    private Long id;
 
-    @UpdateTimestamp
-    private Date updatedAt;
+    @Column
+    private Long createdAt;
+
+    @Column
+    private Long updatedAt;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean isDeleted = false;
+
+    @Column(columnDefinition = "boolean default true")
+    private Boolean isActive = true;
+
+    public boolean getIsDeleted() {
+        if (isDeleted != null){
+            return isDeleted;
+        }
+        else{
+            return false;
+        }
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        if (isDeleted != null) this.isDeleted = isDeleted;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getCreatedDate() {
+        return createdAt;
+    }
+
+    @PrePersist
+    public void setCreatedDate() {
+        this.createdAt = System.currentTimeMillis();
+        this.updatedAt = this.createdAt;
+    }
+
+    public Long getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @PreUpdate
+    public void setUpdatedAt() {
+        this.updatedAt = System.currentTimeMillis();
+    }
+
+    public boolean getIsActive() {
+        if (isActive != null){
+            return isActive;
+        }
+        else {
+            return true;
+        }
+    }
+
+    public void setIsActive(Boolean isActive) {
+        if (isActive != null) this.isActive = isActive;
+    }
 }

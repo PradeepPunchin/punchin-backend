@@ -1,6 +1,6 @@
 package com.punchin.security;
 
-import com.punchin.Service.SessionService;
+import com.punchin.service.SessionService;
 import com.punchin.entity.Session;
 import com.punchin.utility.constant.Headers;
 import com.punchin.utility.constant.Literals;

@@ -3,29 +3,17 @@ package com.punchin.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.punchin.enums.RoleEnum;
 import com.punchin.enums.UserStatus;
-import com.punchin.utility.UserSequenceIdGenerator;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Parameter;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.id.enhanced.SequenceStyleGenerator;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.Date;
 
 @Data
 @Entity
 @Table(name = "users")
-public class User{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "user_id_generator")
-    @GenericGenerator(name = "user_id_generator", strategy = "com.punchin.utility.UserSequenceIdGenerator", parameters = {
-            @Parameter(name = SequenceStyleGenerator.INCREMENT_PARAM, value = "1"),
-            @Parameter(name = UserSequenceIdGenerator.VALUE_PREFIX_PARAMETER, value = ""),
-            @Parameter(name = UserSequenceIdGenerator.NUMBER_FORMAT_PARAMETER, value = "%05d") })
-    private Long id;
+@EqualsAndHashCode(callSuper = true)
+public class User extends BasicEntity{
 
     /** The user id. */
     @Column(unique = true)
@@ -49,14 +37,8 @@ public class User{
     @JsonIgnore
     private String password;
 
-
     /** The roles. */
     @Enumerated(EnumType.STRING)
     private RoleEnum role;
 
-    @CreationTimestamp
-    private Date createdAt;
-
-    @UpdateTimestamp
-    private Date updatedAt;
 }

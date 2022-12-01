@@ -18,24 +18,24 @@ public class RoleConfig {
 
 		JSONObject roleAdmin = new JSONObject();
 		roleAdmin.put(RoleConfig.REPRESENTATION,"ADMIN");
-		roleAdmin.put(RoleConfig.NAME,RoleEnum.ROLE_ADMIN);
+		roleAdmin.put(RoleConfig.NAME,RoleEnum.ADMIN);
 		roleAdmin.put(RoleConfig.DESCRIPTION,"The user with this role have all the rights of admin");
 		this.roles.put(roleAdmin);
 
 		JSONObject roleBanker = new JSONObject();
 		roleBanker.put(RoleConfig.REPRESENTATION,"BANKER");
-		roleBanker.put(RoleConfig.NAME,RoleEnum.ROLE_BANKER);
+		roleBanker.put(RoleConfig.NAME,RoleEnum.BANKER);
 		roleBanker.put(RoleConfig.DESCRIPTION,"The user with this role have all the rights of Banker");
 		this.roles.put(roleBanker);
 
 		JSONObject roleVerifier = new JSONObject();
 		roleVerifier.put(RoleConfig.REPRESENTATION,"VERIFIER");
-		roleVerifier.put(RoleConfig.NAME,RoleEnum.ROLE_VERIFIER);
+		roleVerifier.put(RoleConfig.NAME,RoleEnum.VERIFIER);
 		roleVerifier.put(RoleConfig.DESCRIPTION,"The user with this role have all the rights of verifier");
 		this.roles.put(roleVerifier);
 
-		roleUser.put(RoleConfig.REPRESENTATION,"USER");
-		roleUser.put(RoleConfig.NAME,RoleEnum.ROLE_AGENT);
+		roleUser.put(RoleConfig.REPRESENTATION,"Agent");
+		roleUser.put(RoleConfig.NAME,RoleEnum.AGENT);
 		roleUser.put(RoleConfig.DESCRIPTION,"The user with this role have all the rights of agent");
 		this.roles.put(roleUser);
 

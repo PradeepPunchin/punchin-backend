@@ -5,10 +5,10 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @Entity
+@EqualsAndHashCode(callSuper = true)
 public class ClaimsData extends BasicEntity {
 
     private String punchinClaimId;
@@ -72,5 +72,10 @@ public class ClaimsData extends BasicEntity {
 
     @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
+
+    @OneToMany
+    private ClaimDocuments claimDocuments;
+
+
 
 }

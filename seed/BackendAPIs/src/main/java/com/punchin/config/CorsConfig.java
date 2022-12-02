@@ -20,7 +20,7 @@ import java.io.IOException;
  *
  */
 
-//@Configuration
+@Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsConfig extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);

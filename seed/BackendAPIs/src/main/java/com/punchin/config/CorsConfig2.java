@@ -5,12 +5,13 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class CorsConfig2 extends WebMvcConfigurationSupport {
+public class CorsConfig2 implements WebMvcConfigurer {
         @Override
-        protected void addCorsMappings(CorsRegistry registry) {
+        public void addCorsMappings(CorsRegistry registry) {
             registry.addMapping("/**").allowedOrigins("*");
         }
 }

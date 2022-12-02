@@ -1,9 +1,7 @@
 package com.punchin.controllers;
 
-import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.service.BankerService;
-import com.punchin.enums.ClaimDataFilter;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;
@@ -25,7 +23,7 @@ import java.util.Map;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/banker", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/banker", produces = MediaType.APPLICATION_JSON_VALUE)
 public class BankerController {
 
     @Autowired
@@ -74,6 +72,30 @@ public class BankerController {
             log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
             Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
             return ResponseHandler.response(pageDTO, ResponseMessgae.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching in pagination data");
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/submitClaims")
+    public ResponseEntity<Object> submitClaims() {
+        try {
+            //log.info("BankerController :: submitClaims dataFilter{}, page{}, limit{}", claimStatus, page, limit);
+            //Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
+            return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching in pagination data");
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/discardClaims")
+    public ResponseEntity<Object> discardClaims() {
+        try {
+            //log.info("BankerController :: discardClaims");
+            //Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
+            return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

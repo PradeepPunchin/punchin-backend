@@ -1,17 +1,16 @@
 package com.punchin.entity;
 
-import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.Platform;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-public class ClaimsData extends BasicEntity {
+public class ClaimUploadDraft extends BasicEntity {
 
     private String punchinClaimId;
 
@@ -71,13 +70,4 @@ public class ClaimsData extends BasicEntity {
 
     @Column(columnDefinition = "Text")
     private String nomineeAddress;
-
-    @Enumerated(EnumType.STRING)
-    private ClaimStatus claimStatus;
-
-    @OneToMany
-    private List<Platform.ClaimDocuments> claimDocuments;
-
-
-
 }

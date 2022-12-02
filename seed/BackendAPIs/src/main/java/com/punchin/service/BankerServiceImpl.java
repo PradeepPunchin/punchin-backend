@@ -1,9 +1,11 @@
 package com.punchin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.punchin.entity.ClaimUploadDraft;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
+import com.punchin.repository.ClaimUploadDraftRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.constant.ResponseMessgae;
@@ -35,6 +37,9 @@ public class BankerServiceImpl implements BankerService{
     private ClaimsDataRepository claimsDataRepository;
 
     @Autowired
+    private ClaimUploadDraftRepository claimUploadDraftRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Override
@@ -46,9 +51,9 @@ public class BankerServiceImpl implements BankerService{
             String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for(MultipartFile file : files) {
                 Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
-                List<ClaimsData> claimsData = (List<ClaimsData>) Arrays.asList(data.get("claimsData")).get(0);
+                List<ClaimUploadDraft> claimsData = (List<ClaimUploadDraft>) Arrays.asList(data.get("claimsData")).get(0);
                 if(Objects.nonNull(claimsData)) {
-                    claimsData = claimsDataRepository.saveAll(claimsData);
+                    claimsData = claimUploadDraftRepository.saveAll(claimsData);
                     map.put("data", claimsData);
                     map.put("status", true);
                     map.put("message", ResponseMessgae.success);
@@ -99,7 +104,7 @@ public class BankerServiceImpl implements BankerService{
 
     public Map<String, Object> convertExcelToListOfClaimsData(InputStream is, String bankerId) {
         Map<String, Object> map = new HashMap<>();
-        List<ClaimsData> list = new ArrayList<>();
+        List<ClaimUploadDraft> list = new ArrayList<>();
         log.info("BankerServiceImpl :: saveUploadExcelData file{}, bankerId{}", is, bankerId);
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(is);
@@ -123,7 +128,7 @@ public class BankerServiceImpl implements BankerService{
 
                 int cid = 0;
 
-                ClaimsData p = new ClaimsData();
+                ClaimUploadDraft p = new ClaimUploadDraft();
 
                 while (cells.hasNext()) {
                     Cell cell = cells.next();
@@ -252,7 +257,7 @@ public class BankerServiceImpl implements BankerService{
                             break;
 
                         case 28:
-                            p.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
+                            //p.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
                             break;
 
                         default:

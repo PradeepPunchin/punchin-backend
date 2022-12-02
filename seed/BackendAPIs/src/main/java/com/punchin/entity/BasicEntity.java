@@ -16,11 +16,6 @@ import java.io.Serializable;
 )
 public class BasicEntity implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(updatable = false, unique = true)
-    private Long id;
-
     @Column
     private Long createdAt;
 
@@ -44,14 +39,6 @@ public class BasicEntity implements Serializable {
 
     public void setIsDeleted(Boolean isDeleted) {
         if (isDeleted != null) this.isDeleted = isDeleted;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getCreatedDate() {

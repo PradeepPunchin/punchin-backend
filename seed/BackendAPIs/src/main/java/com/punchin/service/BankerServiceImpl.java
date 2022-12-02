@@ -74,7 +74,7 @@ public class BankerServiceImpl implements BankerService{
             log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
             Pageable pageable = PageRequest.of(page, limit, Sort.by("punchin_claim_id"));
             Page page1;
-            if(ClaimDataFilter.ALL.equals(claimStatus)){
+            if(ClaimStatus.ALL.equals(claimStatus)){
                 page1 = claimsDataRepository.findAll(pageable);
             } else {
                 page1 = claimsDataRepository.findByClaimStatus(claimStatus.toString(), pageable);

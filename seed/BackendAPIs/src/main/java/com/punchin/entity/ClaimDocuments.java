@@ -3,15 +3,17 @@ package com.punchin.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ClaimDocuments extends BasicEntity{
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(updatable = false, unique = true)
+    private Long id;
 
     @ManyToOne
     private ClaimsData claimsData;

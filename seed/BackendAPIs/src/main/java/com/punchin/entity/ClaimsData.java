@@ -1,7 +1,6 @@
 package com.punchin.entity;
 
 import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.Platform;
 import lombok.*;
 
 import javax.persistence.*;
@@ -12,6 +11,11 @@ import java.util.List;
 @Entity
 @EqualsAndHashCode(callSuper = true)
 public class ClaimsData extends BasicEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(updatable = false, unique = true)
+    private Long id;
 
     private String punchinClaimId;
 
@@ -80,7 +84,7 @@ public class ClaimsData extends BasicEntity {
     private Long submittedAt;
 
     @OneToMany
-    private List<Platform.ClaimDocuments> claimDocuments;
+    private List<ClaimDocuments> claimDocuments;
 
 
 

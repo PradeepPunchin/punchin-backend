@@ -15,6 +15,11 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode(callSuper = true)
 public class User extends BasicEntity{
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(updatable = false, unique = true)
+    private Long id;
+
     /** The user id. */
     @Column(unique = true)
     private String userId;

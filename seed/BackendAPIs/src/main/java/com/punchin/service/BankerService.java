@@ -11,4 +11,6 @@ public interface BankerService {
     Map<String, Object> saveUploadExcelData(MultipartFile[] files);
 
     Page getAllClaimsData(ClaimStatus claimStatus, Integer page, Integer limit);
+
+    Map<String, Long> getDashboardData();
 }

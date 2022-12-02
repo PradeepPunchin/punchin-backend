@@ -81,6 +81,21 @@ public class BankerServiceImpl implements BankerService{
         }
     }
 
+    @Override
+    public Map<String, Long> getDashboardData() {
+        try{
+            log.info("BankerController :: getDashboardData");
+            Map<String, Long> map = new HashMap<>();
+            map.put(ClaimStatus.ALL.name(), 15L);
+            map.put(ClaimStatus.IN_PROGRESS.name(), 10L);
+            map.put(ClaimStatus.SETTLED.name(), 5L);
+            return map;
+        }catch (Exception e){
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);
+            return Collections.EMPTY_MAP;
+        }
+    }
+
 
     public Map<String, Object> convertExcelToListOfClaimsData(InputStream is, String bankerId) {
         Map<String, Object> map = new HashMap<>();

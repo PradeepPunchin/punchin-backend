@@ -1,6 +1,8 @@
 package com.punchin.enums;
 
 public enum ClaimStatus {
+
+    ALL(0, "ALL"),//All
     CLAIM_SUBMITTED(1, "CLAIM_SUBMITTED"),//When Banker upload claim data
     AGENT_ALLOCATED(2, "AGENT_ALLOCATED"),//When claim is allocated to Agent
     IN_PROGRESS(3, "IN_PROGRESS"),//When Agent to some changes to claim

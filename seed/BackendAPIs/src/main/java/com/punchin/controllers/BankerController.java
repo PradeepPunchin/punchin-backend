@@ -31,6 +31,18 @@ public class BankerController {
     @Autowired
     private BankerService bankerService;
 
+    @GetMapping(value = "/getDashboardData")
+    public ResponseEntity<Object> getDashboardData() {
+        try {
+            log.info("BankerController :: getDashboardData");
+            Map<String, Long> map = bankerService.getDashboardData();
+            return ResponseHandler.response(map, ResponseMessgae.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getDashboardData e{}", e);
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @Secured("BANKER")
     @ApiOperation(value = "User Login", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = "/upload")
@@ -62,6 +74,18 @@ public class BankerController {
             log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
             Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
             return ResponseHandler.response(pageDTO, ResponseMessgae.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching in pagination data");
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping(value = "/uploadDocument/{claimId}/{docType}")
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable String docType) {
+        try {
+            //log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
+            //Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
+            return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

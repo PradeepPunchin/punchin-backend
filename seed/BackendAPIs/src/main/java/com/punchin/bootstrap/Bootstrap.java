@@ -49,7 +49,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("123"));
+                user.setPassword(passwordEncoder.encode("admin@123"));
                 user.setRole(RoleEnum.ADMIN);
                 users.add(user);
             }
@@ -60,7 +60,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("123"));
+                user.setPassword(passwordEncoder.encode("banker@123"));
                 user.setRole(RoleEnum.BANKER);
                 users.add(user);
             }
@@ -71,7 +71,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("123"));
+                user.setPassword(passwordEncoder.encode("verifier@123"));
                 user.setRole(RoleEnum.VERIFIER);
                 users.add(user);
             }
@@ -82,7 +82,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("123"));
+                user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
                 users.add(user);
             }

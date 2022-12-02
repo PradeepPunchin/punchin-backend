@@ -5,6 +5,7 @@ import com.punchin.service.BankerService;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;
+import com.punchin.utility.constant.UrlMapping;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ public class BankerController {
     @Autowired
     private BankerService bankerService;
 
-    @GetMapping(value = "/getDashboardData")
+    @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("BankerController :: getDashboardData");
@@ -43,7 +44,7 @@ public class BankerController {
 
     @Secured("BANKER")
     @ApiOperation(value = "User Login", notes = "This can be used to Upload spreadsheet for claims data")
-    @PostMapping(value = "/upload")
+    @PostMapping(value = UrlMapping.UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "files", value = "The multipart object as an array to upload multiple files.") @Valid @RequestParam("files") MultipartFile[] files) {
         try {
             log.info("BankerController :: uploadClaimData files{}", files.length);
@@ -66,7 +67,7 @@ public class BankerController {
         }
     }
 
-    @GetMapping(value = "/getClaimsData")
+    @GetMapping(value = UrlMapping.GET_CLAIMS_DATA)
     public ResponseEntity<Object> getClaimsData(@RequestParam ClaimStatus claimStatus, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
@@ -78,7 +79,7 @@ public class BankerController {
         }
     }
 
-    @GetMapping(value = "/submitClaims")
+    @GetMapping(value = UrlMapping.SUBMIT_CLAIMS)
     public ResponseEntity<Object> submitClaims() {
         try {
             //log.info("BankerController :: submitClaims dataFilter{}, page{}, limit{}", claimStatus, page, limit);
@@ -90,7 +91,7 @@ public class BankerController {
         }
     }
 
-    @GetMapping(value = "/discardClaims")
+    @GetMapping(value = UrlMapping.DISCARD_CLAIMS)
     public ResponseEntity<Object> discardClaims() {
         try {
             //log.info("BankerController :: discardClaims");

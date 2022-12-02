@@ -12,6 +12,7 @@ public class UrlMapping {
 
     //Banker Endpoints
     public static final String GET_DASHBOARD_DATA = BASEURL + "/banker" + "/getDashboardData";
+    public static final String GET_CLAIMS_DATA = BASEURL + "/banker" + "/getClaimsData";
     public static final String UPLOAD_CLAIM = BASEURL + "/banker" + "/upload";
     public static final String SUBMIT_CLAIMS = BASEURL + "/banker" + "/submitClaims";
     public static final String DISCARD_CLAIMS = BASEURL + "/banker" + "/discardClaims";

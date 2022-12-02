@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+@CrossOrigin
 @Slf4j
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)

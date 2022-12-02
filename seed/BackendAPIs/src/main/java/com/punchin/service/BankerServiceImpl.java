@@ -2,9 +2,10 @@ package com.punchin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.punchin.entity.ClaimDraftData;
+import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
-import com.punchin.repository.ClaimUploadDraftRepository;
+import com.punchin.repository.ClaimDraftDataRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.constant.ResponseMessgae;
@@ -36,7 +37,7 @@ public class BankerServiceImpl implements BankerService{
     private ClaimsDataRepository claimsDataRepository;
 
     @Autowired
-    private ClaimUploadDraftRepository claimUploadDraftRepository;
+    private ClaimDraftDataRepository claimDraftDataRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -52,7 +53,7 @@ public class BankerServiceImpl implements BankerService{
                 Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 if(Objects.nonNull(claimsData)) {
-                    claimsData = claimUploadDraftRepository.saveAll(claimsData);
+                    claimsData = claimDraftDataRepository.saveAll(claimsData);
                     map.put("data", claimsData);
                     map.put("status", true);
                     map.put("message", ResponseMessgae.success);
@@ -101,15 +102,38 @@ public class BankerServiceImpl implements BankerService{
     }
 
     @Override
-    public boolean submitClaims() {
+    public String submitClaims() {
         try{
             log.info("BankerController :: submitClaims");
-            //ClaimDraftData
-            //ClaimsData claimsData = objectMapper.convertValue()
-            return true;
+            List<ClaimDraftData> claimDraftDatas = claimDraftDataRepository.findAll();
+            List<ClaimsData> claimsDataList = new ArrayList<>();
+            for (ClaimDraftData claimDraftData : claimDraftDatas){
+                ClaimsData claimsData = objectMapper.convertValue(claimDraftData, ClaimsData.class);
+                claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
+                claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
+                claimsData.setSubmittedAt(System.currentTimeMillis());
+                claimsDataList.add(claimsData);
+            }
+            if(!claimsDataList.isEmpty()) {
+                claimsDataRepository.saveAll(claimsDataList);
+                return ResponseMessgae.success;
+            }
+            return ResponseMessgae.invalidClaimData;
         }catch (Exception e){
-            log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);
-            return false;
+            log.error("EXCEPTION WHILE BankerServiceImpl :: submitClaims e{}", e);
+            return ResponseMessgae.backText;
+        }
+    }
+
+    @Override
+    public String discardClaims() {
+        try{
+            log.info("BankerController :: discardClaims");
+            claimDraftDataRepository.deleteAll();
+            return ResponseMessgae.success;
+        }catch (Exception e){
+            log.error("EXCEPTION WHILE BankerServiceImpl :: discardClaims e{}", e);
+            return ResponseMessgae.backText;
         }
     }
 

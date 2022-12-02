@@ -14,5 +14,7 @@ public interface BankerService {
 
     Map<String, Long> getDashboardData();
 
-    boolean submitClaims();
+    String submitClaims();
+
+    String discardClaims();
 }

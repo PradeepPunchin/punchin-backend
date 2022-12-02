@@ -75,6 +75,10 @@ public class ClaimsData extends BasicEntity {
     @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
 
+    private String submittedBy;
+
+    private Long submittedAt;
+
     @OneToMany
     private List<Platform.ClaimDocuments> claimDocuments;
 

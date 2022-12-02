@@ -22,6 +22,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
+@CrossOrigin
 @RestController
 @Slf4j
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -82,9 +83,12 @@ public class BankerController {
     @GetMapping(value = UrlMapping.SUBMIT_CLAIMS)
     public ResponseEntity<Object> submitClaims() {
         try {
-            //log.info("BankerController :: submitClaims dataFilter{}, page{}, limit{}", claimStatus, page, limit);
-            boolean result = bankerService.submitClaims();
-            return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            log.info("BankerController :: submitClaims");
+            String result = bankerService.submitClaims();
+            if (result.equals(ResponseMessgae.success)) {
+                return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, result, false, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -94,8 +98,11 @@ public class BankerController {
     @GetMapping(value = UrlMapping.DISCARD_CLAIMS)
     public ResponseEntity<Object> discardClaims() {
         try {
-            //log.info("BankerController :: discardClaims");
-            //Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
+            log.info("BankerController :: discardClaims");
+            String result = bankerService.discardClaims();
+            if (result.equals(ResponseMessgae.success)) {
+                return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            }
             return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");

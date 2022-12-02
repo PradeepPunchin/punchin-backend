@@ -1,5 +1,6 @@
 package com.punchin.security;
 
+import com.punchin.utility.constant.UrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +43,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/configuration/**")
                 .antMatchers("/webjars/**")
                 .antMatchers("/public")
-                .antMatchers(HttpMethod.POST, "/api/**")
+                .antMatchers(HttpMethod.POST, UrlMapping.LOGIN)
                 .and()
                 .ignoring()
                 .antMatchers("/h2-console/**/**");

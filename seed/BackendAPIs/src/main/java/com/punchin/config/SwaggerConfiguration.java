@@ -1,6 +1,7 @@
 package com.punchin.config;
 
 import com.google.common.collect.Lists;
+import com.punchin.utility.constant.Headers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
@@ -20,8 +21,6 @@ import java.util.List;
 @Configuration
 @EnableSwagger2
 public class SwaggerConfiguration {
-
-	private static final String KEYNAME="Authorization";
     @Bean
     public Docket newApi() {
         return new Docket(DocumentationType.SWAGGER_2).select()
@@ -33,7 +32,7 @@ public class SwaggerConfiguration {
 }
 
 private ApiKey apiKey() {
-    return new ApiKey(SwaggerConfiguration.KEYNAME,SwaggerConfiguration.KEYNAME, "header");
+    return new ApiKey(Headers.AUTH_TOKEN,Headers.AUTH_TOKEN, "header");
 }
 
 private SecurityContext securityContext() {
@@ -42,11 +41,10 @@ private SecurityContext securityContext() {
 }
 
 private List<SecurityReference> defaultAuth() {
-    AuthorizationScope authorizationScope = new AuthorizationScope(
-        "global", "accessEverything");
+    AuthorizationScope authorizationScope = new AuthorizationScope("global", "accessEverything");
     AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
     authorizationScopes[0] = authorizationScope;
-    return  Arrays.asList(new SecurityReference(SwaggerConfiguration.KEYNAME,authorizationScopes));
+    return  Arrays.asList(new SecurityReference(Headers.AUTH_TOKEN,authorizationScopes));
     }
 
 }

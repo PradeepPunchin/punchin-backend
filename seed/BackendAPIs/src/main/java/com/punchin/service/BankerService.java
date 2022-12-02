@@ -13,4 +13,6 @@ public interface BankerService {
     Page getAllClaimsData(ClaimStatus claimStatus, Integer page, Integer limit);
 
     Map<String, Long> getDashboardData();
+
+    boolean submitClaims();
 }

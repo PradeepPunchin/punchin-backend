@@ -23,7 +23,7 @@ import java.util.Map;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/api/v1/banker", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/banker", produces = MediaType.APPLICATION_JSON_VALUE)
 public class BankerController {
 
     @Autowired
@@ -82,7 +82,7 @@ public class BankerController {
     public ResponseEntity<Object> submitClaims() {
         try {
             //log.info("BankerController :: submitClaims dataFilter{}, page{}, limit{}", claimStatus, page, limit);
-            //Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
+            boolean result = bankerService.submitClaims();
             return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");

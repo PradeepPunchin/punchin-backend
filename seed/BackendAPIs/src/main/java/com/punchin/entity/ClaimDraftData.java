@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-public class ClaimUploadDraft extends BasicEntity {
+public class ClaimDraftData extends BasicEntity {
 
     private String punchinClaimId;
 

@@ -42,7 +42,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/configuration/**")
                 .antMatchers("/webjars/**")
                 .antMatchers("/public")
-                .antMatchers(HttpMethod.POST, "/auth/**")
+                .antMatchers(HttpMethod.POST, "/api/**")
+                .antMatchers(HttpMethod.GET, "/api/**")
                 .and()
                 .ignoring()
                 .antMatchers("/h2-console/**/**");

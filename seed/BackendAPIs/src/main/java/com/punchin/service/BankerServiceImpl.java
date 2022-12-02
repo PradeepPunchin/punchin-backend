@@ -1,8 +1,7 @@
 package com.punchin.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.punchin.entity.ClaimUploadDraft;
-import com.punchin.entity.ClaimsData;
+import com.punchin.entity.ClaimDraftData;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimUploadDraftRepository;
@@ -51,7 +50,7 @@ public class BankerServiceImpl implements BankerService{
             String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for(MultipartFile file : files) {
                 Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
-                List<ClaimUploadDraft> claimsData = (List<ClaimUploadDraft>) Arrays.asList(data.get("claimsData")).get(0);
+                List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 if(Objects.nonNull(claimsData)) {
                     claimsData = claimUploadDraftRepository.saveAll(claimsData);
                     map.put("data", claimsData);
@@ -101,10 +100,23 @@ public class BankerServiceImpl implements BankerService{
         }
     }
 
+    @Override
+    public boolean submitClaims() {
+        try{
+            log.info("BankerController :: submitClaims");
+            //ClaimDraftData
+            //ClaimsData claimsData = objectMapper.convertValue()
+            return true;
+        }catch (Exception e){
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);
+            return false;
+        }
+    }
+
 
     public Map<String, Object> convertExcelToListOfClaimsData(InputStream is, String bankerId) {
         Map<String, Object> map = new HashMap<>();
-        List<ClaimUploadDraft> list = new ArrayList<>();
+        List<ClaimDraftData> list = new ArrayList<>();
         log.info("BankerServiceImpl :: saveUploadExcelData file{}, bankerId{}", is, bankerId);
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(is);
@@ -128,7 +140,7 @@ public class BankerServiceImpl implements BankerService{
 
                 int cid = 0;
 
-                ClaimUploadDraft p = new ClaimUploadDraft();
+                ClaimDraftData p = new ClaimDraftData();
 
                 while (cells.hasNext()) {
                     Cell cell = cells.next();

@@ -4,6 +4,7 @@ import com.punchin.service.AuthenticationService;
 import com.punchin.dto.LoginRequestDTO;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;
+import com.punchin.utility.constant.UrlMapping;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +23,14 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/api/v1/auth", produces = MediaType.APPLICATION_JSON_VALUE)
+//@RequestMapping(value = "/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthenticationController {
 
     @Autowired
     private AuthenticationService authenticationService;
 
     @ApiOperation(value = "User Login", notes = "This can be used to generate API token")
-    @PostMapping(value = "/login")
+    @PostMapping(value = UrlMapping.LOGIN)
     public ResponseEntity<Object> userAuthentication(@ApiParam(name = "Credential", value = "The Login request Object for user login", required = true) @Valid @RequestBody LoginRequestDTO credentials){
         try{
             log.info("AuthenticationController :: userAuthentication LoginRequestDTO{}", credentials);
@@ -46,7 +47,7 @@ public class AuthenticationController {
     }
 
     @ApiOperation(value = "User Logout", notes = "This can be used to logout the system")
-    @GetMapping("/logout")
+    @GetMapping(value = UrlMapping.LOGOUT)
     public ResponseEntity<Object> logout(HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> result = new HashMap<>();
         authenticationService.logout(request, result);

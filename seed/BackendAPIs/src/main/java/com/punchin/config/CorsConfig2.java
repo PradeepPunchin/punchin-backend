@@ -8,11 +8,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class CorsConfig2 {
-    public class WebConfiguration extends WebMvcConfigurationSupport {
+public class CorsConfig2 extends WebMvcConfigurationSupport {
         @Override
         protected void addCorsMappings(CorsRegistry registry) {
             registry.addMapping("/**").allowedOrigins("*");
         }
-    }
 }

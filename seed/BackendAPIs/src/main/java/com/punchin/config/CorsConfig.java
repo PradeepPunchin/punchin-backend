@@ -30,8 +30,7 @@ public class CorsConfig extends OncePerRequestFilter {
     private static final String ALLOWED_ORIGIN = "*";
 
     @Override
-    protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response,
-                                    final FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
         response.addHeader(Headers.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOWED_ORIGIN);
         if (HttpMethod.OPTIONS.toString().equalsIgnoreCase(request.getMethod())) {
             response.addHeader(Headers.ACCESS_CONTROL_ALLOW_METHODS, ALLOWED_METHODS);

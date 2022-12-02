@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-//@RequestMapping(value = "/auth", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthenticationController {
 
     @Autowired

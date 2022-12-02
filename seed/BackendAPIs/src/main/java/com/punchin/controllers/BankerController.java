@@ -23,7 +23,7 @@ import java.util.Map;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/banker", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 public class BankerController {
 
     @Autowired

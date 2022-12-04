@@ -1,5 +1,6 @@
 package com.punchin.service;
 
+import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,7 +11,7 @@ public interface BankerService {
 
     Map<String, Object> saveUploadExcelData(MultipartFile[] files);
 
-    Page getAllClaimsData(ClaimStatus claimStatus, Integer page, Integer limit);
+    Page getAllClaimsData(ClaimDataFilter claimDataFilter, Integer page, Integer limit);
 
     Map<String, Long> getDashboardData();
 

@@ -4,7 +4,7 @@ import com.punchin.enums.ClaimStatus;
 import lombok.*;
 
 import javax.persistence.*;
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -23,7 +23,7 @@ public class ClaimsData extends BasicEntity {
 
     private String punchinBankerId;
 
-    private LocalDate claimInwardDate;
+    private Date claimInwardDate;
 
     private String borrowerName;
 
@@ -59,7 +59,7 @@ public class ClaimsData extends BasicEntity {
 
     private String policyNumber;
 
-    private LocalDate policyStartDate;
+    private Date policyStartDate;
 
     private Integer policyCoverageDuration;
 
@@ -86,6 +86,6 @@ public class ClaimsData extends BasicEntity {
     @OneToMany
     private List<ClaimDocuments> claimDocuments;
 
-
+    private Boolean isForwardToVerifier = false;
 
 }

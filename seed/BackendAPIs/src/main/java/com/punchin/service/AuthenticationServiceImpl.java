@@ -1,10 +1,10 @@
 package com.punchin.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.punchin.dto.LoginRequestDTO;
 import com.punchin.dto.SessionDTO;
 import com.punchin.entity.User;
 import com.punchin.repository.UserRepository;
+import com.punchin.utility.ModelMapper;
 import com.punchin.utility.constant.Headers;
 import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
     SessionService sessionService;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ModelMapper modelMapper;
 
     @Override
     public Map<String, Object> authenticateUserAccount(LoginRequestDTO credentials) {
@@ -40,7 +40,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
         User user = userRepository.findByUserIdIgnoreCase(credentials.getUserId());
         Map<String, Object> mapResult = new HashMap<>();
         if(Objects.nonNull(user) && user.getPassword() != null && BCrypt.checkpw(credentials.getPassword(), user.getPassword())){
-            mapResult.put("session", objectMapper.convertValue(sessionService.createSession(user), SessionDTO.class));
+            mapResult.put("session", modelMapper.map(sessionService.createSession(user), SessionDTO.class));
             mapResult.put("message", ResponseMessgae.success);
         }else{
             mapResult.put("message", ResponseMessgae.invalidCredentials);

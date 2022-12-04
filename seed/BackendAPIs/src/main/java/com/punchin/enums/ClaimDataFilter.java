@@ -1,10 +1,8 @@
 package com.punchin.enums;
 
 public enum ClaimDataFilter {
-    ALL(1, "All"),
-    PENDING(2, "Pending"),
-    WIP(3, "WIP"),
-    SETTLED(4, "Settled");
+    DRAFT(1, "DRAFT"),
+    SUBMITED(2, "SUBMITED");
 
     private final String value;
 

@@ -26,9 +26,9 @@ public class ClaimDocuments extends BasicEntity{
 
     private String agentId;
 
-    private Boolean isVerified;
+    private Boolean isVerified = false;
 
-    private Boolean isApproved;
+    private Boolean isApproved = false;
 
     private String verifierId;
 

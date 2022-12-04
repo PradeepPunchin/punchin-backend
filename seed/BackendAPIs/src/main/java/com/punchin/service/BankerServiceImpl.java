@@ -8,6 +8,7 @@ import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimDraftDataRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.utility.GenericUtils;
+import com.punchin.utility.ModelMapper;
 import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
@@ -20,12 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.time.ZoneId;
 import java.util.*;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class BankerServiceImpl implements BankerService{
     private ClaimDraftDataRepository claimDraftDataRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ModelMapper modelMapper;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -69,15 +70,15 @@ public class BankerServiceImpl implements BankerService{
     }
 
     @Override
-    public Page getAllClaimsData(ClaimStatus claimStatus, Integer page, Integer limit) {
+    public Page getAllClaimsData(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
         try{
-            log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
-            Pageable pageable = PageRequest.of(page, limit, Sort.by("punchin_claim_id"));
+            log.info("BankerServiceImpl :: getAllClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
+            Pageable pageable = PageRequest.of(page, limit);
             Page page1;
-            if(ClaimStatus.ALL.equals(claimStatus)){
-                page1 = claimsDataRepository.findAll(pageable);
+            if(claimDataFilter.DRAFT.equals(claimDataFilter)){
+                page1 = claimDraftDataRepository.findAll(pageable);
             } else {
-                page1 = claimsDataRepository.findByClaimStatus(claimStatus.toString(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.CLAIM_SUBMITTED, false, pageable);
             }
             return page1;
         }catch (Exception e){
@@ -88,16 +89,19 @@ public class BankerServiceImpl implements BankerService{
 
     @Override
     public Map<String, Long> getDashboardData() {
+        Map<String, Long> map = new HashMap<>();
         try{
             log.info("BankerController :: getDashboardData");
-            Map<String, Long> map = new HashMap<>();
-            map.put(ClaimStatus.ALL.name(), 15L);
-            map.put(ClaimStatus.IN_PROGRESS.name(), 10L);
-            map.put(ClaimStatus.SETTLED.name(), 5L);
+            map.put(ClaimStatus.ALL.name(), claimsDataRepository.count());
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
+            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.SETTLED));
             return map;
         }catch (Exception e){
             log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);
-            return Collections.EMPTY_MAP;
+            map.put(ClaimStatus.ALL.name(), 0L);
+            map.put(ClaimStatus.IN_PROGRESS.name(), 0L);
+            map.put(ClaimStatus.SETTLED.name(), 0L);
+            return map;
         }
     }
 
@@ -108,7 +112,7 @@ public class BankerServiceImpl implements BankerService{
             List<ClaimDraftData> claimDraftDatas = claimDraftDataRepository.findAll();
             List<ClaimsData> claimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimDraftDatas){
-                ClaimsData claimsData = objectMapper.convertValue(claimDraftData, ClaimsData.class);
+                ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
                 claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
                 claimsData.setSubmittedAt(System.currentTimeMillis());
@@ -116,6 +120,7 @@ public class BankerServiceImpl implements BankerService{
             }
             if(!claimsDataList.isEmpty()) {
                 claimsDataRepository.saveAll(claimsDataList);
+                claimDraftDataRepository.deleteAll();
                 return ResponseMessgae.success;
             }
             return ResponseMessgae.invalidClaimData;
@@ -187,7 +192,7 @@ public class BankerServiceImpl implements BankerService{
                             break;
                         case 3:
                             if(Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setClaimInwardDate(cell.getLocalDateTimeCellValue().toLocalDate());
+                                p.setClaimInwardDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
                         case 4:
@@ -258,7 +263,7 @@ public class BankerServiceImpl implements BankerService{
                             break;
                         case 20:
                             if(Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setPolicyStartDate(cell.getLocalDateTimeCellValue().toLocalDate());
+                                p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
                         case 21:

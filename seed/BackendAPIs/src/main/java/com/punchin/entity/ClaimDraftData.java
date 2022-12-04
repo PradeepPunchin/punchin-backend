@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
-import java.time.LocalDate;
+import java.util.Date;
 
 @Data
 @Entity
@@ -22,7 +22,7 @@ public class ClaimDraftData extends BasicEntity {
 
     private String punchinBankerId;
 
-    private LocalDate claimInwardDate;
+    private Date claimInwardDate;
 
     private String borrowerName;
 
@@ -58,7 +58,7 @@ public class ClaimDraftData extends BasicEntity {
 
     private String policyNumber;
 
-    private LocalDate policyStartDate;
+    private Date policyStartDate;
 
     private Integer policyCoverageDuration;
 

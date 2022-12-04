@@ -19,8 +19,6 @@ public class UserDTO {
 
     private boolean isAccountLocked;
 
-    private String password;
-
     private RoleEnum role;
 
 }

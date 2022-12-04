@@ -1,6 +1,6 @@
 package com.punchin.controllers;
 
-import com.punchin.enums.ClaimStatus;
+import com.punchin.enums.ClaimDataFilter;
 import com.punchin.service.BankerService;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
@@ -31,6 +31,7 @@ public class BankerController {
     @Autowired
     private BankerService bankerService;
 
+    @Secured("BANKER")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
         try {
@@ -69,10 +70,10 @@ public class BankerController {
     }
 
     @GetMapping(value = UrlMapping.GET_CLAIMS_DATA)
-    public ResponseEntity<Object> getClaimsData(@RequestParam ClaimStatus claimStatus, @RequestParam Integer page, @RequestParam Integer limit) {
+    public ResponseEntity<Object> getClaimsData(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
-            log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
-            Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
+            log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
+            Page pageDTO = bankerService.getAllClaimsData(claimDataFilter, page, limit);
             return ResponseHandler.response(pageDTO, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
@@ -80,7 +81,7 @@ public class BankerController {
         }
     }
 
-    @GetMapping(value = UrlMapping.SUBMIT_CLAIMS)
+    @PutMapping(value = UrlMapping.SUBMIT_CLAIMS)
     public ResponseEntity<Object> submitClaims() {
         try {
             log.info("BankerController :: submitClaims");
@@ -95,7 +96,7 @@ public class BankerController {
         }
     }
 
-    @GetMapping(value = UrlMapping.DISCARD_CLAIMS)
+    @DeleteMapping(value = UrlMapping.DISCARD_CLAIMS)
     public ResponseEntity<Object> discardClaims() {
         try {
             log.info("BankerController :: discardClaims");

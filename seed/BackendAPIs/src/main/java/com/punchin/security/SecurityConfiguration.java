@@ -29,9 +29,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint).and().authorizeRequests().anyRequest().authenticated();
         final AuthenticationFilter authenticationFilter = new AuthenticationFilter();
         http.addFilterBefore(authenticationFilter, BasicAuthenticationFilter.class);
+        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint).and().authorizeRequests().anyRequest().authenticated();
+        /*http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint).and().authorizeRequests().antMatchers("/api/**").hasRole("ADMIN")
+                .antMatchers("/banker/**").hasRole("BANKER")
+                .antMatchers("/verifier/**").hasRole("VERIFIER")
+                .antMatchers("/agent/**").hasRole("AGENT");*/
     }
 
 
@@ -43,6 +47,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/configuration/**")
                 .antMatchers("/webjars/**")
                 .antMatchers("/public")
+
                 .antMatchers(HttpMethod.POST, UrlMapping.LOGIN)
                 .and()
                 .ignoring()

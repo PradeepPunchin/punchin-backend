@@ -1,6 +1,5 @@
 package com.punchin.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.punchin.entity.ClaimDraftData;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
@@ -25,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.InputStream;
 import java.time.ZoneId;
 import java.util.*;
@@ -70,9 +70,9 @@ public class BankerServiceImpl implements BankerService{
     }
 
     @Override
-    public Page getAllClaimsData(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
+    public Page getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
         try{
-            log.info("BankerServiceImpl :: getAllClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
+            log.info("BankerServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
             Page page1;
             if(claimDataFilter.DRAFT.equals(claimDataFilter)){
@@ -82,7 +82,7 @@ public class BankerServiceImpl implements BankerService{
             }
             return page1;
         }catch (Exception e){
-            log.error("EXCEPTION WHILE BankerServiceImpl :: getAllClaimsData e{}", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimsList e{}", e);
             return null;
         }
     }
@@ -139,6 +139,33 @@ public class BankerServiceImpl implements BankerService{
         }catch (Exception e){
             log.error("EXCEPTION WHILE BankerServiceImpl :: discardClaims e{}", e);
             return ResponseMessgae.backText;
+        }
+    }
+
+    @Override
+    public ClaimsData getClaimData(Long claimId) {
+        try{
+            log.info("BankerController :: getClaimData");
+            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
+            return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
+        }catch (Exception e){
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimData e{}", e);
+            return null;
+        }
+    }
+
+    @Override
+    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles) {
+        try{
+            log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}", claimsData, multipartFiles.length);
+            File[] files;
+            for (int i = 0; i < multipartFiles.length; i++){
+
+            }
+            return Collections.EMPTY_MAP;
+        }catch (Exception e){
+            log.error("EXCEPTION WHILE BankerServiceImpl :: uploadDocument e{}", e);
+            return Collections.EMPTY_MAP;
         }
     }
 

@@ -1,5 +1,6 @@
 package com.punchin.controllers;
 
+import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.service.BankerService;
 import com.punchin.utility.GenericUtils;
@@ -14,13 +15,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @CrossOrigin
 @RestController
@@ -31,7 +32,6 @@ public class BankerController {
     @Autowired
     private BankerService bankerService;
 
-    @Secured("BANKER")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
         try {
@@ -44,7 +44,6 @@ public class BankerController {
         }
     }
 
-    @Secured("BANKER")
     @ApiOperation(value = "User Login", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "files", value = "The multipart object as an array to upload multiple files.") @Valid @RequestParam("files") MultipartFile[] files) {
@@ -69,14 +68,29 @@ public class BankerController {
         }
     }
 
-    @GetMapping(value = UrlMapping.GET_CLAIMS_DATA)
-    public ResponseEntity<Object> getClaimsData(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
+    @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
+    public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
-            log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
-            Page pageDTO = bankerService.getAllClaimsData(claimDataFilter, page, limit);
+            log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
+            Page pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
             return ResponseHandler.response(pageDTO, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("Error while fetching in pagination data");
+            log.error("EXCEPTION WHILE BankerController :: getClaimsList e{}", e);
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
+    public ResponseEntity<Object> getClaimData(@PathVariable Long claimId, @RequestParam Integer page, @RequestParam Integer limit) {
+        try {
+            log.info("BankerController :: getClaimData claimId {}", claimId);
+            ClaimsData claimsData = bankerService.getClaimData(claimId);
+            if(Objects.nonNull(claimsData)) {
+                return ResponseHandler.response(claimsData, ResponseMessgae.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getClaimData e{}", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -111,14 +125,18 @@ public class BankerController {
         }
     }
 
-    @PutMapping(value = "/uploadDocument/{claimId}/{docType}")
-    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable String docType) {
+    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT)
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @RequestParam MultipartFile[] multipartFiles) {
         try {
-            //log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
-            //Page pageDTO = bankerService.getAllClaimsData(claimStatus, page, limit);
-            return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}", claimId, multipartFiles.length);
+            ClaimsData claimsData = bankerService.getClaimData(claimId);
+            if(Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+            Map<String, Object> result = bankerService.uploadDocument(claimsData, multipartFiles);
+            return ResponseHandler.response(result, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("Error while fetching in pagination data");
+            log.error("EXCEPTION WHILE BankerController :: getAllClaimsData e{}", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

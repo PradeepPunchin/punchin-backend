@@ -34,6 +34,8 @@ public class ClaimsData extends BasicEntity {
     @Column(columnDefinition = "Text")
     private String borrowerAddress;
 
+    private String borrowerState;
+
     private String loanType;
 
     private Double loanAmount;
@@ -82,9 +84,6 @@ public class ClaimsData extends BasicEntity {
     private String submittedBy;
 
     private Long submittedAt;
-
-    @OneToMany
-    private List<ClaimDocuments> claimDocuments;
 
     private Boolean isForwardToVerifier = false;
 

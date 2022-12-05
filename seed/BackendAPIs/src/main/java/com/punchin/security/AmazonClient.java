@@ -7,9 +7,13 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.punchin.entity.DocumentUrls;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,7 +46,7 @@ public class AmazonClient {
     @PostConstruct
     private void initializeAmazon() {
         AWSCredentials credentials = new BasicAWSCredentials(this.accessKey, this.secretKey);
-        this.s3client = AmazonS3ClientBuilder.standard().withRegion(Regions.AP_SOUTHEAST_1).withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
+        this.s3client = AmazonS3ClientBuilder.standard().withRegion(Regions.AP_SOUTH_1).withCredentials(new AWSStaticCredentialsProvider(credentials)).build();
     }
 
     public File convertMultiPartToFile(MultipartFile multipartFile) throws IOException {
@@ -60,7 +64,7 @@ public class AmazonClient {
 
     void uploadFileTos3bucket(String fileName, File file) {
         try {
-            this.s3client.putObject(new PutObjectRequest(bucketName, fileName, file));//withCannedAcl(CannedAccessControlList.PublicRead));
+            this.s3client.putObject(new PutObjectRequest(bucketName, fileName, file).withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AmazonClient :: uploadFileTos3bucket ", e);
         }
@@ -95,6 +99,20 @@ public class AmazonClient {
 
         }catch (Exception e){
             log.error("EXCEPTION OCCURRED WHILE GENERATING S3 FILE TEMPORARY URL... e{}", e);
+            return null;
+        }
+    }
+
+    public String uploadFile(MultipartFile multipartFile) {
+        try {
+            File file = convertMultiPartToFile(multipartFile);
+            String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+            String fileName = System.currentTimeMillis() + "-" + RandomStringUtils.randomAlphabetic(4) + extension;
+            uploadFileTos3bucket(fileName, file);
+            deleteLocalFile(file);
+            return endpointUrl + fileName;
+        } catch (IOException e) {
+            log.error("Exception while deleting file from local:: {}", e.getMessage());
             return null;
         }
     }

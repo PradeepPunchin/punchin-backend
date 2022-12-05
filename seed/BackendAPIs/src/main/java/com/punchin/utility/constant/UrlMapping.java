@@ -17,5 +17,5 @@ public class UrlMapping {
     public static final String UPLOAD_CLAIM = BASEURL + "/banker" + "/claim/upload";
     public static final String SUBMIT_CLAIMS = BASEURL + "/banker" + "/claim/submit";
     public static final String DISCARD_CLAIMS = BASEURL + "/banker" + "/claim/discard";
-    public static final String UPLOAD_DOCUMENT = BASEURL + "/banker" + "/claim/{claimId}/uploadDocument";
+    public static final String UPLOAD_DOCUMENT = BASEURL + "/banker" + "/claim/{claimId}/uploadDocument/{docType}";
 }

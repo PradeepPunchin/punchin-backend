@@ -1,6 +1,7 @@
 package com.punchin.controllers;
 
 import com.punchin.entity.ClaimsData;
+import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.service.BankerService;
 import com.punchin.utility.GenericUtils;
@@ -26,12 +27,13 @@ import java.util.Objects;
 @CrossOrigin
 @RestController
 @Slf4j
-//@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 public class BankerController {
 
     @Autowired
     private BankerService bankerService;
 
+    @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in banker dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
         try {
@@ -46,8 +48,9 @@ public class BankerController {
 
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.UPLOAD_CLAIM)
-    public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "files", value = "The multipart object as an array to upload multiple files.") @Valid @RequestParam("files") MultipartFile[] files) {
+    public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "files", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
+            MultipartFile[] files = {multipartFile};
             log.info("BankerController :: uploadClaimData files{}", files.length);
             Map<String, Object> map = new HashMap<>();
             if (files.length > 0) {
@@ -64,10 +67,11 @@ public class BankerController {
             return ResponseHandler.response(null, map.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: uploadClaimData e{}", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, e.getMessage(), false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @ApiOperation(value = "Claim List", notes = "This can be used to get not submitted claims list")
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
@@ -80,6 +84,7 @@ public class BankerController {
         }
     }
 
+    @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
     @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
     public ResponseEntity<Object> getClaimData(@PathVariable Long claimId, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
@@ -95,6 +100,7 @@ public class BankerController {
         }
     }
 
+    @ApiOperation(value = "Claim List", notes = "This can be used to submit claims")
     @PutMapping(value = UrlMapping.SUBMIT_CLAIMS)
     public ResponseEntity<Object> submitClaims() {
         try {
@@ -110,6 +116,7 @@ public class BankerController {
         }
     }
 
+    @ApiOperation(value = "Claim List", notes = "This can be used to discard claims")
     @DeleteMapping(value = UrlMapping.DISCARD_CLAIMS)
     public ResponseEntity<Object> discardClaims() {
         try {
@@ -125,16 +132,20 @@ public class BankerController {
         }
     }
 
+    @ApiOperation(value = "Claim List", notes = "This can be used to upload document regarding claim by banker")
     @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @RequestParam MultipartFile[] multipartFiles) {
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable BankerDocType docType, @RequestBody MultipartFile[] multipartFiles) {
         try {
-            log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}", claimId, multipartFiles.length);
+            log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
             ClaimsData claimsData = bankerService.getClaimData(claimId);
             if(Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
-            Map<String, Object> result = bankerService.uploadDocument(claimsData, multipartFiles);
-            return ResponseHandler.response(result, ResponseMessgae.success, true, HttpStatus.OK);
+            Map<String, Object> result = bankerService.uploadDocument(claimsData, multipartFiles, docType);
+            if(result.get("message").equals(ResponseMessgae.success)) {
+                return ResponseHandler.response(result, ResponseMessgae.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getAllClaimsData e{}", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

@@ -14,4 +14,5 @@ public class ResponseMessgae {
     public static final String selectSpreadsheet = "select.spreadsheet";
     public static final String invalidClaimData = "invalid.claim.data";
     public static String invalidClaimId = "invalid.claim.id";
+    public static String fileNotuploaded = "file.not.uploaded";
 }

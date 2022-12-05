@@ -1,11 +1,14 @@
 package com.punchin.service;
 
-import com.punchin.entity.ClaimDraftData;
-import com.punchin.entity.ClaimsData;
+import com.punchin.entity.*;
+import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
+import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimDraftDataRepository;
 import com.punchin.repository.ClaimsDataRepository;
+import com.punchin.repository.DocumentUrlsRepository;
+import com.punchin.security.AmazonClient;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ModelMapper;
 import com.punchin.utility.constant.ResponseMessgae;
@@ -39,6 +42,15 @@ public class BankerServiceImpl implements BankerService{
 
     @Autowired
     private ClaimDraftDataRepository claimDraftDataRepository;
+
+    @Autowired
+    private DocumentUrlsRepository documentUrlsRepository;
+
+    @Autowired
+    private ClaimDocumentsRepository claimDocumentsRepository;
+
+    @Autowired
+    private AmazonClient amazonClient;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -155,17 +167,37 @@ public class BankerServiceImpl implements BankerService{
     }
 
     @Override
-    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles) {
+    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType) {
+        Map<String, Object> map = new HashMap<>();
         try{
-            log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}", claimsData, multipartFiles.length);
-            File[] files;
-            for (int i = 0; i < multipartFiles.length; i++){
-
+            log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
+            ClaimDocuments claimDocuments = new ClaimDocuments();
+            claimDocuments.setClaimsData(claimsData);
+            claimDocuments.setDocType(docType.getValue());
+            claimDocuments.setBankerId(GenericUtils.getLoggedInUser().getUserId());
+            List<DocumentUrls> documentUrls = new ArrayList<>();
+            for(MultipartFile multipartFile : multipartFiles){
+                DocumentUrls urls = new DocumentUrls();
+                urls.setDocUrl(amazonClient.uploadFile(multipartFile));
+                if(Objects.isNull(urls.getDocUrl())){
+                    map.put("message", ResponseMessgae.fileNotuploaded);
+                    return map;
+                }
+                documentUrls.add(urls);
             }
-            return Collections.EMPTY_MAP;
+            documentUrlsRepository.saveAll(documentUrls);
+            claimDocuments.setDocumentUrls(documentUrls);
+            claimDocuments.setUploadTime(System.currentTimeMillis());
+            claimDocumentsRepository.save(claimDocuments);
+            claimDocuments.setClaimsData(null);
+            map.put("message", ResponseMessgae.success);
+            map.put("claimDocuments", claimDocuments);
+            return map;
         }catch (Exception e){
             log.error("EXCEPTION WHILE BankerServiceImpl :: uploadDocument e{}", e);
-            return Collections.EMPTY_MAP;
+            map.put("message", e.getMessage());
+            map.put("claimDocuments", null);
+            return map;
         }
     }
 

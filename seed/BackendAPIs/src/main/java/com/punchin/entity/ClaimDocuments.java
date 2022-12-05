@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Data
@@ -15,16 +16,18 @@ public class ClaimDocuments extends BasicEntity{
     @Column(updatable = false, unique = true)
     private Long id;
 
-    @ManyToOne
     private ClaimsData claimsData;
 
-    private String claimType;
+    private String docType;
 
-    private String documentUrl;
+    @OneToMany
+    private List<DocumentUrls> documentUrls;
 
-    private Long uploadTime;
+    private String bankerId;
 
     private String agentId;
+
+    private Long uploadTime;
 
     private Boolean isVerified = false;
 

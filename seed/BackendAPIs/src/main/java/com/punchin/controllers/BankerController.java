@@ -26,7 +26,7 @@ import java.util.Objects;
 @CrossOrigin
 @RestController
 @Slf4j
-@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+//@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 public class BankerController {
 
     @Autowired
@@ -44,7 +44,7 @@ public class BankerController {
         }
     }
 
-    @ApiOperation(value = "User Login", notes = "This can be used to Upload spreadsheet for claims data")
+    @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "files", value = "The multipart object as an array to upload multiple files.") @Valid @RequestParam("files") MultipartFile[] files) {
         try {
@@ -57,7 +57,7 @@ public class BankerController {
                     }
                 }
                 map = bankerService.saveUploadExcelData(files);
-                if (Boolean.getBoolean(map.get("status").toString())) {
+                if (Boolean.parseBoolean(map.get("status").toString())) {
                     return ResponseHandler.response(map.get("data"), ResponseMessgae.success, true, HttpStatus.CREATED);
                 }
             }

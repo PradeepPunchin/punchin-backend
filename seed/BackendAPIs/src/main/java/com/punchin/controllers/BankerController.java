@@ -48,7 +48,7 @@ public class BankerController {
 
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.UPLOAD_CLAIM)
-    public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "files", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
+    public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
             MultipartFile[] files = {multipartFile};
             log.info("BankerController :: uploadClaimData files{}", files.length);

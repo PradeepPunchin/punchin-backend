@@ -28,6 +28,8 @@ public class ClaimDraftData extends BasicEntity {
 
     private String borrowerContactNumber;
 
+    private String borrowerState;
+
     private String loanAccountNumber;
 
     @Column(columnDefinition = "Text")

@@ -21,6 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -86,11 +87,17 @@ public class BankerServiceImpl implements BankerService{
         try{
             log.info("BankerServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
-            Page page1;
-            if(claimDataFilter.DRAFT.equals(claimDataFilter)){
+            Page page1 = Page.empty();
+            if(claimDataFilter.ALL.equals(claimDataFilter)){
+                page1 = claimsDataRepository.findAll(pageable);
+            } else if(claimDataFilter.DRAFT.equals(claimDataFilter)){
                 page1 = claimDraftDataRepository.findAll(pageable);
-            } else {
+            } else if(claimDataFilter.SUBMITTED.equals(claimDataFilter)){
                 page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.CLAIM_SUBMITTED, false, pageable);
+            } else if(claimDataFilter.WIP.equals(claimDataFilter)){
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.IN_PROGRESS, true, pageable);
+            } else if(claimDataFilter.SETTLED.equals(claimDataFilter)){
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.SETTLED, true, pageable);
             }
             return page1;
         }catch (Exception e){
@@ -264,99 +271,103 @@ public class BankerServiceImpl implements BankerService{
                             break;
                         case 6:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanAccountNumber(cell.getStringCellValue());
+                            p.setBorrowerState(cell.getStringCellValue());
                             break;
                         case 7:
                             cell.setCellType(CellType.STRING);
-                            p.setBorrowerAddress(cell.getStringCellValue());
+                            p.setLoanAccountNumber(cell.getStringCellValue());
                             break;
                         case 8:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanType(cell.getStringCellValue());
+                            p.setBorrowerAddress(cell.getStringCellValue());
                             break;
                         case 9:
+                            cell.setCellType(CellType.STRING);
+                            p.setLoanType(cell.getStringCellValue());
+                            break;
+                        case 10:
                             if(Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setLoanAmount(cell.getNumericCellValue());
                             }
                             break;
-                        case 10:
+                        case 11:
                             cell.setCellType(CellType.STRING);
                             p.setBranchCode(cell.getStringCellValue());
                             break;
-                        case 11:
+                        case 12:
                             cell.setCellType(CellType.STRING);
                             p.setBranchName(cell.getStringCellValue());
                             break;
-                        case 12:
+                        case 13:
                             cell.setCellType(CellType.STRING);
                             p.setBranchAddress(cell.getStringCellValue());
                             break;
-                        case 13:
+                        case 14:
                             cell.setCellType(CellType.STRING);
                             if(Objects.nonNull(cell.getStringCellValue())) {
                                 p.setBranchPinCode(cell.getStringCellValue());
                             }
                             break;
-                        case 14:
-                            p.setBranchState(cell.getStringCellValue());
-                            break;
                         case 15:
-                            cell.setCellType(CellType.STRING);
-                            p.setLoanAccountManagerName(cell.getStringCellValue());
+                            p.setBranchState(cell.getStringCellValue());
                             break;
                         case 16:
                             cell.setCellType(CellType.STRING);
-                            p.setAccountManagerContactNumber(cell.getStringCellValue());
+                            p.setLoanAccountManagerName(cell.getStringCellValue());
                             break;
                         case 17:
                             cell.setCellType(CellType.STRING);
-                            p.setInsurerName(cell.getStringCellValue());
+                            p.setAccountManagerContactNumber(cell.getStringCellValue());
                             break;
                         case 18:
                             cell.setCellType(CellType.STRING);
-                            p.setPolicyNumber(cell.getStringCellValue());
+                            p.setInsurerName(cell.getStringCellValue());
                             break;
                         case 19:
                             cell.setCellType(CellType.STRING);
-                            p.setMasterPolNumber(cell.getStringCellValue());
+                            p.setPolicyNumber(cell.getStringCellValue());
                             break;
                         case 20:
+                            cell.setCellType(CellType.STRING);
+                            p.setMasterPolNumber(cell.getStringCellValue());
+                            break;
+                        case 21:
                             if(Objects.nonNull(cell.getLocalDateTimeCellValue())) {
                                 p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
-                        case 21:
+                        case 22:
                             if(Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicyCoverageDuration((int) cell.getNumericCellValue());
                             }
                             break;
-                        case 22:
+                        case 23:
                             if(Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicySumAssured((double) cell.getNumericCellValue());
                             }
                             break;
-                        case 23:
+                        case 24:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeName(cell.getStringCellValue());
                             break;
-                        case 24:
+                        case 25:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeRelationShip(cell.getStringCellValue());
                             break;
-                        case 25:
+                        case 26:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeContactNumber(cell.getStringCellValue());
                             break;
-                        case 26:
+                        case 27:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeEmailId(cell.getStringCellValue());
                             break;
-                        case 27:
+                        case 28:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeAddress(cell.getStringCellValue());
                             break;
 
-                        case 28:
+                        case 29:
                             //p.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
                             break;
 

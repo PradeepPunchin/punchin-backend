@@ -27,14 +27,14 @@ import java.util.Objects;
 @CrossOrigin
 @RestController
 @Slf4j
-@RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = UrlMapping.BANKER, produces = MediaType.APPLICATION_JSON_VALUE)
 public class BankerController {
 
     @Autowired
     private BankerService bankerService;
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in banker dashboard tile.")
-    @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
+    @GetMapping(value = UrlMapping.BANKER_GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("BankerController :: getDashboardData");
@@ -47,8 +47,8 @@ public class BankerController {
     }
 
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
-    @PostMapping(value = UrlMapping.UPLOAD_CLAIM)
-    public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
+    @PostMapping(value = UrlMapping.BANKER_UPLOAD_CLAIM)
+    public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
             MultipartFile[] files = {multipartFile};
             log.info("BankerController :: uploadClaimData files{}", files.length);
@@ -72,7 +72,7 @@ public class BankerController {
     }
 
     @ApiOperation(value = "Claim List", notes = "This can be used to get not submitted claims list")
-    @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
+    @GetMapping(value = UrlMapping.BANKER_GET_CLAIMS_LIST)
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
@@ -85,7 +85,7 @@ public class BankerController {
     }
 
     @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
-    @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
+    @GetMapping(value = UrlMapping.BANKER_GET_CLAIM_DATA)
     public ResponseEntity<Object> getClaimData(@PathVariable Long claimId, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getClaimData claimId {}", claimId);
@@ -95,13 +95,13 @@ public class BankerController {
             }
             return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerController :: getClaimData e{}", e);
+            log.error("EXCEPTION WHILE BankerController :: getClaimData e {}", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @ApiOperation(value = "Claim List", notes = "This can be used to submit claims")
-    @PutMapping(value = UrlMapping.SUBMIT_CLAIMS)
+    @PutMapping(value = UrlMapping.BANKER_SUBMIT_CLAIMS)
     public ResponseEntity<Object> submitClaims() {
         try {
             log.info("BankerController :: submitClaims");
@@ -117,7 +117,7 @@ public class BankerController {
     }
 
     @ApiOperation(value = "Claim List", notes = "This can be used to discard claims")
-    @DeleteMapping(value = UrlMapping.DISCARD_CLAIMS)
+    @DeleteMapping(value = UrlMapping.BANKER_DISCARD_CLAIMS)
     public ResponseEntity<Object> discardClaims() {
         try {
             log.info("BankerController :: discardClaims");
@@ -133,8 +133,8 @@ public class BankerController {
     }
 
     @ApiOperation(value = "Claim List", notes = "This can be used to upload document regarding claim by banker")
-    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable BankerDocType docType, @RequestBody MultipartFile[] multipartFiles) {
+    @PutMapping(value = UrlMapping.BANKER_UPLOAD_DOCUMENT)
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
             ClaimsData claimsData = bankerService.getClaimData(claimId);

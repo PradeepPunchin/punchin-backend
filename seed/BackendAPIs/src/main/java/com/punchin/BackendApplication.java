@@ -2,17 +2,12 @@ package com.punchin;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
-@EnableDiscoveryClient
+@SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
 @EnableCaching
-@EnableScheduling
 @EnableAsync
 public class BackendApplication {
 

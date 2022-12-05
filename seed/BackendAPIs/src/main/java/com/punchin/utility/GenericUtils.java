@@ -15,7 +15,13 @@ public class GenericUtils {
     public static boolean checkExcelFormat(MultipartFile file) {
         String contentType = file.getContentType();
         if (contentType != null) {
-            return contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            if(contentType.equalsIgnoreCase("csv")){
+                return true;
+            }
+            if(contentType.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")){
+                return true;
+            }
+            return false;
         }
         return false;
     }

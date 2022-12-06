@@ -1,7 +1,7 @@
 package com.punchin.controllers;
 
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.BankerDocType;
+import com.punchin.enums.DocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.service.BankerService;
 import com.punchin.utility.GenericUtils;
@@ -134,7 +134,7 @@ public class BankerController {
 
     @ApiOperation(value = "Claim List", notes = "This can be used to upload document regarding claim by banker")
     @PutMapping(value = UrlMapping.BANKER_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable DocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
             ClaimsData claimsData = bankerService.getClaimData(claimId);

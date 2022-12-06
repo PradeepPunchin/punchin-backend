@@ -1,6 +1,6 @@
 package com.punchin.enums;
 
-public enum BankerDocType {
+public enum DocType {
     CAS(1, "CAS"),
     COVID_Q(2, "COVID_Q"),
     DOGH(3, "DOGH"),
@@ -13,7 +13,7 @@ public enum BankerDocType {
     private String value;
     private int key;
 
-    private BankerDocType(int key, String value) {
+    private DocType(int key, String value) {
         this.key = key;
         this.value = value;
     }

@@ -23,5 +23,6 @@ public class UrlMapping {
     public static final String BANKER_SUBMIT_CLAIMS = "/claim/submit";
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
     public static final String BANKER_UPLOAD_DOCUMENT = "/claim/{claimId}/uploadDocument/{docType}";
+    public static final String VERIFIER_GET_DASHBOARD_DATA_COUNT = "/getDashboardDataCount";
 
 }

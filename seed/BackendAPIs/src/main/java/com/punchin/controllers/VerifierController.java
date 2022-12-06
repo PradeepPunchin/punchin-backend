@@ -3,6 +3,7 @@
 package com.punchin.controllers;
 
 import com.punchin.dto.PageDTO;
+import com.punchin.dto.VerifierClaimDataResponseDTO;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.service.VerifierService;
 import com.punchin.utility.ResponseHandler;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -36,12 +39,15 @@ public class VerifierController {
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping(value = "/getVerifierDataDocumentClaimsData")
-    public ResponseEntity<Object> getDataClaimsData(@RequestParam ClaimStatus claimStatus, @RequestParam Integer page, @RequestParam Integer limit) {
+    public ResponseEntity<Object> getDataClaimsData(@RequestParam Integer page, @RequestParam Integer limit) {
         try {
-            log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimStatus, page, limit);
-            PageDTO allClaimsData = verifierService.getDataClaimsData(claimStatus, page, limit);
-            return ResponseHandler.response(allClaimsData, ResponseMessgae.success, true, HttpStatus.OK);
+            log.info("VerifierController :: getAllVerifierClaimsData  page{}, limit{}", page, limit);
+            List<VerifierClaimDataResponseDTO> allClaimsData = verifierService.getDataClaimsData(page, limit);
+            if (!allClaimsData.isEmpty())
+                return ResponseHandler.response(allClaimsData, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response("", ResponseMessgae.backText, false, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

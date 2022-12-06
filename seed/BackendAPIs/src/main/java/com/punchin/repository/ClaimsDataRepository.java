@@ -1,6 +1,7 @@
 package com.punchin.repository;
 
 import com.punchin.dto.ClaimDataResponse;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimStatus;
 import org.springframework.data.domain.Page;
@@ -20,8 +21,6 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     Long countByClaimStatus(ClaimStatus inProgress);
 
-    Page findByClaimStatus(String claimStatus, Pageable pageable);
-
     @Query(nativeQuery = true, value = " select * from claims_data cd where cd.claim_status=:claimStatus ")
     Page<ClaimsData> findClaimDataByStatus(String claimStatus, Pageable pageable);
 
@@ -32,7 +31,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     List<ClaimsData> findByClaimStatus(String claimStatus);
 
     @Query(nativeQuery = true, value = " select cd.id as id,cd.claim_inward_date as registrationDate,cd.borrower_name as borrowerName, " +
-            " cd.nominee_name as nomineeName,cd.nominee_contact_number as nomineeContactNumber,cd.nominee_address as nomineeAddress from claims_data cd")
+            " cd.nominee_name as nomineeName,cd.nominee_contact_number as nomineeContactNumber,cd.nominee_address as nomineeAddress from claims_data cd where cd.claim_status='UNDER_VERIFICATION' ")
     List<ClaimDataResponse> findClaimsDataVerifier(Pageable pageable);
 
 

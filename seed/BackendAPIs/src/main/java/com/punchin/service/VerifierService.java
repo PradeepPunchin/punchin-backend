@@ -4,6 +4,7 @@
 package com.punchin.service;
 
 import com.punchin.dto.PageDTO;
+import com.punchin.dto.VerifierDashboardCountDTO;
 import com.punchin.enums.ClaimStatus;
 
 public interface VerifierService {
@@ -12,4 +13,5 @@ public interface VerifierService {
 
     PageDTO getDataClaimsData(ClaimStatus claimStatus, Integer pageNo, Integer pageSize);
 
+    VerifierDashboardCountDTO getDashboardDataCount();
 }

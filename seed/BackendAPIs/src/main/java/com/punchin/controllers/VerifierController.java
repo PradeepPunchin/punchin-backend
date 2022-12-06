@@ -3,10 +3,13 @@
 package com.punchin.controllers;
 
 import com.punchin.dto.PageDTO;
+import com.punchin.dto.VerifierDashboardCountDTO;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.service.VerifierService;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;
+import com.punchin.utility.constant.UrlMapping;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +19,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -44,6 +49,20 @@ public class VerifierController {
             return ResponseHandler.response(allClaimsData, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Dashboard Data Count", notes = "This can be used to Show Dashboard data count in Verifier dashboard tab.")
+    @GetMapping(value = UrlMapping.VERIFIER_GET_DASHBOARD_DATA_COUNT)
+    public ResponseEntity<Object> getDashboardDataCount() {
+        try {
+            log.info("VerifierController :: getDashboardDataCount");
+            VerifierDashboardCountDTO verifierDashboardCountDTO = verifierService.getDashboardDataCount();
+                log.info("Verifier Dashboard count fetched Successfully");
+                return ResponseHandler.response(verifierDashboardCountDTO, ResponseMessgae.success, true, HttpStatus.OK);
+             } catch (Exception e) {
+            log.error("EXCEPTION WHILE fetching Verifier Dashboard Count ::", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -2,6 +2,7 @@ package com.punchin.service;
 
 import com.punchin.dto.ClaimDataDTO;
 import com.punchin.dto.PageDTO;
+import com.punchin.dto.VerifierDashboardCountDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
@@ -65,6 +66,15 @@ public class VerifierServiceImpl implements VerifierService {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getAllClaimsData", e);
             return null;
         }
+    }
+
+    public VerifierDashboardCountDTO getDashboardDataCount(){
+        log.info("VerifierController :: getDashboardDataCount");
+        VerifierDashboardCountDTO verifierDashboardCountDTO= new VerifierDashboardCountDTO();
+        verifierDashboardCountDTO.setAllocatedCount(0L);
+        verifierDashboardCountDTO.setInProgressCount(claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
+        verifierDashboardCountDTO.setActionPendingCount(claimsDataRepository.countByClaimStatus(ClaimStatus.ACTION_PENDING));
+        return verifierDashboardCountDTO;
     }
 }
 

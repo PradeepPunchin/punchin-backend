@@ -187,7 +187,7 @@ public class BankerServiceImpl implements BankerService{
                 DocumentUrls urls = new DocumentUrls();
                 urls.setDocUrl(amazonClient.uploadFile(multipartFile));
                 if(Objects.isNull(urls.getDocUrl())){
-                    map.put("message", ResponseMessgae.fileNotuploaded);
+                    map.put("message", ResponseMessgae.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);

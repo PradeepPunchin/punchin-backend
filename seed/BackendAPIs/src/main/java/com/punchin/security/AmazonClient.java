@@ -10,7 +10,6 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.punchin.entity.DocumentUrls;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -56,7 +55,7 @@ public class AmazonClient {
             log.info("File created successfully");
         } catch (IOException e) {
             log.error("Exception in file convert service :: {}", e);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             log.error("Exception in file convert service :: {}", ex);
         }
         return file;
@@ -81,7 +80,7 @@ public class AmazonClient {
     }
 
     public String generateTempS3Url(String key) {
-        try{
+        try {
             // Set the presigned URL to expire after one hour.
             Date expiration = new Date();
             //expiration time set 5 minute
@@ -97,7 +96,7 @@ public class AmazonClient {
 
             return url.toString();
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION OCCURRED WHILE GENERATING S3 FILE TEMPORARY URL... e{}", e);
             return null;
         }

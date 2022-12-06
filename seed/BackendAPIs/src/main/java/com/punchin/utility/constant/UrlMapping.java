@@ -28,10 +28,10 @@ public class UrlMapping {
     public static final String BANKER_SUBMIT_CLAIMS = "/claim/submit";
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
 
-
     //Verifier Endpoints
 
 
     //Agent Endpoints
+    public static final String VERIFIER_GET_DASHBOARD_DATA_COUNT = "/getDashboardDataCount";
 
 }

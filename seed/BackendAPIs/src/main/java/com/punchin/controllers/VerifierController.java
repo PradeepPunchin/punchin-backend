@@ -3,6 +3,7 @@ package com.punchin.controllers;
 import com.punchin.dto.PageDTO;
 import com.punchin.dto.VerifierClaimDataResponseDTO;
 import com.punchin.dto.VerifierDashboardCountDTO;
+import com.punchin.dto.VerifierDocDetailsResponseDTO;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.service.VerifierService;
 import com.punchin.utility.ResponseHandler;
@@ -14,16 +15,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/verifier", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = UrlMapping.VERIFIER, produces = MediaType.APPLICATION_JSON_VALUE)
+
 public class VerifierController {
 
     @Autowired
@@ -65,6 +64,38 @@ public class VerifierController {
             return ResponseHandler.response(verifierDashboardCountDTO, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE fetching Verifier Dashboard Count ::", e);
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = UrlMapping.VERIFIER_GET_DOCUMENT_DETAILS)
+    public ResponseEntity<Object> getDocumentDetails(@RequestParam("claimDataId") long claimDataId) {
+        try {
+            log.info("VerifierController :: getDocumentDetails");
+            VerifierDocDetailsResponseDTO documentDetails = verifierService.getDocumentDetails(claimDataId);
+            if (documentDetails != null) {
+                log.info("Document details fetched Successfully");
+                return ResponseHandler.response(documentDetails, ResponseMessgae.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE fetching document details ::", e);
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping(value = UrlMapping.VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS)
+    public ResponseEntity<Object> acceptAndRejectDocuments(@RequestParam("claimDocumentId") long claimDocumentId, @RequestParam("status") String status) {
+        try {
+            log.info("VerifierController :: acceptAndRejectDocuments");
+            String acceptAndRejectDocumentRequest = verifierService.acceptAndRejectDocumentRequest(claimDocumentId, status);
+            if (acceptAndRejectDocumentRequest != null) {
+                log.info("Document details fetched Successfully");
+                return ResponseHandler.response(acceptAndRejectDocumentRequest, ResponseMessgae.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE fetching document details ::", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

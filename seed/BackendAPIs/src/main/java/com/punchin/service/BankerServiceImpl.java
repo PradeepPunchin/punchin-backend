@@ -1,5 +1,6 @@
 package com.punchin.service;
 
+import com.punchin.enums.BankerDocType;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimDraftData;
 import com.punchin.entity.ClaimsData;
@@ -175,7 +176,7 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, DocType docType) {
+    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType) {
         Map<String, Object> map = new HashMap<>();
         try {
             log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
@@ -187,8 +188,8 @@ public class BankerServiceImpl implements BankerService {
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
                 urls.setDocUrl(amazonClient.uploadFile(multipartFile));
-                if (Objects.isNull(urls.getDocUrl())) {
-                    map.put("message", ResponseMessgae.fileNotuploaded);
+                if(Objects.isNull(urls.getDocUrl())){
+                    map.put("message", ResponseMessgae.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
@@ -407,6 +408,4 @@ public class BankerServiceImpl implements BankerService {
             return Collections.emptyList();
         }
     }
-
-
 }

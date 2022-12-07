@@ -1,8 +1,8 @@
 package com.punchin.controllers;
 
 import com.punchin.entity.ClaimsData;
+import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.DocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.service.BankerService;
 import com.punchin.service.MISExport;
@@ -39,8 +39,8 @@ public class BankerController {
     @Autowired
     private HttpServletResponse httpServletResponse;
 
-    @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in banker dashboard tile.")
-    @GetMapping(value = UrlMapping.BANKER_GET_DASHBOARD_DATA)
+    @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
+    @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("BankerController :: getDashboardData");
@@ -78,7 +78,7 @@ public class BankerController {
     }
 
     @ApiOperation(value = "Claim List", notes = "This can be used to get not submitted claims list")
-    @GetMapping(value = UrlMapping.BANKER_GET_CLAIMS_LIST)
+    @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
@@ -91,8 +91,8 @@ public class BankerController {
     }
 
     @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
-    @GetMapping(value = UrlMapping.BANKER_GET_CLAIM_DATA)
-    public ResponseEntity<Object> getClaimData(@PathVariable Long claimId, @RequestParam Integer page, @RequestParam Integer limit) {
+    @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
+    public ResponseEntity<Object> getClaimData(@PathVariable Long claimId) {
         try {
             log.info("BankerController :: getClaimData claimId {}", claimId);
             ClaimsData claimsData = bankerService.getClaimData(claimId);
@@ -140,7 +140,7 @@ public class BankerController {
 
     @ApiOperation(value = "Claim List", notes = "This can be used to upload document regarding claim by banker")
     @PutMapping(value = UrlMapping.BANKER_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable DocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
             ClaimsData claimsData = bankerService.getClaimData(claimId);

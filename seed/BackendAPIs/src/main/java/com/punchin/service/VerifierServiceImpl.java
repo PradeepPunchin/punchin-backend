@@ -1,12 +1,18 @@
 package com.punchin.service;
 
 import com.punchin.dto.*;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
+import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.ClaimDocumentsStatus;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimsDataRepository;
+import com.punchin.repository.DocumentUrlsRepository;
 import com.punchin.utility.ObjectMapperUtils;
+import com.punchin.utility.constant.Literals;
+import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,10 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -31,6 +34,9 @@ public class VerifierServiceImpl implements VerifierService {
     private CommonUtilService commonUtilService;
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
+
+    @Autowired
+    private DocumentUrlsRepository documentUrlsRepository;
 
     @Override
     public PageDTO getAllClaimsData(ClaimStatus claimStatus, Integer pageNo, Integer pageSize) {
@@ -93,6 +99,83 @@ public class VerifierServiceImpl implements VerifierService {
         verifierDashboardCountDTO.setInProgressCount(claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
         verifierDashboardCountDTO.setActionPendingCount(claimsDataRepository.countByClaimStatus(ClaimStatus.ACTION_PENDING));
         return verifierDashboardCountDTO;
+    }
+
+    public VerifierDocDetailsResponseDTO getDocumentDetails(long claimDataId) {
+        log.info("VerifierController :: getDocumentDetails");
+        ClaimsData claimsData = claimsDataRepository.findClaimDataForVerifier(claimDataId);
+        if (claimsData == null) {
+            log.info("Claim data not found for claimId :: {}", claimDataId);
+            return null;
+        }
+        VerifierDocDetailsResponseDTO verifierDocDetailsResponseDTO = new VerifierDocDetailsResponseDTO();
+        verifierDocDetailsResponseDTO.setBorrowerName(claimsData.getBorrowerName());
+        verifierDocDetailsResponseDTO.setBorrowerAddress(claimsData.getBorrowerAddress());
+        verifierDocDetailsResponseDTO.setLoanAccountNumber(claimsData.getLoanAccountNumber());
+        verifierDocDetailsResponseDTO.setInsurerName(claimsData.getInsurerName());
+        verifierDocDetailsResponseDTO.setNomineeName(claimsData.getNomineeName());
+        verifierDocDetailsResponseDTO.setNomineeAddress(claimsData.getNomineeAddress());
+        verifierDocDetailsResponseDTO.setNomineeRelationShip(claimsData.getNomineeRelationShip());
+        List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findClaimDocumentsByClaimDataId(claimsData.getId());
+        if (claimDocumentsList.isEmpty()) {
+            log.info("Claim document list not found for claimId :: {}", claimDataId);
+            return null;
+        }
+        List<DocumentDetailsDTO> documentDetailsDTOList = new ArrayList<>();
+        for (ClaimDocuments claimDocuments : claimDocumentsList) {
+            DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
+            documentDetailsDTO.setDocumentId(claimDocuments.getId());
+            documentDetailsDTO.setDocumentName(claimDocuments.getDocType());
+            boolean present = isDocumentPresent(documentDetailsDTO.getDocumentName());
+            if (present) {
+                documentDetailsDTO.setDocumentUploaded(true);
+            }
+            List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+            if (documentUrlsList.isEmpty()) {
+                log.info("Claim document url list not found for claimDocuments :: {}", claimDocuments.getId());
+                return null;
+            }
+            List<DocumentUrlListDTO> documentUrlListDTOList = new ArrayList<>();
+            for (DocumentUrls documentUrls : documentUrlsList) {
+                DocumentUrlListDTO documentUrlListDTO = new DocumentUrlListDTO();
+                documentUrlListDTO.setDocumentUrlId(documentUrls.getId());
+                documentUrlListDTO.setDocumentUrl(documentUrls.getDocUrl());
+                documentUrlListDTOList.add(documentUrlListDTO);
+            }
+            documentDetailsDTO.setDocumentUrlListDTOList(documentUrlListDTOList);
+            documentDetailsDTOList.add(documentDetailsDTO);
+        }
+        verifierDocDetailsResponseDTO.setDocumentDetailsDTOList(documentDetailsDTOList);
+        log.info("Claim document details fetched successfully");
+        return verifierDocDetailsResponseDTO;
+    }
+
+    public static boolean isDocumentPresent(String documentName) {
+        List<String> documentNameList = Arrays.asList("SINGNED_CLAIM_FORM", "DEATH_CERTIFICATE", "BORROWER_ID_PROOF", "BORROWER_ADDRESS_PROOF",
+                "NOMINEE_ID_PROOF", "NOMINEE_ADDRESS_PROOF", "BANK_ACCOUNT_PROOF", "FIR_POSTMORTEM_REPORT", "AFFIDAVIT", "DISCREPANCY");
+        return documentNameList.contains(documentName);
+    }
+
+    public String acceptAndRejectDocumentRequest(long claimDocumentId, String status) {
+        log.info("Accept and Reject request received for claimDocumentId :: {}", claimDocumentId);
+        Optional<ClaimDocuments> optionalClaimDocuments = claimDocumentsRepository.findById(claimDocumentId);
+        if (!optionalClaimDocuments.isPresent()) {
+            log.info("Claim document list not found for claimDocumentId :: {}", claimDocumentId);
+            return null;
+        }
+        ClaimDocuments claimDocuments = optionalClaimDocuments.get();
+        if (status.equalsIgnoreCase(Literals.APPROVE)) {
+            claimDocuments.setClaimDocumentsStatus(ClaimDocumentsStatus.APPROVED);
+        } else {
+            claimDocuments.setClaimDocumentsStatus(ClaimDocumentsStatus.REJECTED);
+            ClaimsData claimsData = claimDocuments.getClaimsData();
+            claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
+            log.info("Claim status changed to VERIFIER_DISCREPANCY and saved successfully ");
+            claimsDataRepository.save(claimsData);
+        }
+        log.info("Claim document saved successfully ");
+        claimDocumentsRepository.save(claimDocuments);
+        return ResponseMessgae.success;
     }
 }
 

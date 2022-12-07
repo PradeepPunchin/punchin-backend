@@ -10,6 +10,7 @@ import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.repository.DocumentUrlsRepository;
+import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.constant.Literals;
 import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
@@ -65,18 +66,7 @@ public class VerifierServiceImpl implements VerifierService {
             log.info("BankerController :: getAllClaimsData  page{}, limit{}", pageNo, pageSize);
             Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("punchin_claim_id"));
             List<ClaimDataResponse> allClaimData = claimsDataRepository.findClaimsDataVerifier(pageable);
-            //    List<VerifierClaimDataResponseDTO> verifierClaimDataResponseDTOS = ObjectMapperUtils.mapAll(allClaimData, VerifierClaimDataResponseDTO.class);
-            List<VerifierClaimDataResponseDTO> verifierClaimDataResponseDTOS = new ArrayList<>();
-            for (ClaimDataResponse claimDataResponse : allClaimData) {
-                VerifierClaimDataResponseDTO verifierClaimDataResponseDTO = new VerifierClaimDataResponseDTO();
-                verifierClaimDataResponseDTO.setId(claimDataResponse.getId());
-                // verifierClaimDataResponseDTO.setRegistrationDate(claimDataResponse.getRegistrationDate());
-                verifierClaimDataResponseDTO.setBorrowerName(claimDataResponse.getBorrowerName());
-                verifierClaimDataResponseDTO.setNomineeName(claimDataResponse.getNomineeName());
-                verifierClaimDataResponseDTO.setNomineeAddress(claimDataResponse.getNomineeAddress());
-                verifierClaimDataResponseDTO.setNomineeContactNumber(claimDataResponse.getNomineeContactNumber());
-                verifierClaimDataResponseDTOS.add(verifierClaimDataResponseDTO);
-            }
+            List<VerifierClaimDataResponseDTO> verifierClaimDataResponseDTOS = ObjectMapperUtils.mapAll(allClaimData, VerifierClaimDataResponseDTO.class);
             for (VerifierClaimDataResponseDTO verifierClaimDataResponseDTO : verifierClaimDataResponseDTOS) {
                 List<Map<String, Object>> claimDocuments = claimDocumentsRepository.getAllClaimDocument(verifierClaimDataResponseDTO.getId());
                 if (!claimDocuments.isEmpty())

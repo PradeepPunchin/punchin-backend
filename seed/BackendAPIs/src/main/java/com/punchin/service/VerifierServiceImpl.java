@@ -130,7 +130,7 @@ public class VerifierServiceImpl implements VerifierService {
             if (present) {
                 documentDetailsDTO.setDocumentUploaded(true);
             }
-            List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimId(claimDocuments.getId());
+            List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
             if (documentUrlsList.isEmpty()) {
                 log.info("Claim document url list not found for claimDocuments :: {}", claimDocuments.getId());
                 return null;

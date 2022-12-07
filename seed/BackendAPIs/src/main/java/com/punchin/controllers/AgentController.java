@@ -30,7 +30,7 @@ public class AgentController {
     @Autowired
     private AgentService agentService;
 
-    @GetMapping(value = "/getVerifierDataDocumentClaimsData")
+    @GetMapping(value = "/getClaimsByAgentState")
     public ResponseEntity<Object> getDataClaimsData(@RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("VerifierController :: getAllVerifierClaimsData  page{}, limit{}", page, limit);

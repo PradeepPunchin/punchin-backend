@@ -30,7 +30,7 @@ import java.util.Objects;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/verifier", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = UrlMapping.VERIFIER, produces = MediaType.APPLICATION_JSON_VALUE)
 public class VerifierController {
 
     @Autowired

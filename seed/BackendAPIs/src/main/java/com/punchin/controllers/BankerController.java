@@ -2,8 +2,10 @@ package com.punchin.controllers;
 
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
+import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.service.BankerService;
+import com.punchin.service.MISExport;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;
@@ -19,8 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -32,6 +36,8 @@ public class BankerController {
 
     @Autowired
     private BankerService bankerService;
+    @Autowired
+    private HttpServletResponse httpServletResponse;
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
@@ -90,7 +96,7 @@ public class BankerController {
         try {
             log.info("BankerController :: getClaimData claimId {}", claimId);
             ClaimsData claimsData = bankerService.getClaimData(claimId);
-            if(Objects.nonNull(claimsData)) {
+            if (Objects.nonNull(claimsData)) {
                 return ResponseHandler.response(claimsData, ResponseMessgae.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
@@ -138,16 +144,30 @@ public class BankerController {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
             ClaimsData claimsData = bankerService.getClaimData(claimId);
-            if(Objects.isNull(claimsData)) {
+            if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
             Map<String, Object> result = bankerService.uploadDocument(claimsData, multipartFiles, docType);
-            if(result.get("message").equals(ResponseMessgae.success)) {
+            if (result.get("message").equals(ResponseMessgae.success)) {
                 return ResponseHandler.response(result, ResponseMessgae.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getAllClaimsData e{}", e);
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = "/downloadMISFile")
+    public ResponseEntity<Object> downloadMISFile(@RequestParam ClaimStatus claimStatus) {
+        try {
+            log.info("BankerController :: downloadMISFile dataFilter{}", claimStatus);
+            List<ClaimsData> claimsDataList = bankerService.downloadMISFile(claimStatus);
+            MISExport misExport = new MISExport(claimsDataList);
+            misExport.export(httpServletResponse);
+            return ResponseHandler.response(claimsDataList, ResponseMessgae.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

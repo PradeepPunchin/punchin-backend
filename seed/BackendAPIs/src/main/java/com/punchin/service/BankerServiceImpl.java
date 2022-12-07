@@ -1,9 +1,13 @@
 package com.punchin.service;
 
-import com.punchin.entity.*;
-import com.punchin.enums.DocType;
+import com.punchin.enums.BankerDocType;
+import com.punchin.entity.ClaimDocuments;
+import com.punchin.entity.ClaimDraftData;
+import com.punchin.entity.ClaimsData;
+import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
+import com.punchin.enums.DocType;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimDraftDataRepository;
 import com.punchin.repository.ClaimsDataRepository;
@@ -21,14 +25,12 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.InputStream;
 import java.time.ZoneId;
 import java.util.*;
@@ -36,7 +38,7 @@ import java.util.*;
 @Slf4j
 @Service
 @Transactional
-public class BankerServiceImpl implements BankerService{
+public class BankerServiceImpl implements BankerService {
 
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
@@ -60,13 +62,13 @@ public class BankerServiceImpl implements BankerService{
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
         Map<String, Object> map = new HashMap<>();
         map.put("status", false);
-        try{
+        try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
             String bankerId = GenericUtils.getLoggedInUser().getUserId();
-            for(MultipartFile file : files) {
+            for (MultipartFile file : files) {
                 Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
-                if(Objects.nonNull(claimsData)) {
+                if (Objects.nonNull(claimsData)) {
                     claimsData = claimDraftDataRepository.saveAll(claimsData);
                     map.put("data", claimsData);
                     map.put("status", true);
@@ -76,7 +78,7 @@ public class BankerServiceImpl implements BankerService{
                 map.put("message", data.get("message"));
             }
             return map;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData e{}", e);
             return map;
         }
@@ -84,23 +86,23 @@ public class BankerServiceImpl implements BankerService{
 
     @Override
     public Page getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
-        try{
+        try {
             log.info("BankerServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
             Page page1 = Page.empty();
-            if(claimDataFilter.ALL.equals(claimDataFilter)){
+            if (claimDataFilter.ALL.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findAll(pageable);
-            } else if(claimDataFilter.DRAFT.equals(claimDataFilter)){
+            } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
                 page1 = claimDraftDataRepository.findAll(pageable);
-            } else if(claimDataFilter.SUBMITTED.equals(claimDataFilter)){
+            } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.CLAIM_SUBMITTED, false, pageable);
-            } else if(claimDataFilter.WIP.equals(claimDataFilter)){
+            } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.IN_PROGRESS, true, pageable);
-            } else if(claimDataFilter.SETTLED.equals(claimDataFilter)){
+            } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.SETTLED, true, pageable);
             }
             return page1;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimsList e{}", e);
             return null;
         }
@@ -109,13 +111,13 @@ public class BankerServiceImpl implements BankerService{
     @Override
     public Map<String, Long> getDashboardData() {
         Map<String, Long> map = new HashMap<>();
-        try{
+        try {
             log.info("BankerController :: getDashboardData");
             map.put(ClaimStatus.ALL.name(), claimsDataRepository.count());
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
             map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.SETTLED));
             return map;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);
             map.put(ClaimStatus.ALL.name(), 0L);
             map.put(ClaimStatus.IN_PROGRESS.name(), 0L);
@@ -126,24 +128,24 @@ public class BankerServiceImpl implements BankerService{
 
     @Override
     public String submitClaims() {
-        try{
+        try {
             log.info("BankerController :: submitClaims");
             List<ClaimDraftData> claimDraftDatas = claimDraftDataRepository.findAll();
             List<ClaimsData> claimsDataList = new ArrayList<>();
-            for (ClaimDraftData claimDraftData : claimDraftDatas){
+            for (ClaimDraftData claimDraftData : claimDraftDatas) {
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
                 claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
                 claimsData.setSubmittedAt(System.currentTimeMillis());
                 claimsDataList.add(claimsData);
             }
-            if(!claimsDataList.isEmpty()) {
+            if (!claimsDataList.isEmpty()) {
                 claimsDataRepository.saveAll(claimsDataList);
                 claimDraftDataRepository.deleteAll();
                 return ResponseMessgae.success;
             }
             return ResponseMessgae.invalidClaimData;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: submitClaims e{}", e);
             return ResponseMessgae.backText;
         }
@@ -151,11 +153,11 @@ public class BankerServiceImpl implements BankerService{
 
     @Override
     public String discardClaims() {
-        try{
+        try {
             log.info("BankerController :: discardClaims");
             claimDraftDataRepository.deleteAll();
             return ResponseMessgae.success;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: discardClaims e{}", e);
             return ResponseMessgae.backText;
         }
@@ -163,31 +165,31 @@ public class BankerServiceImpl implements BankerService{
 
     @Override
     public ClaimsData getClaimData(Long claimId) {
-        try{
+        try {
             log.info("BankerController :: getClaimData");
             Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
             return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
-        }catch (Exception e){
-            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimData e{}", e);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimData ", e);
             return null;
         }
     }
 
     @Override
-    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, DocType docType) {
+    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType) {
         Map<String, Object> map = new HashMap<>();
-        try{
+        try {
             log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
             ClaimDocuments claimDocuments = new ClaimDocuments();
             claimDocuments.setClaimsData(claimsData);
             claimDocuments.setDocType(docType.getValue());
             claimDocuments.setBankerId(GenericUtils.getLoggedInUser().getUserId());
             List<DocumentUrls> documentUrls = new ArrayList<>();
-            for(MultipartFile multipartFile : multipartFiles){
+            for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
                 urls.setDocUrl(amazonClient.uploadFile(multipartFile));
                 if(Objects.isNull(urls.getDocUrl())){
-                    map.put("message", ResponseMessgae.fileNotuploaded);
+                    map.put("message", ResponseMessgae.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
@@ -200,8 +202,8 @@ public class BankerServiceImpl implements BankerService{
             map.put("message", ResponseMessgae.success);
             map.put("claimDocuments", claimDocuments);
             return map;
-        }catch (Exception e){
-            log.error("EXCEPTION WHILE BankerServiceImpl :: uploadDocument e{}", e);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: uploadDocument ", e);
             map.put("message", e.getMessage());
             map.put("claimDocuments", null);
             return map;
@@ -216,7 +218,7 @@ public class BankerServiceImpl implements BankerService{
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(is);
             XSSFSheet sheet = workbook.getSheet("Sheet1");
-            if(Objects.isNull(sheet)){
+            if (Objects.isNull(sheet)) {
                 map.put("message", "sheet.not.found");
                 return map;
             }
@@ -228,7 +230,7 @@ public class BankerServiceImpl implements BankerService{
                     rowNumber++;
                     continue;
                 }
-                if(exit){
+                if (exit) {
                     break;
                 }
                 Iterator<Cell> cells = row.iterator();
@@ -243,7 +245,7 @@ public class BankerServiceImpl implements BankerService{
                     switch (cid) {
                         case 0:
                             cell.setCellType(CellType.STRING);
-                            if(Objects.isNull(cell) || cell.equals("") || cell.getStringCellValue() == ""){
+                            if (Objects.isNull(cell) || cell.equals("") || cell.getStringCellValue() == "") {
                                 exit = true;
                                 break;
                             }
@@ -257,7 +259,7 @@ public class BankerServiceImpl implements BankerService{
                             p.setInsurerClaimId(cell.getStringCellValue());
                             break;
                         case 3:
-                            if(Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
                                 p.setClaimInwardDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
@@ -286,7 +288,7 @@ public class BankerServiceImpl implements BankerService{
                             p.setLoanType(cell.getStringCellValue());
                             break;
                         case 10:
-                            if(Objects.nonNull(cell.getNumericCellValue())) {
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setLoanAmount(cell.getNumericCellValue());
                             }
                             break;
@@ -304,7 +306,7 @@ public class BankerServiceImpl implements BankerService{
                             break;
                         case 14:
                             cell.setCellType(CellType.STRING);
-                            if(Objects.nonNull(cell.getStringCellValue())) {
+                            if (Objects.nonNull(cell.getStringCellValue())) {
                                 p.setBranchPinCode(cell.getStringCellValue());
                             }
                             break;
@@ -332,17 +334,17 @@ public class BankerServiceImpl implements BankerService{
                             p.setMasterPolNumber(cell.getStringCellValue());
                             break;
                         case 21:
-                            if(Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
                                 p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
                         case 22:
-                            if(Objects.nonNull(cell.getNumericCellValue())) {
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicyCoverageDuration((int) cell.getNumericCellValue());
                             }
                             break;
                         case 23:
-                            if(Objects.nonNull(cell.getNumericCellValue())) {
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicySumAssured((double) cell.getNumericCellValue());
                             }
                             break;
@@ -376,23 +378,34 @@ public class BankerServiceImpl implements BankerService{
                     }
                     cid++;
                 }
-                if(!exit) {
+                if (!exit) {
                     list.add(p);
                 }
             }
             map.put("claimsData", list);
-            if(list.isEmpty()) {
+            if (list.isEmpty()) {
                 map.put("message", "data.not.found");
             }
             return map;
         } catch (IllegalStateException e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: convertExcelToListOfClaimsData e{}", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: convertExcelToListOfClaimsData ", e);
             map.put("message", "invalid.column.type");
             return map;
-        }catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: convertExcelToListOfClaimsData e{}", e);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: convertExcelToListOfClaimsData ", e);
             map.put("message", ResponseMessgae.invalidFormat);
             return map;
+        }
+    }
+
+    @Override
+    public List<ClaimsData> downloadMISFile(ClaimStatus claimStatus) {
+        try {
+            log.info("BankerController :: getAllClaimsData dataFilter{}", claimStatus);
+            return claimsDataRepository.findByClaimStatus(claimStatus.toString());
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getAllClaimsData ", e);
+            return Collections.emptyList();
         }
     }
 }

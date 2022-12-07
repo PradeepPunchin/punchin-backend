@@ -1,5 +1,3 @@
-
-
 package com.punchin.controllers;
 
 import com.punchin.dto.PageDTO;
@@ -23,7 +21,8 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/verifier", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = UrlMapping.VERIFIER, produces = MediaType.APPLICATION_JSON_VALUE)
+
 public class VerifierController {
 
     @Autowired

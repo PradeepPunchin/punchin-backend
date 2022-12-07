@@ -72,16 +72,17 @@ public class VerifierServiceImpl implements VerifierService {
                 if (!claimDocuments.isEmpty())
                     for (int i = 0; i <= claimDocuments.size(); i++) {
                         Map<String, Object> map = claimDocuments.get(i);
-                        verifierClaimDataResponseDTO.setSingnedClaimDocument((String) map.get("SINGNED_CLAIM_FORM"));
-                        verifierClaimDataResponseDTO.setDeathCertificate((String) map.get("DEATH_CERTIFICATE"));
-                        verifierClaimDataResponseDTO.setBorrowerIdProof((String) map.get("BORROWER_ID_PROOF"));
-                        verifierClaimDataResponseDTO.setBorrowerAddressProof((String) map.get("BORROWER_ADDRESS_PROOF"));
-                        verifierClaimDataResponseDTO.setNomineeIdProof((String) map.get("NOMINEE_ID_PROOF"));
-                        verifierClaimDataResponseDTO.setNomineeAddressProof((String) map.get("NOMINEE_ADDRESS_PROOF"));
-                        verifierClaimDataResponseDTO.setBankAccountProof((String) map.get("BANK_ACCOUNT_PROOF"));
-                        verifierClaimDataResponseDTO.setFIRPostmortemReport((String) map.get("FIR_POSTMORTEM_REPORT"));
-                        verifierClaimDataResponseDTO.setAffidavit((String) map.get("AFFIDAVIT"));
-                        verifierClaimDataResponseDTO.setDicrepancy((String) map.get("DISCREPANCY"));
+                        String docType = (String) map.get("doc_type");
+                        verifierClaimDataResponseDTO.setSingnedClaimDocument(docType.equalsIgnoreCase("SINGNED_CLAIM_FORM") ? docType : verifierClaimDataResponseDTO.getSingnedClaimDocument());
+                        verifierClaimDataResponseDTO.setDeathCertificate(docType.equalsIgnoreCase("DEATH_CERTIFICATE") ? docType : verifierClaimDataResponseDTO.getDeathCertificate());
+                        verifierClaimDataResponseDTO.setBorrowerIdProof(docType.equalsIgnoreCase("BORROWER_ID_PROOF") ? docType : verifierClaimDataResponseDTO.getBorrowerIdProof());
+                        verifierClaimDataResponseDTO.setBorrowerAddressProof(docType.equalsIgnoreCase("BORROWER_ADDRESS_PROOF") ? docType : verifierClaimDataResponseDTO.getBorrowerAddressProof());
+                        verifierClaimDataResponseDTO.setNomineeIdProof(docType.equalsIgnoreCase("NOMINEE_ID_PROOF") ? docType : verifierClaimDataResponseDTO.getNomineeIdProof());
+                        verifierClaimDataResponseDTO.setNomineeAddressProof(docType.equalsIgnoreCase("NOMINEE_ADDRESS_PROOF") ? docType : verifierClaimDataResponseDTO.getNomineeAddress());
+                        verifierClaimDataResponseDTO.setBankAccountProof(docType.equalsIgnoreCase("BANK_ACCOUNT_PROOF") ? docType : verifierClaimDataResponseDTO.getBankAccountProof());
+                        verifierClaimDataResponseDTO.setFIRPostmortemReport(docType.equalsIgnoreCase("FIR_POSTMORTEM_REPORT") ? docType : verifierClaimDataResponseDTO.getFIRPostmortemReport());
+                        verifierClaimDataResponseDTO.setAffidavit(docType.equalsIgnoreCase("AFFIDAVIT") ? docType : verifierClaimDataResponseDTO.getAffidavit());
+                        verifierClaimDataResponseDTO.setDicrepancy(docType.equalsIgnoreCase("DISCREPANCY") ? docType : verifierClaimDataResponseDTO.getDicrepancy());
                     }
             }
             return verifierClaimDataResponseDTOS;
@@ -129,7 +130,7 @@ public class VerifierServiceImpl implements VerifierService {
             if (present) {
                 documentDetailsDTO.setDocumentUploaded(true);
             }
-            List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrls(claimDocuments.getId());
+            List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimId(claimDocuments.getId());
             if (documentUrlsList.isEmpty()) {
                 log.info("Claim document url list not found for claimDocuments :: {}", claimDocuments.getId());
                 return null;

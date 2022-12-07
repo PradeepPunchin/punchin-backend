@@ -8,8 +8,8 @@ public enum ClaimDataFilter {
     SETTLED(4, "SETTLED"),
     ALLOCATED(5, "ALLOCATED"),
     ACTION_PENDING(6, "ACTION_PENDING"),
-    IN_PROGRESS(7, "IN_PROGRESS"),
-    DISCREPENCY(8, "DISCREPENCY");
+    UNDER_VERIFICATION(6, "UNDER_VERIFICATION"),
+    DISCREPENCY(7, "DISCREPENCY");
 
     private final String value;
 

@@ -1,11 +1,15 @@
 package com.punchin.service;
 
 import com.punchin.dto.*;
+import com.punchin.entity.ClaimAllocated;
 import com.punchin.entity.ClaimsData;
+import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
+import com.punchin.repository.ClaimAllocatedRepository;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimsDataRepository;
+import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ObjectMapperUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -28,29 +29,31 @@ public class VerifierServiceImpl implements VerifierService {
     @Autowired
     private ModelMapperService modelMapperService;
     @Autowired
-    private CommonUtilService commonUtilService;
+    private CommonUtilService commonService;
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
+    @Autowired
+    private ClaimAllocatedRepository claimAllocatedRepository;
 
     @Override
-    public PageDTO getAllClaimsData(ClaimStatus claimStatus, Integer pageNo, Integer pageSize) {
+    public PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize) {
+        Page<ClaimsData> page1 = Page.empty();
         try {
-            log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimStatus, pageNo, pageSize);
-            Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("punchin_claim_id"));
-            Page<ClaimsData> allClaimData;
-            if (ClaimDataFilter.ALL.toString().equals(claimStatus.toString()))
-                allClaimData = claimsDataRepository.findAllClaimData(pageable);
-            else
-                allClaimData = claimsDataRepository.findClaimDataByStatus(claimStatus.toString(), pageable);
-            List<ClaimDataDTO> claimDataDTOList = new ArrayList<>();
-            for (ClaimsData claimData : allClaimData) {
-                ClaimDataDTO map = modelMapperService.map(claimData, ClaimDataDTO.class);
-                claimDataDTOList.add(map);
+            log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, pageNo, pageSize);
+            Pageable pageable = PageRequest.of(pageNo, pageSize);
+            if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.ACTION_PENDING, true, pageable);
+            } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.IN_PROGRESS, true, pageable);
+            } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.UNDER_VERIFICATION, true, pageable);
+            } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.SETTLED, true, pageable);
             }
-            return commonUtilService.getDetailsPage(claimDataDTOList, allClaimData.getContent().size(), allClaimData.getTotalPages(), allClaimData.getTotalElements());
+            return commonService.convertPageToDTO(page1.getContent(), page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getAllClaimsData", e);
-            return null;
+            return commonService.convertPageToDTO(page1.getContent(), page1);
         }
     }
 
@@ -86,13 +89,49 @@ public class VerifierServiceImpl implements VerifierService {
         }
     }
 
-    public VerifierDashboardCountDTO getDashboardDataCount() {
-        log.info("VerifierController :: getDashboardDataCount");
-        VerifierDashboardCountDTO verifierDashboardCountDTO = new VerifierDashboardCountDTO();
-        verifierDashboardCountDTO.setAllocatedCount(0L);
-        verifierDashboardCountDTO.setInProgressCount(claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
-        verifierDashboardCountDTO.setActionPendingCount(claimsDataRepository.countByClaimStatus(ClaimStatus.ACTION_PENDING));
-        return verifierDashboardCountDTO;
+    public Map<String, Long> getDashboardData() {
+        Map<String, Long> map = new HashMap<>();
+        try {
+            log.info("VerifierServiceImpl :: getDashboardData");
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.UNDER_VERIFICATION));
+            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.SETTLED));
+            return map;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: getDashboardData e{}", e);
+            map.put(ClaimStatus.IN_PROGRESS.name(), 0L);
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), 0L);
+            map.put(ClaimStatus.SETTLED.name(), 0L);
+            return map;
+        }
+    }
+
+    @Override
+    public ClaimsData getClaimData(Long claimId) {
+        try {
+            log.info("VerifierServiceImpl :: getClaimData");
+            return claimsDataRepository.findByIdAndIsForwardToVerifier(claimId, true);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: getClaimData ", e);
+            return null;
+        }
+    }
+
+    @Override
+    public boolean allocateClaimToAgent(ClaimsData claimsData, User user) {
+        try {
+            log.info("VerifierServiceImpl :: allocateClaimToAgent");
+            ClaimAllocated claimAllocated = new ClaimAllocated();
+            claimAllocated.setClaimsData(claimsData);
+            claimAllocated.setUser(user);
+            claimAllocatedRepository.save(claimAllocated);
+            claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
+            claimsDataRepository.save(claimsData);
+            return true;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: allocateClaimToAgent ", e);
+            return false;
+        }
     }
 }
 

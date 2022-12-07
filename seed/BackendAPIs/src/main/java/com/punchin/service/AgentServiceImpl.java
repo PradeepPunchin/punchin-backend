@@ -35,15 +35,15 @@ public class AgentServiceImpl implements AgentService{
         try{
             log.info("AgentServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
-            Page page1 = Page.empty();
+            Page<ClaimsData> page1 = Page.empty();
             if(claimDataFilter.ALLOCATED.equals(claimDataFilter)){
-                page1 = claimsDataRepository.findAllByAgentAllocated(GenericUtils.getLoggedInUser(), pageable);
+                page1 = claimsDataRepository.findAllByAgentAllocated(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if(claimDataFilter.ACTION_PENDING.equals(claimDataFilter)){
-                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.ACTION_PENDING, pageable);
-            } else if(claimDataFilter.IN_PROGRESS.equals(claimDataFilter)){
-                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.IN_PROGRESS, pageable);
+                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser().getId(), ClaimStatus.ACTION_PENDING, pageable);
+            } else if(claimDataFilter.WIP.equals(claimDataFilter)){
+                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser().getId(), ClaimStatus.IN_PROGRESS, pageable);
             } else if(claimDataFilter.DISCREPENCY.equals(claimDataFilter)){
-                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.VERIFIER_DISCREPENCY, pageable);
+                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser().getId(), ClaimStatus.VERIFIER_DISCREPENCY, pageable);
             }
             if(!page1.isEmpty()) {
                 List<AgentClaimListDTO> agentClaimListDTOS = new ArrayList<>();
@@ -69,13 +69,13 @@ public class AgentServiceImpl implements AgentService{
     }
 
     @Override
-    public Map<String, Long> getDashboardData() {
-        Map<String, Long> map = new HashMap<>();
+    public Map<String, Object> getDashboardData() {
+        Map<String, Object> map = new HashMap<>();
         try{
             log.info("AgentServiceImpl :: getDashboardData");
             map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimAllocatedRepository.countByAllocatedToAgent(GenericUtils.getLoggedInUser().getId()));
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.IN_PROGRESS, GenericUtils.getLoggedInUser().getId()));
-            map.put(ClaimStatus.ACTION_PENDING.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.SETTLED, GenericUtils.getLoggedInUser().getId()));
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.IN_PROGRESS.name(), GenericUtils.getLoggedInUser().getId()));
+            map.put(ClaimStatus.ACTION_PENDING.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.SETTLED.name(), GenericUtils.getLoggedInUser().getId()));
             return map;
         }catch (Exception e){
             log.error("EXCEPTION WHILE AgentServiceImpl :: getDashboardData e{}", e);

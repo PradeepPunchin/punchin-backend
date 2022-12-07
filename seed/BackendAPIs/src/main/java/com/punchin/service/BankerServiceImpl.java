@@ -199,6 +199,8 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setUploadTime(System.currentTimeMillis());
             claimDocumentsRepository.save(claimDocuments);
             claimDocuments.setClaimsData(null);
+            claimsData.setIsForwardToVerifier(true);
+            claimsDataRepository.save(claimsData);
             map.put("message", ResponseMessgae.success);
             map.put("claimDocuments", claimDocuments);
             return map;

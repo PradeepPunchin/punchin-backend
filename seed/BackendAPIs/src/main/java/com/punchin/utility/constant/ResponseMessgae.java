@@ -2,6 +2,7 @@ package com.punchin.utility.constant;
 
 public class ResponseMessgae {
 
+
     private ResponseMessgae(){
 
     }
@@ -15,6 +16,7 @@ public class ResponseMessgae {
     public static final String invalidCredentials = "invalid.credentials";
     public static final String logout = "logout.success";
     public static final String invalidFormat = "invalid.format";
+    public static final String invalidAgentId = "invalid.agent.id";
 
 
 
@@ -23,4 +25,5 @@ public class ResponseMessgae {
     public static final String invalidClaimData = "invalid.claim.data";
     public static final String invalidClaimId = "invalid.claim.id";
     public static final String fileNotUploaded = "file.not.uploaded";
+    public static final String claimAllocated = "claim.allocated";
 }

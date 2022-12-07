@@ -82,6 +82,7 @@ public class BankerController {
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
+            page = page > 0 ? page - 1 : page;
             Page pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
             return ResponseHandler.response(pageDTO, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {

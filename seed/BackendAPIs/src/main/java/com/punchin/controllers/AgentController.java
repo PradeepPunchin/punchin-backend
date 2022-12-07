@@ -37,7 +37,7 @@ public class AgentController {
     public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("AgentController :: getDashboardData");
-            Map<String, Long> map = agentService.getDashboardData();
+            Map<String, Object> map = agentService.getDashboardData();
             return ResponseHandler.response(map, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentController :: getDashboardData e{}", e);
@@ -50,6 +50,7 @@ public class AgentController {
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("AgentController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
+            page = page > 0 ? page - 1 : page;
             PageDTO pageDTO = agentService.getClaimsList(claimDataFilter, page, limit);
             return ResponseHandler.response(pageDTO, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {

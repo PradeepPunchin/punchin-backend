@@ -2,13 +2,11 @@ package com.punchin.dto;
 
 import lombok.Data;
 
-import java.time.LocalDate;
-
 @Data
 public class VerifierClaimDataResponseDTO {
 
     private Long id;
-    private LocalDate registrationDate;
+    private Object registrationDate;
     private String borrowerName;
     private String nomineeName;
     private String nomineeContactNumber;

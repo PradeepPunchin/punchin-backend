@@ -59,7 +59,7 @@ public class VerifierServiceImpl implements VerifierService {
         try {
             log.info("BankerController :: getAllClaimsData  page{}, limit{}", pageNo, pageSize);
             Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("punchin_claim_id"));
-            List<ClaimDataResponse> allClaimData = claimsDataRepository.findClaimsDataVerifier(pageable);
+             List<ClaimDataResponse> allClaimData = claimsDataRepository.findClaimsDataVerifier(pageable);
             List<VerifierClaimDataResponseDTO> verifierClaimDataResponseDTOS = ObjectMapperUtils.mapAll(allClaimData, VerifierClaimDataResponseDTO.class);
             for (VerifierClaimDataResponseDTO verifierClaimDataResponseDTO : verifierClaimDataResponseDTOS) {
                 List<Map<String, Object>> claimDocuments = claimDocumentsRepository.getAllClaimDocument(verifierClaimDataResponseDTO.getId());
@@ -67,16 +67,16 @@ public class VerifierServiceImpl implements VerifierService {
                     for (int i = 0; i <= claimDocuments.size(); i++) {
                         Map<String, Object> map = claimDocuments.get(i);
                         String docType = (String) map.get("doc_type");
-                        verifierClaimDataResponseDTO.setSingnedClaimDocument(docType.equalsIgnoreCase("SINGNED_CLAIM_FORM") ? docType : verifierClaimDataResponseDTO.getSingnedClaimDocument());
-                        verifierClaimDataResponseDTO.setDeathCertificate(docType.equalsIgnoreCase("DEATH_CERTIFICATE") ? docType : verifierClaimDataResponseDTO.getDeathCertificate());
-                        verifierClaimDataResponseDTO.setBorrowerIdProof(docType.equalsIgnoreCase("BORROWER_ID_PROOF") ? docType : verifierClaimDataResponseDTO.getBorrowerIdProof());
-                        verifierClaimDataResponseDTO.setBorrowerAddressProof(docType.equalsIgnoreCase("BORROWER_ADDRESS_PROOF") ? docType : verifierClaimDataResponseDTO.getBorrowerAddressProof());
-                        verifierClaimDataResponseDTO.setNomineeIdProof(docType.equalsIgnoreCase("NOMINEE_ID_PROOF") ? docType : verifierClaimDataResponseDTO.getNomineeIdProof());
-                        verifierClaimDataResponseDTO.setNomineeAddressProof(docType.equalsIgnoreCase("NOMINEE_ADDRESS_PROOF") ? docType : verifierClaimDataResponseDTO.getNomineeAddress());
-                        verifierClaimDataResponseDTO.setBankAccountProof(docType.equalsIgnoreCase("BANK_ACCOUNT_PROOF") ? docType : verifierClaimDataResponseDTO.getBankAccountProof());
-                        verifierClaimDataResponseDTO.setFIRPostmortemReport(docType.equalsIgnoreCase("FIR_POSTMORTEM_REPORT") ? docType : verifierClaimDataResponseDTO.getFIRPostmortemReport());
-                        verifierClaimDataResponseDTO.setAffidavit(docType.equalsIgnoreCase("AFFIDAVIT") ? docType : verifierClaimDataResponseDTO.getAffidavit());
-                        verifierClaimDataResponseDTO.setDicrepancy(docType.equalsIgnoreCase("DISCREPANCY") ? docType : verifierClaimDataResponseDTO.getDicrepancy());
+                        verifierClaimDataResponseDTO.setSingnedClaimDocument(docType.equalsIgnoreCase("SINGNED_CLAIM_FORM"));
+                        verifierClaimDataResponseDTO.setDeathCertificate(docType.equalsIgnoreCase("DEATH_CERTIFICATE"));
+                        verifierClaimDataResponseDTO.setBorrowerIdProof(docType.equalsIgnoreCase("BORROWER_ID_PROOF"));
+                        verifierClaimDataResponseDTO.setBorrowerAddressProof(docType.equalsIgnoreCase("BORROWER_ADDRESS_PROOF"));
+                        verifierClaimDataResponseDTO.setNomineeIdProof(docType.equalsIgnoreCase("NOMINEE_ID_PROOF"));
+                        verifierClaimDataResponseDTO.setNomineeAddressProof(docType.equalsIgnoreCase("NOMINEE_ADDRESS_PROOF"));
+                        verifierClaimDataResponseDTO.setBankAccountProof(docType.equalsIgnoreCase("BANK_ACCOUNT_PROOF"));
+                        verifierClaimDataResponseDTO.setFIRPostmortemReport(docType.equalsIgnoreCase("FIR_POSTMORTEM_REPORT"));
+                        verifierClaimDataResponseDTO.setAffidavit(docType.equalsIgnoreCase("AFFIDAVIT"));
+                        verifierClaimDataResponseDTO.setDicrepancy(docType.equalsIgnoreCase("DISCREPANCY"));
                     }
             }
             return verifierClaimDataResponseDTOS;

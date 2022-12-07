@@ -64,7 +64,7 @@ public class AgentController {
     public ResponseEntity<Object> getClaimData(@PathVariable Long claimId) {
         try {
             log.info("AgentController :: getClaimData claimId {}", claimId);
-            if(agentService.checkAccess(claimId)){
+            if(!agentService.checkAccess(claimId)){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             ClaimsData claimsData = agentService.getClaimData(claimId);
@@ -91,7 +91,7 @@ public class AgentController {
                                                  @RequestBody(required = false) MultipartFile[] additionalDoc) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", claimId);
-            if(agentService.checkAccess(claimId)){
+            if(!agentService.checkAccess(claimId)){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             /*ClaimsData claimsData = bankerService.getClaimData(claimId);

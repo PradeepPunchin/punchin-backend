@@ -52,6 +52,7 @@ public class AgentServiceImpl implements AgentService{
                     AgentClaimListDTO agentClaimListDTO = new AgentClaimListDTO();
                     agentClaimListDTO.setId(claimsData.getId());
                     agentClaimListDTO.setClaimDate(claimsData.getClaimInwardDate());
+                    agentClaimListDTO.setAllocationDate(new Date(claimAllocatedRepository.getAllocationDate(claimsData.getId(), GenericUtils.getLoggedInUser().getId())));
                     agentClaimListDTO.setClaimId(claimsData.getPunchinClaimId());
                     agentClaimListDTO.setBorrowerName(claimsData.getBorrowerName());
                     agentClaimListDTO.setBorrowerAddress(claimsData.getBorrowerAddress());

@@ -1,10 +1,11 @@
 package com.punchin.repository;
 
 import com.punchin.entity.ClaimAllocated;
-import com.punchin.enums.ClaimStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.Date;
 
 @Repository
 public interface ClaimAllocatedRepository extends JpaRepository<ClaimAllocated, Long> {
@@ -16,4 +17,7 @@ public interface ClaimAllocatedRepository extends JpaRepository<ClaimAllocated, 
     int countByClaimStatusByAgent(String claimStatus, Long userId);
 
     boolean existsByUserIdAndClaimsDataId(Long userId, Long claimId);
+
+    @Query(nativeQuery = true, value = "SELECT created_at FROM claim_allocated WHERE claims_data_id =:claimId AND user_id =:userId")
+    Long getAllocationDate(Long claimId, Long userId);
 }

@@ -16,6 +16,7 @@ public class ClaimDocuments extends BasicEntity{
     @Column(updatable = false, unique = true)
     private Long id;
 
+    @OneToOne
     private ClaimsData claimsData;
 
     private String docType;

@@ -90,7 +90,7 @@ public class AgentServiceImpl implements AgentService{
     public boolean checkAccess(Long claimId) {
         try{
             log.info("AgentServiceImpl :: checkAccess");
-            return claimAllocatedRepository.existsByUserIdAndClaimDataId(GenericUtils.getLoggedInUser().getId(), claimId);
+            return claimAllocatedRepository.existsByUserIdAndClaimsDataId(GenericUtils.getLoggedInUser().getId(), claimId);
         }catch (Exception e){
             log.error("EXCEPTION WHILE AgentServiceImpl :: checkAccess e{}", e);
             return false;

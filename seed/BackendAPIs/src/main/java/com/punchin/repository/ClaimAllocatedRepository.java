@@ -15,5 +15,5 @@ public interface ClaimAllocatedRepository extends JpaRepository<ClaimAllocated, 
     @Query(nativeQuery = true, value = "SELECT count(ca.*) FROM claim_allocated as ca INNER JOIN claims_data as cd ON ca.claim_data_id = cd.id WHERE cd.claim_status=:claimStatus AND ca.user_id =:userId")
     Long countByClaimStatusByAgent(ClaimStatus claimStatus, Long userId);
 
-    boolean existsByUserIdAndClaimDataId(Long userId, Long claimId);
+    boolean existsByUserIdAndClaimsDataId(Long userId, Long claimId);
 }

@@ -15,8 +15,10 @@ public class ClaimAllocated extends BasicEntity {
     @Column(updatable = false, unique = true)
     private Long id;
 
+    @OneToOne
     private ClaimsData claimsData;
 
+    @OneToOne
     private User user;
 
 }

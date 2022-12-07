@@ -42,6 +42,8 @@ public class AgentServiceImpl implements AgentService{
                 page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.ACTION_PENDING, pageable);
             } else if(claimDataFilter.IN_PROGRESS.equals(claimDataFilter)){
                 page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.IN_PROGRESS, pageable);
+            } else if(claimDataFilter.DISCREPENCY.equals(claimDataFilter)){
+                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.VERIFIER_DISCREPENCY, pageable);
             }
             if(!page1.isEmpty()) {
                 List<AgentClaimListDTO> agentClaimListDTOS = new ArrayList<>();

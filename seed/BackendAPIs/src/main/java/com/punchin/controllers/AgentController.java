@@ -2,7 +2,6 @@ package com.punchin.controllers;
 
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.DocType;
 import com.punchin.service.AgentService;
@@ -10,7 +9,6 @@ import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;
 import com.punchin.utility.constant.UrlMapping;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -31,6 +29,20 @@ public class AgentController {
 
     @Autowired
     private AgentService agentService;
+
+    @GetMapping(value = "/getClaimsByAgentState")
+    public ResponseEntity<Object> getDataClaimsData(@RequestParam Integer page, @RequestParam Integer limit) {
+        try {
+            log.info("VerifierController :: getAllVerifierClaimsData  page{}, limit{}", page, limit);
+            List<ClaimsData> claimsByAgentState = agentService.getClaimsByAgentState(page, limit);
+            if (!claimsByAgentState.isEmpty())
+                return ResponseHandler.response(claimsByAgentState, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response("", ResponseMessgae.backText, false, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching in pagination data ", e);
+        }
+        return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
@@ -63,11 +75,11 @@ public class AgentController {
     public ResponseEntity<Object> getClaimData(@PathVariable Long claimId) {
         try {
             log.info("AgentController :: getClaimData claimId {}", claimId);
-            if(agentService.checkAccess(claimId)){
+            if (agentService.checkAccess(claimId)) {
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             ClaimsData claimsData = agentService.getClaimData(claimId);
-            if(Objects.nonNull(claimsData)) {
+            if (Objects.nonNull(claimsData)) {
                 return ResponseHandler.response(claimsData, ResponseMessgae.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
@@ -90,7 +102,7 @@ public class AgentController {
                                                  @RequestBody(required = false) MultipartFile[] additionalDoc) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", claimId);
-            if(agentService.checkAccess(claimId)){
+            if (agentService.checkAccess(claimId)) {
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             /*ClaimsData claimsData = bankerService.getClaimData(claimId);

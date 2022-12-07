@@ -19,33 +19,41 @@ import java.util.*;
 
 @Slf4j
 @Service
-public class AgentServiceImpl implements AgentService{
-
+public class AgentServiceImpl implements AgentService {
     @Autowired
     private CommonUtilService commonService;
-
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
-
     @Autowired
     private ClaimAllocatedRepository claimAllocatedRepository;
 
     @Override
+    public List<ClaimsData> getClaimsByAgentState(Integer page, Integer limit) {
+        try {
+            Pageable pageable = PageRequest.of(page, limit);
+            return claimsDataRepository.getClaimsByAgentState(pageable);
+        } catch (Exception e) {
+            log.error("Error in getClaimsByAgentState ", e);
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
     public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
-        try{
+        try {
             log.info("AgentServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
             Page page1 = Page.empty();
-            if(claimDataFilter.ALLOCATED.equals(claimDataFilter)){
+            if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findAllByAgentAllocated(GenericUtils.getLoggedInUser(), pageable);
-            } else if(claimDataFilter.ACTION_PENDING.equals(claimDataFilter)){
+            } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.ACTION_PENDING, pageable);
-            } else if(claimDataFilter.IN_PROGRESS.equals(claimDataFilter)){
+            } else if (claimDataFilter.IN_PROGRESS.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.IN_PROGRESS, pageable);
-            } else if(claimDataFilter.DISCREPENCY.equals(claimDataFilter)){
+            } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser(), ClaimStatus.VERIFIER_DISCREPENCY, pageable);
             }
-            if(!page1.isEmpty()) {
+            if (!page1.isEmpty()) {
                 List<AgentClaimListDTO> agentClaimListDTOS = new ArrayList<>();
                 List<ClaimsData> claimsDataList = page1.getContent();
                 for (ClaimsData claimsData : claimsDataList) {
@@ -62,7 +70,7 @@ public class AgentServiceImpl implements AgentService{
                 return commonService.convertPageToDTO(agentClaimListDTOS, page1);
             }
             return commonService.convertPageToDTO(page1);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimsList e{}", e);
             return null;
         }
@@ -71,13 +79,13 @@ public class AgentServiceImpl implements AgentService{
     @Override
     public Map<String, Long> getDashboardData() {
         Map<String, Long> map = new HashMap<>();
-        try{
+        try {
             log.info("AgentServiceImpl :: getDashboardData");
             map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimAllocatedRepository.countByAllocatedToAgent(GenericUtils.getLoggedInUser().getId()));
             map.put(ClaimStatus.IN_PROGRESS.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.IN_PROGRESS, GenericUtils.getLoggedInUser().getId()));
             map.put(ClaimStatus.ACTION_PENDING.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.SETTLED, GenericUtils.getLoggedInUser().getId()));
             return map;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getDashboardData e{}", e);
             map.put(ClaimStatus.ALL.name(), 0L);
             map.put(ClaimStatus.IN_PROGRESS.name(), 0L);
@@ -88,10 +96,10 @@ public class AgentServiceImpl implements AgentService{
 
     @Override
     public boolean checkAccess(Long claimId) {
-        try{
+        try {
             log.info("AgentServiceImpl :: checkAccess");
             return claimAllocatedRepository.existsByUserIdAndClaimsDataId(GenericUtils.getLoggedInUser().getId(), claimId);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: checkAccess e{}", e);
             return false;
         }
@@ -99,11 +107,11 @@ public class AgentServiceImpl implements AgentService{
 
     @Override
     public ClaimsData getClaimData(Long claimId) {
-        try{
+        try {
             log.info("AgentServiceImpl :: getClaimData");
             Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
             return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimData e{}", e);
             return null;
         }

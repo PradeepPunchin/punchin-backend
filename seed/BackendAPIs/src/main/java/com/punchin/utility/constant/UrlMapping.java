@@ -13,7 +13,7 @@ public class UrlMapping {
     public static final String GET_DASHBOARD_DATA = "/getDashboardData";
     public static final String GET_CLAIMS_LIST = "/claim";
     public static final String GET_CLAIM_DATA = "/claim/{claimId}";
-    public static final String UPLOAD_DOCUMENT = "/claim/{claimId}/uploadDocument/{docType}";
+
 
 
 
@@ -22,16 +22,17 @@ public class UrlMapping {
     public static final String LOGOUT = BASEURL + "/auth" + "/logout";
 
     //Banker Endpoints
-
-
+    public static final String BANKER_UPLOAD_DOCUMENT = "/claim/{claimId}/uploadDocument/{docType}";
     public static final String BANKER_UPLOAD_CLAIM = "/claim/upload";
     public static final String BANKER_SUBMIT_CLAIMS = "/claim/submit";
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
 
     //Verifier Endpoints
+    public static final String VERIFIER_GET_DASHBOARD_DATA_COUNT = "/getDashboardDataCount";
 
 
     //Agent Endpoints
-    public static final String VERIFIER_GET_DASHBOARD_DATA_COUNT = "/getDashboardDataCount";
+    public static final String AGENT_UPLOAD_DOCUMENT = "/claim/{claimId}/uploadDocument";
+
 
 }

@@ -1,9 +1,8 @@
 package com.punchin.service;
 
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.DocType;
+import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,5 +22,5 @@ public interface BankerService {
 
     ClaimsData getClaimData(Long claimId);
 
-    Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, DocType docType);
+    Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType);
 }

@@ -1,18 +1,19 @@
 package com.punchin.enums;
 
-public enum DocType {
-    AADHAR_CARD(1, "AADHAR_CARD"),
-    PASSPORT(2, "PASSPORT"),
-    VOTER_CARD(3, "VOTER_CARD"),
-    DRIVING_LICENCE(4, "DRIVING_LICENCE"),
-    BANK_PASSBOOK(5, "BANK_PASSBOOK"),
-    BANK_STATEMENT(6, "BANK_STATEMENT"),
-    OTHER(7, "OTHER");
+public enum BankerDocType {
+    CAS(1, "CAS"),
+    COVID_Q(2, "COVID_Q"),
+    DOGH(3, "DOGH"),
+    FUF(4, "FUF"),
+    POS_LETTER(5, "POS_LETTER"),
+    PROPOSAL_FORM(6, "PROPOSAL_FORM"),
+    SANCTION_LETTER(7, "SANCTION_LETTER"),
+    SMQ(8, "SMQ");
 
     private String value;
     private int key;
 
-    private DocType(int key, String value) {
+    private BankerDocType(int key, String value) {
         this.key = key;
         this.value = value;
     }

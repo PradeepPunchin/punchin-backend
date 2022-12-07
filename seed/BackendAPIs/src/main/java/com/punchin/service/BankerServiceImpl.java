@@ -1,7 +1,7 @@
 package com.punchin.service;
 
 import com.punchin.entity.*;
-import com.punchin.enums.DocType;
+import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimDocumentsRepository;
@@ -174,7 +174,7 @@ public class BankerServiceImpl implements BankerService{
     }
 
     @Override
-    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, DocType docType) {
+    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType) {
         Map<String, Object> map = new HashMap<>();
         try{
             log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);

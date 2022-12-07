@@ -49,6 +49,8 @@ public class VerifierServiceImpl implements VerifierService {
                 page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.UNDER_VERIFICATION, true, pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.SETTLED, true, pageable);
+            } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.VERIFIER_DISCREPENCY, true, pageable);
             }
             return commonService.convertPageToDTO(page1.getContent(), page1);
         } catch (Exception e) {

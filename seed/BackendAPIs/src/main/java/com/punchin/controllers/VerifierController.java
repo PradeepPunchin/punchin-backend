@@ -93,9 +93,10 @@ public class VerifierController {
                 log.info("Document details fetched Successfully");
                 return ResponseHandler.response(acceptAndRejectDocumentRequest, ResponseMessgae.success, true, HttpStatus.OK);
             }
+            log.info("No data found");
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE fetching document details ::", e);
+            log.error("EXCEPTION WHILE for accepting and rejecting documents ::", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -409,4 +409,19 @@ public class BankerServiceImpl implements BankerService {
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public String forwardToVerifier(ClaimsData claimsData) {
+        try {
+            log.info("BankerController :: forwardToVerifier");
+            claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
+            claimsData.setIsForwardToVerifier(true);
+            claimsData.setAgentToVerifierTime(System.currentTimeMillis());
+            claimsDataRepository.save(claimsData);
+            return ResponseMessgae.success;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: forwardToVerifier e{}", e);
+            return ResponseMessgae.backText;
+        }
+    }
 }

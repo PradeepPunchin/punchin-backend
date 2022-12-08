@@ -105,6 +105,8 @@ public class AgentController {
             documentDTO.setNomineeIdDoc(nomineeIdDoc);
             documentDTO.setNomineeAddressDocType(nomineeAddressDocType);
             documentDTO.setNomineeAddressDoc(nomineeAddressDoc);
+            documentDTO.setBankAccountDocType(bankAccountDocType);
+            documentDTO.setBankAccountDoc(bankAccountDoc);
             documentDTO.setFirOrPostmortemReport(FirOrPostmortemReport);
             documentDTO.setAdditionalDocType(additionalDocType);
             documentDTO.setAdditionalDoc(additionalDoc);

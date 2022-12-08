@@ -88,9 +88,15 @@ public class ClaimsData extends BasicEntity {
 
     private Boolean isForwardToVerifier = false;
 
+    private Long bankerToVerifierTime;
+
     //Field filled by Agent
     private CauseOfDeathEnum causeOfDeath;
 
     private Boolean isMinor;
+
+    private Boolean agentToVerifier;
+
+    private Long agentToVerifierTime;
 
 }

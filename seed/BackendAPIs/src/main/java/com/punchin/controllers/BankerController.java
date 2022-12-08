@@ -141,20 +141,40 @@ public class BankerController {
 
     @ApiOperation(value = "Claim List", notes = "This can be used to upload document regarding claim by banker")
     @PutMapping(value = UrlMapping.BANKER_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long id, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
         try {
-            log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
-            ClaimsData claimsData = bankerService.getClaimData(claimId);
+            log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
+            ClaimsData claimsData = bankerService.getClaimData(id);
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
-            Map<String, Object> result = bankerService.uploadDocument(claimsData, multipartFiles, docType);
+            Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[] {multipartFiles}, docType);
             if (result.get("message").equals(ResponseMessgae.success)) {
                 return ResponseHandler.response(result, ResponseMessgae.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getAllClaimsData e{}", e);
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Forward Claim", notes = "This can be used to forward claim to verifier")
+    @PutMapping(value = UrlMapping.FORWARD_TO_VERIFIER)
+    public ResponseEntity<Object> forwardToVerifier(@PathVariable Long id) {
+        try {
+            log.info("BankerController :: forwardToVerifier claimid {}", id);
+            ClaimsData claimsData = bankerService.getClaimData(id);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+            String result = bankerService.forwardToVerifier(claimsData);
+            if (result.equals(ResponseMessgae.success)) {
+                return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, result, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: forwardToVerifier e {}", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -27,4 +27,5 @@ public interface BankerService {
     Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType);
     List<ClaimsData> downloadMISFile(ClaimStatus claimStatus);
 
+    String forwardToVerifier(ClaimsData claimsData);
 }

@@ -1,6 +1,7 @@
 package com.punchin.service;
 
 import com.punchin.dto.AgentUploadDocumentDTO;
+import com.punchin.dto.ClaimDataDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.AgentClaimListDTO;
 import com.punchin.entity.ClaimDocuments;
@@ -29,6 +30,9 @@ import java.util.*;
 @Slf4j
 @Service
 public class AgentServiceImpl implements AgentService{
+
+    @Autowired
+    private ModelMapperService mapperService;
 
     @Autowired
     private CommonUtilService commonService;
@@ -92,15 +96,15 @@ public class AgentServiceImpl implements AgentService{
         Map<String, Object> map = new HashMap<>();
         try{
             log.info("AgentServiceImpl :: getDashboardData");
-            map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimAllocatedRepository.countByAllocatedToAgent(GenericUtils.getLoggedInUser().getId()));
+            map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.AGENT_ALLOCATED.name(), GenericUtils.getLoggedInUser().getId()));
             map.put(ClaimStatus.IN_PROGRESS.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.IN_PROGRESS.name(), GenericUtils.getLoggedInUser().getId()));
-            map.put(ClaimStatus.ACTION_PENDING.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.SETTLED.name(), GenericUtils.getLoggedInUser().getId()));
+            map.put(ClaimStatus.ACTION_PENDING.name(), claimAllocatedRepository.countByClaimStatusByAgent(ClaimStatus.ACTION_PENDING.name(), GenericUtils.getLoggedInUser().getId()));
             return map;
         }catch (Exception e){
             log.error("EXCEPTION WHILE AgentServiceImpl :: getDashboardData e{}", e);
-            map.put(ClaimStatus.ALL.name(), 0L);
+            map.put(ClaimStatus.AGENT_ALLOCATED.name(), 0L);
             map.put(ClaimStatus.IN_PROGRESS.name(), 0L);
-            map.put(ClaimStatus.SETTLED.name(), 0L);
+            map.put(ClaimStatus.ACTION_PENDING.name(), 0L);
             return map;
         }
     }
@@ -130,6 +134,7 @@ public class AgentServiceImpl implements AgentService{
 
     @Override
     public Map<String, Object> uploadDocument(AgentUploadDocumentDTO documentDTO) {
+        Map<String, Object> map = new HashMap<>();
         try{
             log.info("AgentServiceImpl :: uploadDocument documentDTO {]", documentDTO);
             List<ClaimDocuments> claimDocuments = new ArrayList<>();
@@ -163,10 +168,20 @@ public class AgentServiceImpl implements AgentService{
             if(Objects.nonNull(documentDTO.getAdditionalDoc())){
                 claimDocuments.add(uploadDocumentOnS3(documentDTO.getAdditionalDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getAdditionalDoc()}));
             }
-            claimsDataRepository.save(claimsData);
-            return Collections.EMPTY_MAP;
+            claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
+            claimsData.setAgentToVerifier(true);
+            claimsData.setAgentToVerifierTime(System.currentTimeMillis());
+            ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
+            claimDataDTO.setClaimDocuments(claimDocuments);
+            map.put("claimsData", claimDataDTO);
+            map.put("status", true);
+            map.put("message", ResponseMessgae.success);
+            return map;
         }catch (Exception e){
             log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocument e{}", e);
+            map.put("claimsData", null);
+            map.put("status", false);
+            map.put("message", e.getMessage());
             return Collections.EMPTY_MAP;
         }
     }

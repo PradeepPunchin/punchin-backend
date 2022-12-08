@@ -1,53 +1,66 @@
 package com.punchin.dto;
 
+import com.punchin.entity.ClaimDocuments;
+import com.punchin.enums.CauseOfDeathEnum;
+import com.punchin.enums.ClaimStatus;
 import lombok.Data;
+
+import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 
 @Data
 
 public class ClaimDataDTO {
 
-    private Integer serialNumber;
+    private Long id;
 
-    private Integer punchinclaimId;
+    private String punchinClaimId;
 
     private String insurerClaimId;
 
-    private LocalDateTime claimInwardDate;
+    private String punchinBankerId;
+
+    private Date claimInwardDate;
 
     private String borrowerName;
 
-    private Integer borrowerContactNumber;
+    private String borrowerContactNumber;
 
-    private Long loanAccountNumber;
+    private String loanAccountNumber;
 
     private String borrowerAddress;
 
+    private String borrowerState;
+
     private String loanType;
 
-    private Long loanAmount;
+    private Double loanAmount;
 
-    private Integer branchCode;
+    private String branchCode;
 
     private String branchName;
 
     private String branchAddress;
 
-    private Integer branchPinCode;
+    private String branchPinCode;
 
-    private String state;
+    private String branchState;
 
-    private String loanAmountMgrName;
+    private String loanAccountManagerName;
 
-    private Long acntMgrPhoneNumber;
+    private String accountManagerContactNumber;
 
     private String insurerName;
 
-    private Integer borrowerPolicyNumber;
-
     private String masterPolNumber;
 
-    private LocalDateTime policyStartdate;
+    private String policyNumber;
+
+    private Date policyStartDate;
 
     private Integer policyCoverageDuration;
 
@@ -57,11 +70,28 @@ public class ClaimDataDTO {
 
     private String nomineeRelationShip;
 
-    private Long nomineeContactNumber;
+    private String nomineeContactNumber;
 
     private String nomineeEmailId;
 
     private String nomineeAddress;
 
-    private String statusEnum;
+    private ClaimStatus claimStatus;
+
+    private String submittedBy;
+
+    private Long submittedAt;
+
+    private Boolean isForwardToVerifier = false;
+
+    //Field filled by Agent
+    private CauseOfDeathEnum causeOfDeath;
+
+    private Boolean isMinor;
+
+    private Boolean agentToVerifier;
+
+    private Long agentToVerifierTime;
+
+    private List<ClaimDocuments> claimDocuments;
 }

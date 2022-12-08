@@ -22,10 +22,11 @@ public class UrlMapping {
     public static final String LOGOUT = BASEURL + "/auth" + "/logout";
 
     //Banker Endpoints
-    public static final String BANKER_UPLOAD_DOCUMENT = "/claim/{claimId}/uploadDocument/{docType}";
+    public static final String BANKER_UPLOAD_DOCUMENT = "/claim/{id}/uploadDocument/{docType}";
     public static final String BANKER_UPLOAD_CLAIM = "/claim/upload";
     public static final String BANKER_SUBMIT_CLAIMS = "/claim/submit";
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
+    public static final String FORWARD_TO_VERIFIER = "/claim/{id}/forward-to-verifier";
 
     //Verifier Endpoints
     public static final String VERIFIER_ALLOCATE_CLAIM = "/claim/{claimId}/allocate/{agentId}";

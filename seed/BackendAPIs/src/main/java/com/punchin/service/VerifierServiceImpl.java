@@ -70,42 +70,30 @@ public class VerifierServiceImpl implements VerifierService {
             for (VerifierClaimDataResponseDTO verifierClaimDataResponseDTO : verifierClaimDataResponseDTOS) {
                 List<Map<String, Object>> claimDocuments = claimDocumentsRepository.getAllClaimDocument(verifierClaimDataResponseDTO.getId());
                 if (!claimDocuments.isEmpty())
-                    for (int i = 0; i <= claimDocuments.size(); i++) {
+                    for (int i = 0; i < claimDocuments.size(); i++) {
                         Map<String, Object> map = claimDocuments.get(i);
                         String docType = (String) map.get("doc_type");
-                        verifierClaimDataResponseDTO.setSingnedClaimDocument(docType.equalsIgnoreCase("SINGNED_CLAIM_FORM") || verifierClaimDataResponseDTO.getSingnedClaimDocument());
-                        verifierClaimDataResponseDTO.setDeathCertificate(docType.equalsIgnoreCase("DEATH_CERTIFICATE") || verifierClaimDataResponseDTO.getDeathCertificate());
-                        verifierClaimDataResponseDTO.setBorrowerIdProof(docType.equalsIgnoreCase("BORROWER_ID_PROOF") || verifierClaimDataResponseDTO.getBorrowerIdProof());
-                        verifierClaimDataResponseDTO.setBorrowerAddressProof(docType.equalsIgnoreCase("BORROWER_ADDRESS_PROOF") || verifierClaimDataResponseDTO.getBorrowerAddressProof());
-                        verifierClaimDataResponseDTO.setNomineeIdProof(docType.equalsIgnoreCase("NOMINEE_ID_PROOF") || verifierClaimDataResponseDTO.getNomineeIdProof());
-                        verifierClaimDataResponseDTO.setNomineeAddressProof(docType.equalsIgnoreCase("NOMINEE_ADDRESS_PROOF") || verifierClaimDataResponseDTO.getNomineeAddressProof());
-                        verifierClaimDataResponseDTO.setBankAccountProof(docType.equalsIgnoreCase("BANK_ACCOUNT_PROOF") || verifierClaimDataResponseDTO.getBankAccountProof());
-                        verifierClaimDataResponseDTO.setFIRPostmortemReport(docType.equalsIgnoreCase("FIR_POSTMORTEM_REPORT") || verifierClaimDataResponseDTO.getFIRPostmortemReport());
-                        verifierClaimDataResponseDTO.setAffidavit(docType.equalsIgnoreCase("AFFIDAVIT") || verifierClaimDataResponseDTO.getAffidavit());
-                        verifierClaimDataResponseDTO.setDicrepancy(docType.equalsIgnoreCase("DISCREPANCY") || verifierClaimDataResponseDTO.getDicrepancy());
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getSingnedClaimDocument()) || Objects.isNull(verifierClaimDataResponseDTO.getSingnedClaimDocument()))
+                            verifierClaimDataResponseDTO.setSingnedClaimDocument(docType.equalsIgnoreCase("SINGNED_CLAIM_FORM"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getDeathCertificate()) || Objects.isNull(verifierClaimDataResponseDTO.getDeathCertificate()))
+                            verifierClaimDataResponseDTO.setDeathCertificate(docType.equalsIgnoreCase("DEATH_CERTIFICATE"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getBorrowerIdProof()) || Objects.isNull(verifierClaimDataResponseDTO.getBorrowerIdProof()))
+                            verifierClaimDataResponseDTO.setBorrowerIdProof(docType.equalsIgnoreCase("BORROWER_ID_PROOF"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getBorrowerAddressProof()) || Objects.isNull(verifierClaimDataResponseDTO.getBorrowerAddressProof()))
+                            verifierClaimDataResponseDTO.setBorrowerAddressProof(docType.equalsIgnoreCase("BORROWER_ADDRESS_PROOF"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getNomineeIdProof()) || Objects.isNull(verifierClaimDataResponseDTO.getNomineeIdProof()))
+                            verifierClaimDataResponseDTO.setNomineeIdProof(docType.equalsIgnoreCase("NOMINEE_ID_PROOF"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getNomineeAddressProof()) || Objects.isNull(verifierClaimDataResponseDTO.getNomineeAddressProof()))
+                            verifierClaimDataResponseDTO.setNomineeAddressProof(docType.equalsIgnoreCase("NOMINEE_ADDRESS_PROOF"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getBankAccountProof()) || Objects.isNull(verifierClaimDataResponseDTO.getBankAccountProof()))
+                            verifierClaimDataResponseDTO.setBankAccountProof(docType.equalsIgnoreCase("BANK_ACCOUNT_PROOF"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getFIRPostmortemReport()) || Objects.isNull(verifierClaimDataResponseDTO.getFIRPostmortemReport()))
+                            verifierClaimDataResponseDTO.setFIRPostmortemReport(docType.equalsIgnoreCase("FIR_POSTMORTEM_REPORT"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getAffidavit()) || Objects.isNull(verifierClaimDataResponseDTO.getAffidavit()))
+                            verifierClaimDataResponseDTO.setAffidavit(docType.equalsIgnoreCase("AFFIDAVIT"));
+                        if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getDicrepancy()) || Objects.isNull(verifierClaimDataResponseDTO.getDicrepancy()))
+                            verifierClaimDataResponseDTO.setDicrepancy(docType.equalsIgnoreCase("DISCREPANCY"));
                     }
-            }
-            for (VerifierClaimDataResponseDTO verifierClaimDataResponseDTO : verifierClaimDataResponseDTOS) {
-                if (Objects.isNull(verifierClaimDataResponseDTO.getSingnedClaimDocument()))
-                    verifierClaimDataResponseDTO.setSingnedClaimDocument(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getDeathCertificate()))
-                    verifierClaimDataResponseDTO.setDeathCertificate(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getBorrowerIdProof()))
-                    verifierClaimDataResponseDTO.setBorrowerIdProof(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getBorrowerAddressProof()))
-                    verifierClaimDataResponseDTO.setBorrowerAddressProof(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getNomineeIdProof()))
-                    verifierClaimDataResponseDTO.setNomineeIdProof(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getNomineeAddressProof()))
-                    verifierClaimDataResponseDTO.setNomineeAddressProof(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getBankAccountProof()))
-                    verifierClaimDataResponseDTO.setBankAccountProof(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getFIRPostmortemReport()))
-                    verifierClaimDataResponseDTO.setFIRPostmortemReport(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getAffidavit()))
-                    verifierClaimDataResponseDTO.setAffidavit(false);
-                if (Objects.isNull(verifierClaimDataResponseDTO.getDicrepancy()))
-                    verifierClaimDataResponseDTO.setDicrepancy(false);
             }
             return verifierClaimDataResponseDTOS;
         } catch (Exception e) {

@@ -103,5 +103,18 @@ public class VerifierController {
         }
     }
 
+    @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
+    public ResponseEntity<Object> getClaimDocVerificationRequest(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
+        try {
+            log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
+            page = page > 0 ? page - 1 : page;
+            PageDTO allClaimsData = verifierService.getAllClaimsData(claimDataFilter, page, limit);
+            return ResponseHandler.response(allClaimsData, ResponseMessgae.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching in pagination data");
+            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
 

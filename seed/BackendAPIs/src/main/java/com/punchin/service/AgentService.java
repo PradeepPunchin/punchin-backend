@@ -1,5 +1,6 @@
 package com.punchin.service;
 
+import com.punchin.dto.AgentUploadDocumentDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
@@ -14,4 +15,6 @@ public interface AgentService {
     boolean checkAccess(Long claimId);
 
     ClaimsData getClaimData(Long claimId);
+
+    Map<String, Object> uploadDocument(AgentUploadDocumentDTO documentDTO);
 }

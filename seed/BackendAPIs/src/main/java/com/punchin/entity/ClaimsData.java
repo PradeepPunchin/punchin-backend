@@ -1,5 +1,6 @@
 package com.punchin.entity;
 
+import com.punchin.enums.CauseOfDeathEnum;
 import com.punchin.enums.ClaimStatus;
 import lombok.*;
 
@@ -86,5 +87,10 @@ public class ClaimsData extends BasicEntity {
     private Long submittedAt;
 
     private Boolean isForwardToVerifier = false;
+
+    //Field filled by Agent
+    private CauseOfDeathEnum causeOfDeath;
+
+    private Boolean isMinor;
 
 }

@@ -1,19 +1,28 @@
 package com.punchin.service;
 
+import com.punchin.dto.AgentUploadDocumentDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.AgentClaimListDTO;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
+import com.punchin.entity.DocumentUrls;
+import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimAllocatedRepository;
+import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimsDataRepository;
+import com.punchin.repository.DocumentUrlsRepository;
+import com.punchin.security.AmazonClient;
 import com.punchin.utility.GenericUtils;
+import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -29,6 +38,15 @@ public class AgentServiceImpl implements AgentService{
 
     @Autowired
     private ClaimAllocatedRepository claimAllocatedRepository;
+
+    @Autowired
+    private ClaimDocumentsRepository claimDocumentsRepository;
+
+    @Autowired
+    private DocumentUrlsRepository documentUrlsRepository;
+
+    @Autowired
+    private AmazonClient amazonClient;
 
     @Override
     public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
@@ -106,6 +124,75 @@ public class AgentServiceImpl implements AgentService{
             return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
         }catch (Exception e){
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimData e{}", e);
+            return null;
+        }
+    }
+
+    @Override
+    public Map<String, Object> uploadDocument(AgentUploadDocumentDTO documentDTO) {
+        try{
+            log.info("AgentServiceImpl :: uploadDocument documentDTO {]", documentDTO);
+            List<ClaimDocuments> claimDocuments = new ArrayList<>();
+            ClaimsData claimsData = documentDTO.getClaimsData();
+            claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
+            claimsData.setIsMinor(documentDTO.isMinor());
+            if(Objects.nonNull(documentDTO.getSignedForm())){
+                claimDocuments.add(uploadDocumentOnS3("SIGNED_FORM", claimsData, new MultipartFile[]{documentDTO.getSignedForm()}));
+            }
+            if(Objects.nonNull(documentDTO.getDeathCertificate())){
+                claimDocuments.add(uploadDocumentOnS3("DEATH_CERTIFICATE", claimsData, new MultipartFile[]{documentDTO.getDeathCertificate()}));
+            }
+            if(Objects.nonNull(documentDTO.getBorrowerIdDoc())){
+                claimDocuments.add(uploadDocumentOnS3(documentDTO.getBorrowerIdDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getBorrowerIdDoc()}));
+            }
+            if(Objects.nonNull(documentDTO.getBorrowerAddressDoc())){
+                claimDocuments.add(uploadDocumentOnS3(documentDTO.getBorrowerAddressDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getBorrowerAddressDoc()}));
+            }
+            if(Objects.nonNull(documentDTO.getNomineeIdDoc())){
+                claimDocuments.add(uploadDocumentOnS3(documentDTO.getNomineeIdDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getNomineeIdDoc()}));
+            }
+            if(Objects.nonNull(documentDTO.getNomineeAddressDoc())){
+                claimDocuments.add(uploadDocumentOnS3(documentDTO.getNomineeAddressDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getNomineeAddressDoc()}));
+            }
+            if(Objects.nonNull(documentDTO.getBankAccountDoc())){
+                claimDocuments.add(uploadDocumentOnS3(documentDTO.getBankAccountDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getBankAccountDoc()}));
+            }
+            if(Objects.nonNull(documentDTO.getFirOrPostmortemReport())){
+                claimDocuments.add(uploadDocumentOnS3("FIR_POSTMORTEM_REPORT", claimsData, new MultipartFile[]{documentDTO.getFirOrPostmortemReport()}));
+            }
+            if(Objects.nonNull(documentDTO.getAdditionalDoc())){
+                claimDocuments.add(uploadDocumentOnS3(documentDTO.getAdditionalDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getAdditionalDoc()}));
+            }
+            claimsDataRepository.save(claimsData);
+            claimsData.set
+        }catch (Exception e){
+            log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocument e{}", e);
+            return Collections.EMPTY_MAP;
+        }
+    }
+
+    public ClaimDocuments uploadDocumentOnS3(String docType, ClaimsData claimsData, MultipartFile[] multipartFiles){
+        try {
+            log.info("AgentServiceImpl :: uploadFiles claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
+            ClaimDocuments claimDocuments = new ClaimDocuments();
+            claimDocuments.setClaimsData(claimsData);
+            claimDocuments.setDocType(docType);
+            claimDocuments.setBankerId(GenericUtils.getLoggedInUser().getUserId());
+            List<DocumentUrls> documentUrls = new ArrayList<>();
+            for (MultipartFile multipartFile : multipartFiles) {
+                DocumentUrls urls = new DocumentUrls();
+                urls.setDocUrl(amazonClient.uploadFile(multipartFile));
+                documentUrls.add(urls);
+            }
+            documentUrlsRepository.saveAll(documentUrls);
+            claimDocuments.setDocumentUrls(documentUrls);
+            claimDocuments.setUploadTime(System.currentTimeMillis());
+            return claimDocumentsRepository.save(claimDocuments);
+            /*claimDocuments.setClaimsData(null);
+            claimsData.setIsForwardToVerifier(true);
+            claimsDataRepository.save(claimsData);*/
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentServiceImpl :: uploadFiles ", e);
             return null;
         }
     }

@@ -1,10 +1,11 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.AgentUploadDocumentDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.BankerDocType;
-import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.*;
 import com.punchin.enums.DocType;
+import com.punchin.enums.KycDocType;
 import com.punchin.service.AgentService;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;
@@ -80,28 +81,38 @@ public class AgentController {
 
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @RequestParam String causeOfDeath, @RequestParam boolean isMinor,
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long claimId, @RequestParam CauseOfDeathEnum causeOfDeath, @RequestParam boolean isMinor,
                                                  @RequestBody(required = false) MultipartFile signedForm, @RequestBody(required = false) MultipartFile deathCertificate,
-                                                 @RequestParam(required = false) DocType borrowerIdDocType, @RequestBody(required = false) MultipartFile[] borrowerIdDoc,
-                                                 @RequestParam(required = false) DocType borrowerAddressdocType, @RequestBody(required = false) MultipartFile[] borrowerAddressDoc,
-                                                 @RequestParam(required = false) DocType nomineeIdDocType, @RequestBody(required = false) MultipartFile[] nomineeIdDoc,
-                                                 @RequestParam(required = false) DocType nomineeAddressDocType, @RequestBody(required = false) MultipartFile[] nomineeAddressDoc,
-                                                 @RequestParam(required = false) DocType bankAccountDocType, @RequestBody(required = false) MultipartFile[] bankAccountDoc,
-                                                 @RequestBody(required = false) MultipartFile FirOrPostmortemReport, @RequestParam(required = false) DocType additionalDocType,
-                                                 @RequestBody(required = false) MultipartFile[] additionalDoc) {
+                                                 @RequestParam(required = false) KycOrAddressDocType borrowerIdDocType, @RequestBody(required = false) MultipartFile borrowerIdDoc,
+                                                 @RequestParam(required = false) KycOrAddressDocType borrowerAddressDocType, @RequestBody(required = false) MultipartFile borrowerAddressDoc,
+                                                 @RequestParam(required = false) KycOrAddressDocType nomineeIdDocType, @RequestBody(required = false) MultipartFile nomineeIdDoc,
+                                                 @RequestParam(required = false) KycOrAddressDocType nomineeAddressDocType, @RequestBody(required = false) MultipartFile nomineeAddressDoc,
+                                                 @RequestParam(required = false) BankAccountDocType bankAccountDocType, @RequestBody(required = false) MultipartFile bankAccountDoc,
+                                                 @RequestBody(required = false) MultipartFile FirOrPostmortemReport, @RequestParam(required = false) AdditionalDocType additionalDocType,
+                                                 @RequestBody(required = false) MultipartFile additionalDoc) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", claimId);
             if(!agentService.checkAccess(claimId)){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            /*ClaimsData claimsData = bankerService.getClaimData(claimId);
-            if(Objects.isNull(claimsData)) {
-                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
-            }
-            Map<String, Object> result = bankerService.uploadDocument(claimsData, multipartFiles, docType);
-            if(result.get("message").equals(ResponseMessgae.success)) {
-                return ResponseHandler.response(result, ResponseMessgae.success, true, HttpStatus.OK);
-            }*/
+            AgentUploadDocumentDTO documentDTO = new AgentUploadDocumentDTO();
+            documentDTO.setClaimsData(agentService.getClaimData(claimId));
+            documentDTO.setCauseOfDeath(causeOfDeath);
+            documentDTO.setMinor(isMinor);
+            documentDTO.setSignedForm(signedForm);
+            documentDTO.setDeathCertificate(deathCertificate);
+            documentDTO.setBorrowerIdDocType(borrowerIdDocType);
+            documentDTO.setBorrowerIdDoc(borrowerIdDoc);
+            documentDTO.setBorrowerAddressDocType(borrowerAddressDocType);
+            documentDTO.setBorrowerAddressDoc(borrowerAddressDoc);
+            documentDTO.setNomineeIdDocType(nomineeIdDocType);
+            documentDTO.setNomineeIdDoc(nomineeIdDoc);
+            documentDTO.setNomineeAddressDocType(nomineeAddressDocType);
+            documentDTO.setNomineeAddressDoc(nomineeAddressDoc);
+            documentDTO.setFirOrPostmortemReport(FirOrPostmortemReport);
+            documentDTO.setAdditionalDocType(additionalDocType);
+            documentDTO.setAdditionalDoc(additionalDoc);
+            Map<String, Object> result = agentService.uploadDocument(documentDTO);
             return ResponseHandler.response(null, null, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentController :: getAllClaimsData e{}", e);

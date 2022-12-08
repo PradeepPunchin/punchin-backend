@@ -4,14 +4,11 @@ import com.punchin.dto.AgentUploadDocumentDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.*;
-import com.punchin.enums.DocType;
-import com.punchin.enums.KycDocType;
 import com.punchin.service.AgentService;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.ResponseMessgae;
 import com.punchin.utility.constant.UrlMapping;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
 import java.util.Map;
 import java.util.Objects;
 
@@ -113,7 +109,7 @@ public class AgentController {
             documentDTO.setAdditionalDocType(additionalDocType);
             documentDTO.setAdditionalDoc(additionalDoc);
             Map<String, Object> result = agentService.uploadDocument(documentDTO);
-            return ResponseHandler.response(null, null, false, HttpStatus.BAD_REQUEST);
+            return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentController :: getAllClaimsData e{}", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

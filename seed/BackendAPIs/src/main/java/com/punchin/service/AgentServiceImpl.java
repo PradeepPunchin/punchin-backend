@@ -164,7 +164,7 @@ public class AgentServiceImpl implements AgentService{
                 claimDocuments.add(uploadDocumentOnS3(documentDTO.getAdditionalDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getAdditionalDoc()}));
             }
             claimsDataRepository.save(claimsData);
-            claimsData.set
+            return Collections.EMPTY_MAP;
         }catch (Exception e){
             log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocument e{}", e);
             return Collections.EMPTY_MAP;

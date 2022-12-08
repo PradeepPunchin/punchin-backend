@@ -103,7 +103,7 @@ public class VerifierController {
         }
     }
 
-    @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
+    @GetMapping(value = UrlMapping.VERIFIER_CLAIMS_VERIFICATION_REQUEST)
     public ResponseEntity<Object> getClaimDocVerificationRequest(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);

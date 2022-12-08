@@ -29,6 +29,8 @@ public class UrlMapping {
 
     //Verifier Endpoints
     public static final String VERIFIER_ALLOCATE_CLAIM = "/claim/{claimId}/allocate/{agentId}";
+    public static final String VERIFIER_CLAIMS_VERIFICATION_REQUEST = "/claim/verification-requests";
+
 
     //Agent Endpoints
     public static final String AGENT_UPLOAD_DOCUMENT = "/claim/{claimId}/uploadDocument";

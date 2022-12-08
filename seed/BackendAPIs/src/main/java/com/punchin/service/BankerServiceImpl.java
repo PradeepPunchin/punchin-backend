@@ -7,7 +7,6 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.DocType;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimDraftDataRepository;
 import com.punchin.repository.ClaimsDataRepository;

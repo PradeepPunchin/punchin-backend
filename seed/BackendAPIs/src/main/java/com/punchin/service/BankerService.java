@@ -4,7 +4,6 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.DocType;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 

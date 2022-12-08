@@ -12,4 +12,6 @@ import java.util.Map;
 public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, Long> {
     @Query(nativeQuery = true, value = " select * from claim_documents cd where cd.claims_data_id=:claimId ")
     List<Map<String, Object>> getAllClaimDocument(Long claimId);
+
+    List<ClaimDocuments> findByClaimsDataIdAndUploadSideBy(Long claimId, String banker);
 }

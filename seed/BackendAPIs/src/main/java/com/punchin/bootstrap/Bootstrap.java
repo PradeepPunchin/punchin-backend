@@ -84,6 +84,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
+                user.setState("gujarat");
                 users.add(user);
             }
             userRepository.saveAll(users);

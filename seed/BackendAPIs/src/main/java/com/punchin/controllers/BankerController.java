@@ -93,10 +93,10 @@ public class BankerController {
 
     @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
     @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
-    public ResponseEntity<Object> getClaimData(@PathVariable Long claimId) {
+    public ResponseEntity<Object> getClaimData(@PathVariable Long id) {
         try {
-            log.info("BankerController :: getClaimData claimId {}", claimId);
-            ClaimsData claimsData = bankerService.getClaimData(claimId);
+            log.info("BankerController :: getClaimData claimId {}", id);
+            ClaimsData claimsData = bankerService.getClaimData(id);
             if (Objects.nonNull(claimsData)) {
                 return ResponseHandler.response(claimsData, ResponseMessgae.success, true, HttpStatus.OK);
             }

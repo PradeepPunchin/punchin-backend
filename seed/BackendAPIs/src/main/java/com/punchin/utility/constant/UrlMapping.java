@@ -12,7 +12,7 @@ public class UrlMapping {
 
     public static final String GET_DASHBOARD_DATA = "/getDashboardData";
     public static final String GET_CLAIMS_LIST = "/claim";
-    public static final String GET_CLAIM_DATA = "/claim/{claimId}";
+    public static final String GET_CLAIM_DATA = "/claim/{id}";
 
 
 

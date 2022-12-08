@@ -192,7 +192,8 @@ public class AgentServiceImpl implements AgentService{
             ClaimDocuments claimDocuments = new ClaimDocuments();
             claimDocuments.setClaimsData(claimsData);
             claimDocuments.setDocType(docType);
-            claimDocuments.setBankerId(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments.setUploadSideBy("agent");
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
@@ -203,9 +204,6 @@ public class AgentServiceImpl implements AgentService{
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
             return claimDocumentsRepository.save(claimDocuments);
-            /*claimDocuments.setClaimsData(null);
-            claimsData.setIsForwardToVerifier(true);
-            claimsDataRepository.save(claimsData);*/
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: uploadFiles ", e);
             return null;

@@ -24,9 +24,8 @@ public class ClaimDocuments extends BasicEntity{
     @OneToMany
     private List<DocumentUrls> documentUrls;
 
-    private String bankerId;
-
-    private String agentId;
+    private String uploadSideBy;
+    private String uploadBy;
 
     private Long uploadTime;
 

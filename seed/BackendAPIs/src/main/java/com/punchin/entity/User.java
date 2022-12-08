@@ -46,4 +46,6 @@ public class User extends BasicEntity{
     @Enumerated(EnumType.STRING)
     private RoleEnum role;
 
+    private String state;
+
 }

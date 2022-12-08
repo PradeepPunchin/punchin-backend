@@ -58,13 +58,13 @@ public class AgentController {
 
     @ApiOperation(value = "Claim List", notes = "This can be used to get Allocated claim data")
     @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
-    public ResponseEntity<Object> getClaimData(@PathVariable Long claimId) {
+    public ResponseEntity<Object> getClaimData(@PathVariable Long id) {
         try {
-            log.info("AgentController :: getClaimData claimId {}", claimId);
-            if(!agentService.checkAccess(claimId)){
+            log.info("AgentController :: getClaimData claimId {}", id);
+            if(!agentService.checkAccess(id)){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            ClaimsData claimsData = agentService.getClaimData(claimId);
+            ClaimsData claimsData = agentService.getClaimData(id);
             if(Objects.nonNull(claimsData)) {
                 return ResponseHandler.response(claimsData, ResponseMessgae.success, true, HttpStatus.OK);
             }

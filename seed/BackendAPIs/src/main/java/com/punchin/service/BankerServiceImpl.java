@@ -1,5 +1,6 @@
 package com.punchin.service;
 
+import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.enums.BankerDocType;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimDraftData;
@@ -167,6 +168,25 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerController :: getClaimData");
             Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
+            if(optionalClaimsData.isPresent()){
+                ClaimsData claimsData = optionalClaimsData.get();
+                BankerClaimDocumentationDTO dto = new BankerClaimDocumentationDTO();
+                dto.setId(claimsData.getId());
+                dto.setPunchinClaimId(claimsData.getPunchinClaimId());
+                dto.setBorrowerName(claimsData.getBorrowerName());
+                dto.setBorrowerAddress(claimsData.getBorrowerAddress());
+                dto.setLoanType(claimsData.getLoanType());
+                dto.setLoanAccountNumber(claimsData.getLoanAccountNumber());
+                dto.setInsurerName(claimsData.getInsurerName());
+                dto.setMasterPolicyNumbet(claimsData.getMasterPolNumber());
+                dto.setBorrowerPolicyNumber(claimsData.getPolicyNumber());
+                dto.setPolicySumAssured(claimsData.getPolicySumAssured());
+                dto.setLoanAmount(claimsData.getLoanAmount());
+                dto.setLoanAmountPaidByBorrower(0.0D);
+                dto.setOutstandingLoanAmount(0.0D);
+                dto.setBalanceClaimAmount(0.0D);
+                dto.setClaimDocumentsList(claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(claimId, "banker"));
+            }
             return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimData ", e);
@@ -182,7 +202,8 @@ public class BankerServiceImpl implements BankerService {
             ClaimDocuments claimDocuments = new ClaimDocuments();
             claimDocuments.setClaimsData(claimsData);
             claimDocuments.setDocType(docType.getValue());
-            claimDocuments.setBankerId(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments.setUploadSideBy("banker");
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();

@@ -111,7 +111,7 @@ public class AmazonClient {
             deleteLocalFile(file);
             return endpointUrl + fileName;
         } catch (IOException e) {
-            log.error("Exception while deleting file from local:: {}", e.getMessage());
+            log.error("Exception while uploading file from local:: {}", e.getMessage());
             return null;
         }
     }

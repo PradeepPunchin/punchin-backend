@@ -104,7 +104,7 @@ public class AgentController {
                                                  @RequestBody(required = false) MultipartFile additionalDoc) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", id);
-            if (agentService.checkAccess(id)) {
+            if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             AgentUploadDocumentDTO documentDTO = new AgentUploadDocumentDTO();

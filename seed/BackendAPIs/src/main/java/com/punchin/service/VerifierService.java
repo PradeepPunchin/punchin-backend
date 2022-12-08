@@ -2,11 +2,10 @@ package com.punchin.service;
 
 import com.punchin.dto.PageDTO;
 import com.punchin.dto.VerifierClaimDataResponseDTO;
-import com.punchin.dto.VerifierDashboardCountDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
+import com.punchin.dto.VerifierDocDetailsResponseDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -22,4 +21,8 @@ public interface VerifierService {
     ClaimsData getClaimData(Long claimId);
 
     boolean allocateClaimToAgent(ClaimsData claimsData, User user);
+
+    VerifierDocDetailsResponseDTO getDocumentDetails(long claimDataId);
+
+    String acceptAndRejectDocumentRequest(long claimDocumentId, String status, String reason, String remark);
 }

@@ -30,4 +30,6 @@ public enum KycOrAddressDocType {
     public void setKey(int key) {
         this.key = key;
     }
+
+
 }

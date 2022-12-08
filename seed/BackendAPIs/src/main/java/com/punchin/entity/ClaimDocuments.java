@@ -9,7 +9,7 @@ import java.util.List;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ClaimDocuments extends BasicEntity{
+public class ClaimDocuments extends BasicEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,5 +36,10 @@ public class ClaimDocuments extends BasicEntity{
     private String verifierId;
 
     private Long verifyTime;
+
+    private String reason;
+
+    @Column(columnDefinition = "Text")
+    private String rejectRemark;
 
 }

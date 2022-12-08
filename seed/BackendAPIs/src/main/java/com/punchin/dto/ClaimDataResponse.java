@@ -1,12 +1,10 @@
 package com.punchin.dto;
 
-import java.time.LocalDate;
-
 public interface ClaimDataResponse {
 
     Long getId();
 
-    LocalDate getRegistrationDate();
+    Object getRegistrationDate();
 
     String getBorrowerName();
 

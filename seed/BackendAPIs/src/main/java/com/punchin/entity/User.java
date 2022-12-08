@@ -13,39 +13,54 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = "users")
 @EqualsAndHashCode(callSuper = true)
-public class User extends BasicEntity{
+public class User extends BasicEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false, unique = true)
     private Long id;
 
-    /** The user id. */
+    /**
+     * The user id.
+     */
     @Column(unique = true)
     private String userId;
 
-    /** The first name. */
+    /**
+     * The first name.
+     */
     @NotNull(message = "{validation.firstname.notnull}")
     private String firstName;
 
-    /** The last name. */
+    /**
+     * The last name.
+     */
     private String lastName;
 
-    /** The status. */
+    /**
+     * The status.
+     */
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
-    /** The is account locked. */
+    /**
+     * The is account locked.
+     */
     private boolean isAccountLocked;
 
-    /** The password. */
+    /**
+     * The password.
+     */
     @JsonIgnore
     private String password;
 
-    /** The roles. */
+    /**
+     * The roles.
+     */
     @Enumerated(EnumType.STRING)
     private RoleEnum role;
 
     private String state;
 
+    private String userState;
 }

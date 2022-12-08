@@ -18,5 +18,5 @@ public interface VerifierService {
 
     VerifierDocDetailsResponseDTO getDocumentDetails(long claimDataId);
 
-    String acceptAndRejectDocumentRequest(long claimDocumentId, String status);
+    String acceptAndRejectDocumentRequest(long claimDocumentId, String status, long claimDataId);
 }

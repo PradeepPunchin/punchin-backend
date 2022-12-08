@@ -41,7 +41,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = "select distinct * from claims_data cd inner join users u on u.user_state=cd.borrower_state and u.user_id='agent' ")
     List<ClaimsData> getClaimsByAgentState(Pageable pageable);
 
-    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status= 'UNDER_VERIFICATION' and cd.id=:claimDataId ")
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status= 'UNDER_VERIFICATION' and cd.is_forward_to_verifier= true and cd.id=:claimDataId ")
     ClaimsData findClaimDataForVerifier(@Param("claimDataId") Long claimDataId);
 
     @Query(nativeQuery = true, value = "SELECT cd.* FROM claim_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claim_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND cd.claim_status =:claimStatus AND ca.user_id =:userId AND ca.is_active = true")

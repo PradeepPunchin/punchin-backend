@@ -1,6 +1,5 @@
 package com.punchin.entity;
 
-import com.punchin.enums.ClaimDocumentsStatus;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -37,8 +36,5 @@ public class ClaimDocuments extends BasicEntity {
     private String verifierId;
 
     private Long verifyTime;
-
-    @Enumerated(EnumType.STRING)
-    private ClaimDocumentsStatus claimDocumentsStatus;
 
 }

@@ -85,10 +85,10 @@ public class VerifierController {
     }
 
     @PostMapping(value = UrlMapping.VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS)
-    public ResponseEntity<Object> acceptAndRejectDocuments(@RequestParam("claimDocumentId") long claimDocumentId, @RequestParam("status") String status) {
+    public ResponseEntity<Object> acceptAndRejectDocuments(@RequestParam("claimDocumentId") long claimDocumentId, @RequestParam("status") String status, @RequestParam("claimDataId") long claimDataId) {
         try {
             log.info("VerifierController :: acceptAndRejectDocuments");
-            String acceptAndRejectDocumentRequest = verifierService.acceptAndRejectDocumentRequest(claimDocumentId, status);
+            String acceptAndRejectDocumentRequest = verifierService.acceptAndRejectDocumentRequest(claimDocumentId, status, claimDataId);
             if (acceptAndRejectDocumentRequest != null) {
                 log.info("Document details fetched Successfully");
                 return ResponseHandler.response(acceptAndRejectDocumentRequest, ResponseMessgae.success, true, HttpStatus.OK);
@@ -100,6 +100,7 @@ public class VerifierController {
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 }
 

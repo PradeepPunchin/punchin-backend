@@ -5,7 +5,6 @@ import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimDocumentsStatus;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimsDataRepository;
@@ -148,10 +147,7 @@ public class VerifierServiceImpl implements VerifierService {
             DocumentDetailsDTO documentDetailsDTO = new DocumentDetailsDTO();
             documentDetailsDTO.setDocumentId(claimDocuments.getId());
             documentDetailsDTO.setDocumentName(claimDocuments.getDocType());
-            boolean present = isDocumentPresent(documentDetailsDTO.getDocumentName());
-            if (present) {
-                documentDetailsDTO.setDocumentUploaded(true);
-            }
+            documentDetailsDTO.setDocumentUploaded(true);
             List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
             if (documentUrlsList.isEmpty()) {
                 log.info("Claim document url list not found for claimDocuments :: {}", claimDocuments.getId());
@@ -172,13 +168,7 @@ public class VerifierServiceImpl implements VerifierService {
         return verifierDocDetailsResponseDTO;
     }
 
-    public static boolean isDocumentPresent(String documentName) {
-        List<String> documentNameList = Arrays.asList("SINGNED_CLAIM_FORM", "DEATH_CERTIFICATE", "BORROWER_ID_PROOF", "BORROWER_ADDRESS_PROOF",
-                "NOMINEE_ID_PROOF", "NOMINEE_ADDRESS_PROOF", "BANK_ACCOUNT_PROOF", "FIR_POSTMORTEM_REPORT", "AFFIDAVIT", "DISCREPANCY");
-        return documentNameList.contains(documentName);
-    }
-
-    public String acceptAndRejectDocumentRequest(long claimDocumentId, String status) {
+    public String acceptAndRejectDocumentRequest(long claimDocumentId, String status, long claimDataId) {
         log.info("Accept and Reject request received for claimDocumentId :: {}", claimDocumentId);
         Optional<ClaimDocuments> optionalClaimDocuments = claimDocumentsRepository.findById(claimDocumentId);
         if (!optionalClaimDocuments.isPresent()) {
@@ -186,15 +176,19 @@ public class VerifierServiceImpl implements VerifierService {
             return null;
         }
         ClaimDocuments claimDocuments = optionalClaimDocuments.get();
+        ClaimsData claimsData = claimDocuments.getClaimsData();
         if (status.equalsIgnoreCase(Literals.APPROVE)) {
-            claimDocuments.setClaimDocumentsStatus(ClaimDocumentsStatus.APPROVED);
+            claimDocuments.setIsApproved(true);
+            Long documentCounts = claimDocumentsRepository.findApprovedClaimDocumentsByClaimDataId(claimDataId);
+            if (documentCounts == 10L) {
+                claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
+            }
         } else {
-            claimDocuments.setClaimDocumentsStatus(ClaimDocumentsStatus.REJECTED);
-            ClaimsData claimsData = claimDocuments.getClaimsData();
+            claimDocuments.setIsApproved(false);
             claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
-            log.info("Claim status changed to VERIFIER_DISCREPANCY and saved successfully ");
-            claimsDataRepository.save(claimsData);
         }
+        log.info("Claim status changed and saved successfully ");
+        claimsDataRepository.save(claimsData);
         log.info("Claim document saved successfully ");
         claimDocumentsRepository.save(claimDocuments);
         return ResponseMessgae.success;

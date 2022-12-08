@@ -11,16 +11,16 @@ public class VerifierClaimDataResponseDTO {
     private String nomineeName;
     private String nomineeContactNumber;
     private String nomineeAddress;
-    private boolean singnedClaimDocument;
-    private boolean deathCertificate;
-    private boolean borrowerIdProof;
-    private boolean borrowerAddressProof;
-    private boolean nomineeIdProof;
-    private boolean nomineeAddressProof;
-    private boolean bankAccountProof;
-    private boolean FIRPostmortemReport;
-    private boolean affidavit;
-    private boolean dicrepancy;
+    private Boolean singnedClaimDocument;
+    private Boolean deathCertificate;
+    private Boolean borrowerIdProof;
+    private Boolean borrowerAddressProof;
+    private Boolean nomineeIdProof;
+    private Boolean nomineeAddressProof;
+    private Boolean bankAccountProof;
+    private Boolean FIRPostmortemReport;
+    private Boolean affidavit;
+    private Boolean dicrepancy;
 }
 
 

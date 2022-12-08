@@ -94,6 +94,18 @@ public class VerifierServiceImpl implements VerifierService {
                         if (Boolean.FALSE.equals(verifierClaimDataResponseDTO.getDicrepancy()) || Objects.isNull(verifierClaimDataResponseDTO.getDicrepancy()))
                             verifierClaimDataResponseDTO.setDicrepancy(docType.equalsIgnoreCase("DISCREPANCY"));
                     }
+                else {
+                    verifierClaimDataResponseDTO.setSingnedClaimDocument(false);
+                    verifierClaimDataResponseDTO.setDeathCertificate(false);
+                    verifierClaimDataResponseDTO.setBorrowerIdProof(false);
+                    verifierClaimDataResponseDTO.setBorrowerAddressProof(false);
+                    verifierClaimDataResponseDTO.setNomineeIdProof(false);
+                    verifierClaimDataResponseDTO.setNomineeAddressProof(false);
+                    verifierClaimDataResponseDTO.setBankAccountProof(false);
+                    verifierClaimDataResponseDTO.setFIRPostmortemReport(false);
+                    verifierClaimDataResponseDTO.setAffidavit(false);
+                    verifierClaimDataResponseDTO.setDicrepancy(false);
+                }
             }
             return verifierClaimDataResponseDTOS;
         } catch (Exception e) {

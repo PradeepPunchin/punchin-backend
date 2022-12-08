@@ -13,6 +13,7 @@ import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.constant.Literals;
 import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -168,7 +169,7 @@ public class VerifierServiceImpl implements VerifierService {
         return verifierDocDetailsResponseDTO;
     }
 
-    public String acceptAndRejectDocumentRequest(long claimDocumentId, String status, long claimDataId) {
+    public String acceptAndRejectDocumentRequest(long claimDocumentId, String status, String reason, String remark) {
         log.info("Accept and Reject request received for claimDocumentId :: {}", claimDocumentId);
         Optional<ClaimDocuments> optionalClaimDocuments = claimDocumentsRepository.findById(claimDocumentId);
         if (!optionalClaimDocuments.isPresent()) {
@@ -176,15 +177,21 @@ public class VerifierServiceImpl implements VerifierService {
             return null;
         }
         ClaimDocuments claimDocuments = optionalClaimDocuments.get();
+        if (claimDocuments.getIsApproved() != null || claimDocuments.getIsApproved().equals(true)) {
+            log.info("Claim document already approved for :: {}", claimDocumentId);
+            return null;
+        }
         ClaimsData claimsData = claimDocuments.getClaimsData();
-        if (status.equalsIgnoreCase(Literals.APPROVE)) {
+        if (status.equalsIgnoreCase(Literals.APPROVE) && StringUtils.isBlank(reason) && StringUtils.isBlank(remark)) {
             claimDocuments.setIsApproved(true);
-            Long documentCounts = claimDocumentsRepository.findApprovedClaimDocumentsByClaimDataId(claimDataId);
+            Long documentCounts = claimDocumentsRepository.findApprovedClaimDocumentsByClaimDataId(claimsData.getId());
             if (documentCounts == 10L) {
                 claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
             }
         } else {
             claimDocuments.setIsApproved(false);
+            claimDocuments.setReason(reason);
+            claimDocuments.setRejectRemark(remark);
             claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
         }
         log.info("Claim status changed and saved successfully ");

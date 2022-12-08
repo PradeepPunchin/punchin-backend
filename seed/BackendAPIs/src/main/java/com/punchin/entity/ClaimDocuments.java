@@ -37,4 +37,9 @@ public class ClaimDocuments extends BasicEntity {
 
     private Long verifyTime;
 
+    private String reason;
+
+    @Column(columnDefinition = "Text")
+    private String rejectRemark;
+
 }

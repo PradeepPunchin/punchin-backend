@@ -3,6 +3,8 @@ package com.punchin.utility.constant;
 public class ResponseMessgae {
 
 
+
+
     private ResponseMessgae(){
 
     }
@@ -17,6 +19,7 @@ public class ResponseMessgae {
     public static final String logout = "logout.success";
     public static final String invalidFormat = "invalid.format";
     public static final String invalidAgentId = "invalid.agent.id";
+    public static final String invalidDocId = "invalid.doc.id";
 
 
 
@@ -26,4 +29,6 @@ public class ResponseMessgae {
     public static final String invalidClaimId = "invalid.claim.id";
     public static final String fileNotUploaded = "file.not.uploaded";
     public static final String claimAllocated = "claim.allocated";
+    public static final String claimDocumentApproved = "claim.document.approved";
+    public static final String claimDocumentRejected = "claim.document.rejected";
 }

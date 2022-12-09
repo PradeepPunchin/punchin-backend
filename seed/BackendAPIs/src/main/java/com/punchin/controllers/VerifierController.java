@@ -1,11 +1,13 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.ClaimDetailForVerificationDTO;
+import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.dto.VerifierClaimDataResponseDTO;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
-import com.punchin.dto.VerifierDocDetailsResponseDTO;
 import com.punchin.service.UserService;
 import com.punchin.service.VerifierService;
 import com.punchin.utility.ResponseHandler;
@@ -99,18 +101,21 @@ public class VerifierController {
     }
 
 
-    @GetMapping(value = UrlMapping.VERIFIER_GET_DOCUMENT_DETAILS)
-    public ResponseEntity<Object> getDocumentDetails(@RequestParam("claimDataId") long claimDataId) {
+    @GetMapping(value = UrlMapping.VERIFIER_GET_DOCUMENTS)
+    public ResponseEntity<Object> getClaimDocuments(@PathVariable Long id) {
         try {
-            log.info("VerifierController :: getDocumentDetails");
-            VerifierDocDetailsResponseDTO documentDetails = verifierService.getDocumentDetails(claimDataId);
-            if (documentDetails != null) {
-                log.info("Document details fetched Successfully");
-                return ResponseHandler.response(documentDetails, ResponseMessgae.success, true, HttpStatus.OK);
+            log.info("VerifierController :: getDocumentDetails claimId {}", id);
+            ClaimsData claimsData = verifierService.getClaimData(id);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+            ClaimDetailForVerificationDTO claimDetailForVerificationDTO = verifierService.getClaimDocuments(claimsData);
+            if (Objects.nonNull(claimDetailForVerificationDTO)) {
+                return ResponseHandler.response(claimDetailForVerificationDTO, ResponseMessgae.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE fetching document details ::", e);
+            log.error("EXCEPTION WHILE VerifierController :: getDocumentDetails :: e {} ", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -129,16 +134,26 @@ public class VerifierController {
     }
 
     @PostMapping(value = UrlMapping.VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS)
-    public ResponseEntity<Object> acceptAndRejectDocuments(@RequestParam("claimDocumentId") long claimDocumentId, @RequestParam("status") String status, @RequestParam(required = false) String reason, @RequestParam(required = false) String remark) {
+    public ResponseEntity<Object> acceptAndRejectDocuments(@PathVariable Long id, @PathVariable Long docId, @RequestBody DocumentApproveRejectPayloadDTO approveRejectPayloadDTO) {
         try {
-            log.info("VerifierController :: acceptAndRejectDocuments");
-            String acceptAndRejectDocumentRequest = verifierService.acceptAndRejectDocumentRequest(claimDocumentId, status, reason, remark);
-            if (acceptAndRejectDocumentRequest != null) {
-                log.info("Document details fetched Successfully");
-                return ResponseHandler.response(acceptAndRejectDocumentRequest, ResponseMessgae.success, true, HttpStatus.OK);
+            log.info("VerifierController :: acceptAndRejectDocuments claimId {}, docId {}, approveRejectPayloadDTO {}", id, docId, approveRejectPayloadDTO);
+            ClaimsData claimsData = verifierService.getClaimData(id);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
-            log.info("No data found");
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.NOT_FOUND);
+            ClaimDocuments claimDocuments = verifierService.getClaimDocumentById(docId);
+            if (Objects.isNull(claimDocuments)) {
+                return ResponseHandler.response(null, ResponseMessgae.invalidDocId, false, HttpStatus.BAD_REQUEST);
+            }
+            String message = verifierService.acceptAndRejectDocument(claimsData, claimDocuments, approveRejectPayloadDTO);
+            if(message.equals(ResponseMessgae.success)){
+                if(approveRejectPayloadDTO.isApproved()){
+                    return ResponseHandler.response(null, ResponseMessgae.claimDocumentApproved, true, HttpStatus.OK);
+                }else{
+                    return ResponseHandler.response(null, ResponseMessgae.claimDocumentRejected, true, HttpStatus.OK);
+                }
+            }
+            return ResponseHandler.response(null, message, false, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE for accepting and rejecting documents ::", e);
             return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

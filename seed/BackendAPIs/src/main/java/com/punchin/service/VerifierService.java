@@ -1,11 +1,13 @@
 package com.punchin.service;
 
+import com.punchin.dto.ClaimDetailForVerificationDTO;
+import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.dto.VerifierClaimDataResponseDTO;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
-import com.punchin.dto.VerifierDocDetailsResponseDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -22,7 +24,9 @@ public interface VerifierService {
 
     boolean allocateClaimToAgent(ClaimsData claimsData, User user);
 
-    VerifierDocDetailsResponseDTO getDocumentDetails(long claimDataId);
+    ClaimDetailForVerificationDTO getClaimDocuments(ClaimsData claimsData);
 
-    String acceptAndRejectDocumentRequest(long claimDocumentId, String status, String reason, String remark);
+    String acceptAndRejectDocument(ClaimsData claimsData, ClaimDocuments claimDocuments, DocumentApproveRejectPayloadDTO approveRejectPayloadDTO);
+
+    ClaimDocuments getClaimDocumentById(Long docId);
 }

@@ -1,4 +1,4 @@
-package com.punchin.entity;
+package com.punchin.dto;
 
 import lombok.Data;
 

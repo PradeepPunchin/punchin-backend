@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class VerifierDocDetailsResponseDTO {
+public class ClaimDetailForVerificationDTO {
 
     private String borrowerName;
 
@@ -21,7 +21,7 @@ public class VerifierDocDetailsResponseDTO {
 
     private String nomineeRelationShip;
 
-    private List<DocumentDetailsDTO> documentDetailsDTOList;
+    private List<ClaimDocumentsDTO> claimDocumentsDTOS;
 
 
 }

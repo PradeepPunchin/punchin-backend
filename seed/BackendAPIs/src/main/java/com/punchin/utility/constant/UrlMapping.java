@@ -32,8 +32,8 @@ public class UrlMapping {
     public static final String VERIFIER_ALLOCATE_CLAIM = "/claim/{id}/allocate/{agentId}";
     public static final String VERIFIER_CLAIMS_VERIFICATION_REQUEST = "/claim/verification-requests";
     public static final String VERIFIER_GET_DASHBOARD_DATA_COUNT = "/getDashboardDataCount";
-    public static final String VERIFIER_GET_DOCUMENT_DETAILS = "/getDocumentDetails";
-    public static final String VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS = "/acceptAndRejectDocuments";
+    public static final String VERIFIER_GET_DOCUMENTS = "/claim/{id}/documents";
+    public static final String VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS = "/claim/{id}/document/{docId}/doc-approve-reject";
 
 
     //Agent Endpoints

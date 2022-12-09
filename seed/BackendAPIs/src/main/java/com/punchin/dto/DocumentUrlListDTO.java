@@ -8,4 +8,6 @@ public class DocumentUrlListDTO {
     private long documentUrlId;
 
     private String documentUrl;
+
+    private String docFormat;
 }

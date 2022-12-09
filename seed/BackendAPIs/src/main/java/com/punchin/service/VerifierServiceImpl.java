@@ -1,11 +1,7 @@
 package com.punchin.service;
 
 import com.punchin.dto.*;
-import com.punchin.entity.ClaimAllocated;
-import com.punchin.entity.ClaimsData;
-import com.punchin.entity.User;
-import com.punchin.entity.ClaimDocuments;
-import com.punchin.entity.DocumentUrls;
+import com.punchin.entity.*;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimAllocatedRepository;
@@ -16,6 +12,7 @@ import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.constant.Literals;
 import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -202,6 +199,8 @@ public class VerifierServiceImpl implements VerifierService {
                 DocumentUrlListDTO documentUrlListDTO = new DocumentUrlListDTO();
                 documentUrlListDTO.setDocumentUrlId(documentUrls.getId());
                 documentUrlListDTO.setDocumentUrl(documentUrls.getDocUrl());
+                String fileFormat = FilenameUtils.getExtension(documentUrlListDTO.getDocumentUrl());
+                documentUrlListDTO.setDocFormat(fileFormat);
                 documentUrlListDTOList.add(documentUrlListDTO);
             }
             documentDetailsDTO.setDocumentUrlListDTOList(documentUrlListDTOList);
@@ -243,5 +242,6 @@ public class VerifierServiceImpl implements VerifierService {
         claimDocumentsRepository.save(claimDocuments);
         return ResponseMessgae.success;
     }
+
 }
 

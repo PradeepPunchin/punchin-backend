@@ -1,5 +1,6 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimStatus;
@@ -44,6 +45,9 @@ public class BankerController {
     public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("BankerController :: getDashboardData");
+            if(bankerService.isBanker()){
+                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+            }
             Map<String, Long> map = bankerService.getDashboardData();
             return ResponseHandler.response(map, ResponseMessgae.success, true, HttpStatus.OK);
         } catch (Exception e) {
@@ -56,6 +60,9 @@ public class BankerController {
     @PostMapping(value = UrlMapping.BANKER_UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
+            if(bankerService.isBanker()){
+                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+            }
             MultipartFile[] files = {multipartFile};
             log.info("BankerController :: uploadClaimData files{}", files.length);
             Map<String, Object> map = new HashMap<>();
@@ -82,6 +89,9 @@ public class BankerController {
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
+            if(bankerService.isBanker()){
+                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+            }
             page = page > 0 ? page - 1 : page;
             Page pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
             return ResponseHandler.response(pageDTO, ResponseMessgae.success, true, HttpStatus.OK);
@@ -96,9 +106,13 @@ public class BankerController {
     public ResponseEntity<Object> getClaimData(@PathVariable Long id) {
         try {
             log.info("BankerController :: getClaimData claimId {}", id);
-            ClaimsData claimsData = bankerService.getClaimData(id);
-            if (Objects.nonNull(claimsData)) {
-                return ResponseHandler.response(claimsData, ResponseMessgae.success, true, HttpStatus.OK);
+            ClaimsData claimsData = bankerService.isClaimByBanker(id);
+            if(Objects.isNull(claimsData)){
+                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            BankerClaimDocumentationDTO bankerClaimDocumentationDTO = bankerService.getClaimDataForBankerAction(id);
+            if (Objects.nonNull(bankerClaimDocumentationDTO)) {
+                return ResponseHandler.response(bankerClaimDocumentationDTO, ResponseMessgae.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -107,11 +121,14 @@ public class BankerController {
         }
     }
 
-    @ApiOperation(value = "Claim List", notes = "This can be used to submit claims")
+    @ApiOperation(value = "Submit Claim", notes = "This can be used to submit claims")
     @PutMapping(value = UrlMapping.BANKER_SUBMIT_CLAIMS)
     public ResponseEntity<Object> submitClaims() {
         try {
             log.info("BankerController :: submitClaims");
+            if(bankerService.isBanker()){
+                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+            }
             String result = bankerService.submitClaims();
             if (result.equals(ResponseMessgae.success)) {
                 return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
@@ -123,11 +140,14 @@ public class BankerController {
         }
     }
 
-    @ApiOperation(value = "Claim List", notes = "This can be used to discard claims")
+    @ApiOperation(value = "Discard Claim", notes = "This can be used to discard claims")
     @DeleteMapping(value = UrlMapping.BANKER_DISCARD_CLAIMS)
     public ResponseEntity<Object> discardClaims() {
         try {
             log.info("BankerController :: discardClaims");
+            if(bankerService.isBanker()){
+                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+            }
             String result = bankerService.discardClaims();
             if (result.equals(ResponseMessgae.success)) {
                 return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
@@ -139,14 +159,14 @@ public class BankerController {
         }
     }
 
-    @ApiOperation(value = "Claim List", notes = "This can be used to upload document regarding claim by banker")
+    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by banker")
     @PutMapping(value = UrlMapping.BANKER_UPLOAD_DOCUMENT)
     public ResponseEntity<Object> uploadDocument(@PathVariable Long id, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
-            ClaimsData claimsData = bankerService.getClaimData(id);
+            ClaimsData claimsData = bankerService.isClaimByBanker(id);
             if (Objects.isNull(claimsData)) {
-                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[] {multipartFiles}, docType);
             if (result.get("message").equals(ResponseMessgae.success)) {
@@ -163,10 +183,10 @@ public class BankerController {
     @PutMapping(value = UrlMapping.FORWARD_TO_VERIFIER)
     public ResponseEntity<Object> forwardToVerifier(@PathVariable Long id) {
         try {
-            log.info("BankerController :: forwardToVerifier claimid {}", id);
-            ClaimsData claimsData = bankerService.getClaimData(id);
+            log.info("BankerController :: forwardToVerifier claimId {}", id);
+            ClaimsData claimsData = bankerService.isClaimByBanker(id);
             if (Objects.isNull(claimsData)) {
-                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.forwardToVerifier(claimsData);
             if (result.equals(ResponseMessgae.success)) {

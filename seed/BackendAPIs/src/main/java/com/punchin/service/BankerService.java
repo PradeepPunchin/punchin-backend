@@ -1,5 +1,6 @@
 package com.punchin.service;
 
+import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
@@ -22,6 +23,8 @@ public interface BankerService {
 
     String discardClaims();
 
+    BankerClaimDocumentationDTO getClaimDataForBankerAction(Long claimId);
+
     ClaimsData getClaimData(Long claimId);
 
     Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType);
@@ -29,4 +32,8 @@ public interface BankerService {
     List<ClaimsData> downloadMISFile(ClaimStatus claimStatus);
 
     String forwardToVerifier(ClaimsData claimsData);
+
+    boolean isBanker();
+
+    ClaimsData isClaimByBanker(Long claimId);
 }

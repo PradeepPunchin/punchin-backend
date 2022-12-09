@@ -16,7 +16,7 @@ public class ClaimDocuments extends BasicEntity {
     @Column(updatable = false, unique = true)
     private Long id;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private ClaimsData claimsData;
 
     private String docType;

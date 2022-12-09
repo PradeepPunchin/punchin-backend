@@ -8,6 +8,7 @@ import com.punchin.repository.ClaimAllocatedRepository;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.repository.DocumentUrlsRepository;
+import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.constant.Literals;
 import com.punchin.utility.constant.ResponseMessgae;
@@ -208,6 +209,8 @@ public class VerifierServiceImpl implements VerifierService {
             claimDocuments.setIsApproved(approveRejectPayloadDTO.isApproved());
             claimDocuments.setReason(approveRejectPayloadDTO.getReason());
             claimDocuments.setRejectRemark(approveRejectPayloadDTO.getRemark());
+            claimDocuments.setVerifierId(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments.setVerifyTime(System.currentTimeMillis());
             claimDocumentsRepository.save(claimDocuments);
             if (!approveRejectPayloadDTO.isApproved()) {
                 claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);

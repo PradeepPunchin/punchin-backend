@@ -7,13 +7,16 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,8 +24,10 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -114,5 +119,32 @@ public class AmazonClient {
             log.error("Exception while uploading file from local:: {}", e.getMessage());
             return null;
         }
+    }
+
+    public ResponseEntity<byte[]> download(String key) throws IOException {
+        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
+
+        S3Object s3Object = s3client.getObject(getObjectRequest);
+
+        S3ObjectInputStream objectInputStream = s3Object.getObjectContent();
+
+        byte[] bytes = IOUtils.toByteArray(objectInputStream);
+
+        String fileName = URLEncoder.encode(key, "UTF-8").replaceAll("\\+", "%20");
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        httpHeaders.setContentLength(bytes.length);
+        httpHeaders.setContentDispositionFormData("attachment", fileName);
+
+        return new ResponseEntity<>(bytes, httpHeaders, HttpStatus.OK);
+    }
+
+    public List<S3ObjectSummary> list() {
+        ObjectListing objectListing = s3client.listObjects(new ListObjectsRequest().withBucketName(bucketName));
+
+        List<S3ObjectSummary> s3ObjectSummaries = objectListing.getObjectSummaries();
+
+        return s3ObjectSummaries;
     }
 }

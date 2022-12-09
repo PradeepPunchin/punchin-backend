@@ -23,5 +23,5 @@ public class BankerClaimDocumentationDTO {
     private Double outstandingLoanAmount = 0D;
     private Double balanceClaimAmount = 0D;
 
-    private List<ClaimDocuments> claimDocumentsList;
+    private List<ClaimDocumentsDTO> claimDocumentsDTOS;
 }

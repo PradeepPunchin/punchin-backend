@@ -1,6 +1,8 @@
 package com.punchin.service;
 
 import com.punchin.dto.BankerClaimDocumentationDTO;
+import com.punchin.dto.ClaimDocumentsDTO;
+import com.punchin.dto.DocumentUrlDTO;
 import com.punchin.enums.BankerDocType;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimDraftData;
@@ -8,15 +10,13 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
-import com.punchin.repository.ClaimDocumentsRepository;
-import com.punchin.repository.ClaimDraftDataRepository;
-import com.punchin.repository.ClaimsDataRepository;
-import com.punchin.repository.DocumentUrlsRepository;
+import com.punchin.repository.*;
 import com.punchin.security.AmazonClient;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ModelMapper;
 import com.punchin.utility.constant.ResponseMessgae;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -39,6 +39,9 @@ import java.util.*;
 @Service
 @Transactional
 public class BankerServiceImpl implements BankerService {
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
@@ -164,12 +167,11 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public ClaimsData getClaimData(Long claimId) {
+    public BankerClaimDocumentationDTO getClaimDataForBankerAction(Long claimId) {
         try {
-            log.info("BankerController :: getClaimData");
-            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
-            if(optionalClaimsData.isPresent()){
-                ClaimsData claimsData = optionalClaimsData.get();
+            log.info("BankerController :: getClaimData claimId {}", claimId);
+            ClaimsData claimsData = claimsDataRepository.findByIdAndPunchinBankerId(claimId, GenericUtils.getLoggedInUser().getUserId());
+            if(Objects.nonNull(claimsData)){
                 BankerClaimDocumentationDTO dto = new BankerClaimDocumentationDTO();
                 dto.setId(claimsData.getId());
                 dto.setPunchinClaimId(claimsData.getPunchinClaimId());
@@ -185,9 +187,40 @@ public class BankerServiceImpl implements BankerService {
                 dto.setLoanAmountPaidByBorrower(0.0D);
                 dto.setOutstandingLoanAmount(0.0D);
                 dto.setBalanceClaimAmount(0.0D);
-                dto.setClaimDocumentsList(claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(claimId, "banker"));
+                List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(claimsData.getId(), "banker");
+                List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
+                for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                    ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                    claimDocumentsDTO.setId(claimDocuments.getId());
+                    claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                    claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                    claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                    List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                    for (DocumentUrls documentUrls : documentUrlsList) {
+                        DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                        documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
+                        documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
+                        documentUrlDTOS.add(documentUrlListDTO);
+                    }
+                    claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                    claimDocumentsDTOS.add(claimDocumentsDTO);
+                }
+                dto.setClaimDocumentsDTOS(claimDocumentsDTOS);
+                return dto;
             }
-            return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
+            return null;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimData ", e);
+            return null;
+        }
+    }
+
+    @Override
+    public ClaimsData getClaimData(Long claimId) {
+        try {
+            log.info("BankerController :: getClaimData claimId {}", claimId);
+            return claimsDataRepository.findByIdAndPunchinBankerId(claimId, GenericUtils.getLoggedInUser().getUserId());
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimData ", e);
             return null;
@@ -218,7 +251,7 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
             claimDocumentsRepository.save(claimDocuments);
-            claimDocuments.setClaimsData(null);
+            //claimDocuments.setClaimsData(null);
             claimsData.setIsForwardToVerifier(true);
             claimsDataRepository.save(claimsData);
             map.put("message", ResponseMessgae.success);
@@ -444,5 +477,15 @@ public class BankerServiceImpl implements BankerService {
             log.error("EXCEPTION WHILE BankerServiceImpl :: forwardToVerifier e{}", e);
             return ResponseMessgae.backText;
         }
+    }
+
+    @Override
+    public boolean isBanker() {
+        return userRepository.existsByIdAndRole(GenericUtils.getLoggedInUser().getId(), "BANKER");
+    }
+
+    @Override
+    public ClaimsData isClaimByBanker(Long claimId) {
+        return claimsDataRepository.findByIdAndPunchinBankerId(claimId,GenericUtils.getLoggedInUser().getUserId());
     }
 }

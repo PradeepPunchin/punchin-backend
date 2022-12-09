@@ -58,4 +58,6 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     @Query(nativeQuery = true, value = "SELECT cd.* FROM claim_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claim_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND cd.claim_status =:claimStatus AND ca.user_id =:userId AND ca.is_active = true")
     Page findAllByAgentAllocatedAndClaimStatus(User userId, ClaimStatus claimStatus, Pageable pageable);
+
+    ClaimsData findByIdAndPunchinBankerId(Long claimId, String userId);
 }

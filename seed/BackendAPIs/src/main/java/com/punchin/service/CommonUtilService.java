@@ -31,7 +31,7 @@ public class CommonUtilService {
         pageDTO.setContent(content);
         pageDTO.setSize(page.getSize());
         pageDTO.setTotalPages(page.getTotalPages());
-        pageDTO.setTotalRecords(page.getNumberOfElements());
+        pageDTO.setTotalRecords(page.getTotalElements());
         return pageDTO;
     }
 }

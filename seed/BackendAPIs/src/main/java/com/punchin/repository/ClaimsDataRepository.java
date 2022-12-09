@@ -26,6 +26,9 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND ca.user_id =:userId AND ca.is_active = true")
     Page<ClaimsData> findAllByAgentAllocated(Long userId, Pageable pageable);
 
+    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.claim_status IN (:claimStatus) AND cd.is_deleted = false AND cd.is_forward_to_verifier = true AND ca.user_id =:userId AND ca.is_active = true")
+    Page<ClaimsData> findAllByAgentAllocated(List<String> claimStatus, Long userId, Pageable pageable);
+
     @Query(nativeQuery = true, value = " select * from claims_data cd where cd.claim_status=:claimStatus ")
     Page<ClaimsData> findClaimDataByStatus(String claimStatus, Pageable pageable);
 
@@ -41,6 +44,9 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND cd.claim_status =:claimStatus AND ca.user_id =:userId AND ca.is_active = true")
     Page<ClaimsData> findAllByAgentAllocatedAndClaimStatus(Long userId, ClaimStatus claimStatus, Pageable pageable);
+
+    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND cd.claim_status IN(:claimStatus) AND ca.user_id =:userId AND ca.is_active = true")
+    Page<ClaimsData> findAllByAgentAllocatedAndClaimStatus(Long userId, List<String> claimStatus, Pageable pageable);
 
     ClaimsData findByIdAndIsForwardToVerifier(Long claimId, boolean forwardStatus);
 

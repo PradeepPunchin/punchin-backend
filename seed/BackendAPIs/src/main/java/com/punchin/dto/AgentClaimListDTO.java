@@ -1,5 +1,6 @@
 package com.punchin.dto;
 
+import com.punchin.enums.ClaimStatus;
 import lombok.Data;
 
 import java.util.Date;
@@ -15,4 +16,6 @@ public class AgentClaimListDTO {
     private Date allocationDate;
     private String borrowerName;
     private String borrowerAddress;
+
+    private ClaimStatus claimStatus;
 }

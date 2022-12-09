@@ -45,7 +45,7 @@ public class BankerController {
     public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("BankerController :: getDashboardData");
-            if(bankerService.isBanker()){
+            if(!bankerService.isBanker()){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Long> map = bankerService.getDashboardData();
@@ -60,7 +60,7 @@ public class BankerController {
     @PostMapping(value = UrlMapping.BANKER_UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
-            if(bankerService.isBanker()){
+            if(!bankerService.isBanker()){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             MultipartFile[] files = {multipartFile};
@@ -89,7 +89,7 @@ public class BankerController {
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
-            if(bankerService.isBanker()){
+            if(!bankerService.isBanker()){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             page = page > 0 ? page - 1 : page;
@@ -126,7 +126,7 @@ public class BankerController {
     public ResponseEntity<Object> submitClaims() {
         try {
             log.info("BankerController :: submitClaims");
-            if(bankerService.isBanker()){
+            if(!bankerService.isBanker()){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.submitClaims();
@@ -145,7 +145,7 @@ public class BankerController {
     public ResponseEntity<Object> discardClaims() {
         try {
             log.info("BankerController :: discardClaims");
-            if(bankerService.isBanker()){
+            if(!bankerService.isBanker()){
                 return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.discardClaims();

@@ -10,6 +10,7 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
+import com.punchin.enums.RoleEnum;
 import com.punchin.repository.*;
 import com.punchin.security.AmazonClient;
 import com.punchin.utility.GenericUtils;
@@ -481,7 +482,7 @@ public class BankerServiceImpl implements BankerService {
 
     @Override
     public boolean isBanker() {
-        return userRepository.existsByIdAndRole(GenericUtils.getLoggedInUser().getId(), "BANKER");
+        return userRepository.existsByIdAndRole(GenericUtils.getLoggedInUser().getId(), RoleEnum.BANKER);
     }
 
     @Override

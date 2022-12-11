@@ -1,6 +1,7 @@
 package com.punchin.repository;
 
 import com.punchin.entity.ClaimDocuments;
+import com.punchin.enums.BankerDocType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,10 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     @Query(nativeQuery = true, value = "select count(cd.id) from claim_documents cd where cd.upload_by='agent' and cd.claims_data_id=:claimDataId ")
     Long findApprovedClaimDocumentsByClaimDataId(@Param("claimDataId") Long claimDataId);
+
+    boolean existsByClaimsDataIdAndUploadSideByAndIsVerified(Long claimId, String sideBy, boolean isVerified);
+
+    ClaimDocuments findFirstByClaimsDataIdAndDocTypeAndUploadSideByAndIsVerifiedAndIsApprovedOrderByIdDesc(Long claimId, String docType, String agent, boolean b, boolean b1);
+
+    List<ClaimDocuments> findByClaimsDataIdAndUploadSideByOrderById(Long id, String agent);
 }

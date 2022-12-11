@@ -6,7 +6,7 @@ import com.punchin.entity.User;
 import com.punchin.repository.UserRepository;
 import com.punchin.utility.ModelMapper;
 import com.punchin.utility.constant.Headers;
-import com.punchin.utility.constant.ResponseMessgae;
+import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -41,9 +41,9 @@ public class AuthenticationServiceImpl implements AuthenticationService{
         Map<String, Object> mapResult = new HashMap<>();
         if(Objects.nonNull(user) && user.getPassword() != null && BCrypt.checkpw(credentials.getPassword(), user.getPassword())){
             mapResult.put("session", modelMapper.map(sessionService.createSession(user), SessionDTO.class));
-            mapResult.put("message", ResponseMessgae.success);
+            mapResult.put("message", MessageCode.success);
         }else{
-            mapResult.put("message", ResponseMessgae.invalidCredentials);
+            mapResult.put("message", MessageCode.invalidCredentials);
         }
         return mapResult;
     }

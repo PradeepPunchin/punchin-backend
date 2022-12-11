@@ -16,8 +16,6 @@ public interface VerifierService {
 
     PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize);
 
-    List<VerifierClaimDataResponseDTO> getDataClaimsData(Integer pageNo, Integer pageSize);
-
     Map<String, Long> getDashboardData();
 
     ClaimsData getClaimData(Long claimId);
@@ -29,4 +27,6 @@ public interface VerifierService {
     String acceptAndRejectDocument(ClaimsData claimsData, ClaimDocuments claimDocuments, DocumentApproveRejectPayloadDTO approveRejectPayloadDTO);
 
     ClaimDocuments getClaimDocumentById(Long docId);
+
+    PageDTO getClaimDataWithDocumentStatus(ClaimDataFilter claimDataFilter, Integer page, Integer limit);
 }

@@ -12,4 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByUserIdIgnoreCase(String userId);
     User findByIdAndRole(Long agentId, RoleEnum role);
     boolean existsByIdAndRole(Long id, RoleEnum banker);
+    User findByRoleAndUserStateIgnoreCase(RoleEnum agent, String borrowerState);
 }

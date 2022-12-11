@@ -30,6 +30,10 @@ public class ClaimDataDTO {
 
     private String borrowerContactNumber;
 
+    private String borrowerEmailId;
+
+    private Date borrowerDob;
+
     private String loanAccountNumber;
 
     private String borrowerAddress;
@@ -39,6 +43,10 @@ public class ClaimDataDTO {
     private String loanType;
 
     private Double loanAmount;
+
+    private Double loanAmountPaidByBorrower;
+
+    private Double loanAmountBalance;
 
     private String branchCode;
 

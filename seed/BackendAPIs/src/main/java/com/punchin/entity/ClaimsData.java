@@ -30,6 +30,10 @@ public class ClaimsData extends BasicEntity {
 
     private String borrowerContactNumber;
 
+    private String borrowerEmailId;
+
+    private Date borrowerDob;
+
     private String loanAccountNumber;
 
     @Column(columnDefinition = "Text")
@@ -40,6 +44,10 @@ public class ClaimsData extends BasicEntity {
     private String loanType;
 
     private Double loanAmount;
+
+    private Double loanAmountPaidByBorrower;
+
+    private Double loanAmountBalance;
 
     private String branchCode;
 

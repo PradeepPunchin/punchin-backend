@@ -1,11 +1,10 @@
 package com.punchin.utility.constant;
 
-public class ResponseMessgae {
+public class MessageCode {
 
 
 
-
-    private ResponseMessgae(){
+    private MessageCode(){
 
     }
 
@@ -20,6 +19,8 @@ public class ResponseMessgae {
     public static final String invalidFormat = "invalid.format";
     public static final String invalidAgentId = "invalid.agent.id";
     public static final String invalidDocId = "invalid.doc.id";
+    public static final String documentInUnderVerification = "document.under.verification";
+    public static final String documentNotUploaded = "document.not.uploaded";
 
 
 

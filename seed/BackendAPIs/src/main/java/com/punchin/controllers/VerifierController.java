@@ -11,7 +11,7 @@ import com.punchin.enums.ClaimDataFilter;
 import com.punchin.service.UserService;
 import com.punchin.service.VerifierService;
 import com.punchin.utility.ResponseHandler;
-import com.punchin.utility.constant.ResponseMessgae;
+import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -42,38 +41,39 @@ public class VerifierController {
             log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             page = page > 0 ? page - 1 : page;
             PageDTO allClaimsData = verifierService.getAllClaimsData(claimDataFilter, page, limit);
-            return ResponseHandler.response(allClaimsData, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response(allClaimsData, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping(value = "/getVerifierDataDocumentClaimsData")
-    public ResponseEntity<Object> getDataClaimsData(@RequestParam Integer page, @RequestParam Integer limit) {
+    @GetMapping(value = UrlMapping.VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS)
+    public ResponseEntity<Object> getClaimDataWithDocumentStatus(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
-            log.info("VerifierController :: getAllVerifierClaimsData  page{}, limit{}", page, limit);
-            List<VerifierClaimDataResponseDTO> allClaimsData = verifierService.getDataClaimsData(page, limit);
-            if (!allClaimsData.isEmpty())
-                return ResponseHandler.response(allClaimsData, ResponseMessgae.success, true, HttpStatus.OK);
-            return ResponseHandler.response("", ResponseMessgae.backText, false, HttpStatus.OK);
+            log.info("VerifierController :: getClaimDataWithDocumentStatus  claimDataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
+            PageDTO pageDTO = verifierService.getClaimDataWithDocumentStatus(claimDataFilter, page, limit);
+            if (Objects.nonNull(pageDTO)) {
+                return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("Error while fetching in pagination data");
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("EXCEPTION WHILE VerifierController :: getClaimDataWithDocumentStatus e {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @ApiOperation(value = "Dashboard Data Count", notes = "This can be used to Show Dashboard data count in Verifier dashboard tab.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
-    public ResponseEntity<Object> getDashboardDataCount() {
+    public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("VerifierController :: getDashboardDataCount");
             Map<String, Long> map = verifierService.getDashboardData();
             log.info("Verifier Dashboard count fetched Successfully");
-            return ResponseHandler.response(map, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response(map, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE fetching Verifier Dashboard Count ::", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -83,40 +83,39 @@ public class VerifierController {
             log.info("VerifierController :: allocateClaimToAgent claimId {}, agentId {}", id, agentId);
             ClaimsData claimsData = verifierService.getClaimData(id);
             if (Objects.isNull(claimsData)) {
-                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
             User user = userService.findAgentById(agentId);
             if (Objects.isNull(user)) {
-                return ResponseHandler.response(null, ResponseMessgae.invalidAgentId, false, HttpStatus.BAD_REQUEST);
+                return ResponseHandler.response(null, MessageCode.invalidAgentId, false, HttpStatus.BAD_REQUEST);
             }
             boolean check = verifierService.allocateClaimToAgent(claimsData, user);
             if (check) {
-                return ResponseHandler.response(null, ResponseMessgae.claimAllocated, true, HttpStatus.OK);
+                return ResponseHandler.response(null, MessageCode.claimAllocated, true, HttpStatus.OK);
             }
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.BAD_REQUEST);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierController :: allocateClaimToAgent e{}", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
-    @GetMapping(value = UrlMapping.VERIFIER_GET_DOCUMENTS)
+    @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
     public ResponseEntity<Object> getClaimDocuments(@PathVariable Long id) {
         try {
             log.info("VerifierController :: getDocumentDetails claimId {}", id);
             ClaimsData claimsData = verifierService.getClaimData(id);
             if (Objects.isNull(claimsData)) {
-                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
             ClaimDetailForVerificationDTO claimDetailForVerificationDTO = verifierService.getClaimDocuments(claimsData);
             if (Objects.nonNull(claimDetailForVerificationDTO)) {
-                return ResponseHandler.response(claimDetailForVerificationDTO, ResponseMessgae.success, true, HttpStatus.OK);
+                return ResponseHandler.response(claimDetailForVerificationDTO, MessageCode.success, true, HttpStatus.OK);
             }
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.NOT_FOUND);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierController :: getDocumentDetails :: e {} ", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -126,10 +125,10 @@ public class VerifierController {
             log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             page = page > 0 ? page - 1 : page;
             PageDTO allClaimsData = verifierService.getAllClaimsData(claimDataFilter, page, limit);
-            return ResponseHandler.response(allClaimsData, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response(allClaimsData, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -139,24 +138,24 @@ public class VerifierController {
             log.info("VerifierController :: acceptAndRejectDocuments claimId {}, docId {}, approveRejectPayloadDTO {}", id, docId, approveRejectPayloadDTO);
             ClaimsData claimsData = verifierService.getClaimData(id);
             if (Objects.isNull(claimsData)) {
-                return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
             ClaimDocuments claimDocuments = verifierService.getClaimDocumentById(docId);
             if (Objects.isNull(claimDocuments)) {
-                return ResponseHandler.response(null, ResponseMessgae.invalidDocId, false, HttpStatus.BAD_REQUEST);
+                return ResponseHandler.response(null, MessageCode.invalidDocId, false, HttpStatus.BAD_REQUEST);
             }
             String message = verifierService.acceptAndRejectDocument(claimsData, claimDocuments, approveRejectPayloadDTO);
-            if(message.equals(ResponseMessgae.success)){
+            if(message.equals(MessageCode.success)){
                 if(approveRejectPayloadDTO.isApproved()){
-                    return ResponseHandler.response(null, ResponseMessgae.claimDocumentApproved, true, HttpStatus.OK);
+                    return ResponseHandler.response(null, MessageCode.claimDocumentApproved, true, HttpStatus.OK);
                 }else{
-                    return ResponseHandler.response(null, ResponseMessgae.claimDocumentRejected, true, HttpStatus.OK);
+                    return ResponseHandler.response(null, MessageCode.claimDocumentRejected, true, HttpStatus.OK);
                 }
             }
             return ResponseHandler.response(null, message, false, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE for accepting and rejecting documents ::", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

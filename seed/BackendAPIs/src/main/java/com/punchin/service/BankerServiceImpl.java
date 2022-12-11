@@ -3,11 +3,8 @@ package com.punchin.service;
 import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.ClaimDocumentsDTO;
 import com.punchin.dto.DocumentUrlDTO;
+import com.punchin.entity.*;
 import com.punchin.enums.BankerDocType;
-import com.punchin.entity.ClaimDocuments;
-import com.punchin.entity.ClaimDraftData;
-import com.punchin.entity.ClaimsData;
-import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.RoleEnum;
@@ -15,7 +12,7 @@ import com.punchin.repository.*;
 import com.punchin.security.AmazonClient;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ModelMapper;
-import com.punchin.utility.constant.ResponseMessgae;
+import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -32,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.management.relation.Role;
 import java.io.InputStream;
 import java.time.ZoneId;
 import java.util.*;
@@ -57,6 +55,9 @@ public class BankerServiceImpl implements BankerService {
     private ClaimDocumentsRepository claimDocumentsRepository;
 
     @Autowired
+    private ClaimAllocatedRepository claimAllocatedRepository;
+
+    @Autowired
     private AmazonClient amazonClient;
 
     @Autowired
@@ -76,7 +77,7 @@ public class BankerServiceImpl implements BankerService {
                     claimsData = claimDraftDataRepository.saveAll(claimsData);
                     map.put("data", claimsData);
                     map.put("status", true);
-                    map.put("message", ResponseMessgae.success);
+                    map.put("message", MessageCode.success);
                     return map;
                 }
                 map.put("message", data.get("message"));
@@ -143,15 +144,16 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setSubmittedAt(System.currentTimeMillis());
                 claimsDataList.add(claimsData);
             }
+
             if (!claimsDataList.isEmpty()) {
                 claimsDataRepository.saveAll(claimsDataList);
                 claimDraftDataRepository.deleteAll();
-                return ResponseMessgae.success;
+                return MessageCode.success;
             }
-            return ResponseMessgae.invalidClaimData;
+            return MessageCode.invalidClaimData;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: submitClaims e{}", e);
-            return ResponseMessgae.backText;
+            return MessageCode.backText;
         }
     }
 
@@ -160,10 +162,10 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerController :: discardClaims");
             claimDraftDataRepository.deleteAll();
-            return ResponseMessgae.success;
+            return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: discardClaims e{}", e);
-            return ResponseMessgae.backText;
+            return MessageCode.backText;
         }
     }
 
@@ -193,6 +195,7 @@ public class BankerServiceImpl implements BankerService {
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
                     ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
                     claimDocumentsDTO.setId(claimDocuments.getId());
+                    claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setDocType(claimDocuments.getDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
@@ -243,7 +246,7 @@ public class BankerServiceImpl implements BankerService {
                 DocumentUrls urls = new DocumentUrls();
                 urls.setDocUrl(amazonClient.uploadFile(multipartFile));
                 if(Objects.isNull(urls.getDocUrl())){
-                    map.put("message", ResponseMessgae.fileNotUploaded);
+                    map.put("message", MessageCode.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
@@ -255,7 +258,7 @@ public class BankerServiceImpl implements BankerService {
             //claimDocuments.setClaimsData(null);
             claimsData.setIsForwardToVerifier(true);
             claimsDataRepository.save(claimsData);
-            map.put("message", ResponseMessgae.success);
+            map.put("message", MessageCode.success);
             map.put("claimDocuments", claimDocuments);
             return map;
         } catch (Exception e) {
@@ -449,7 +452,7 @@ public class BankerServiceImpl implements BankerService {
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: convertExcelToListOfClaimsData ", e);
-            map.put("message", ResponseMessgae.invalidFormat);
+            map.put("message", MessageCode.invalidFormat);
             return map;
         }
     }
@@ -473,10 +476,17 @@ public class BankerServiceImpl implements BankerService {
             claimsData.setIsForwardToVerifier(true);
             claimsData.setAgentToVerifierTime(System.currentTimeMillis());
             claimsDataRepository.save(claimsData);
-            return ResponseMessgae.success;
+            User user = userRepository.findByRoleAndUserStateIgnoreCase(RoleEnum.AGENT, claimsData.getBorrowerState());
+            if(Objects.nonNull(user)){
+                ClaimAllocated claimAllocated = new ClaimAllocated();
+                claimAllocated.setUser(user);
+                claimAllocated.setClaimsData(claimsData);
+                claimAllocatedRepository.save(claimAllocated);
+            }
+            return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: forwardToVerifier e{}", e);
-            return ResponseMessgae.backText;
+            return MessageCode.backText;
         }
     }
 

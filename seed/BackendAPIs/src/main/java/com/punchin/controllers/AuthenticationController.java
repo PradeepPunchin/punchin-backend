@@ -3,12 +3,14 @@ package com.punchin.controllers;
 import com.punchin.service.AuthenticationService;
 import com.punchin.dto.LoginRequestDTO;
 import com.punchin.utility.ResponseHandler;
-import com.punchin.utility.constant.ResponseMessgae;
+import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,9 @@ public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
 
+    @Autowired
+    private MessageSource messageSource;
+
     @ApiOperation(value = "User Login", notes = "This can be used to generate API token")
     @PostMapping(value = UrlMapping.LOGIN)
     public ResponseEntity<Object> userAuthentication(@ApiParam(name = "Credential", value = "The Login request Object for user login", required = true) @Valid @RequestBody LoginRequestDTO credentials){
@@ -37,13 +42,13 @@ public class AuthenticationController {
             log.info("AuthenticationController :: userAuthentication LoginRequestDTO{}", credentials);
                 log.info("LOGIN BY CREDENTIALS");
                 Map<String, Object> resultMap = authenticationService.authenticateUserAccount(credentials);
-                if(resultMap.get("message").equals(ResponseMessgae.success)){
-                    return ResponseHandler.response(resultMap.get("session"), ResponseMessgae.success, true, HttpStatus.OK);
+                if(resultMap.get("message").equals(MessageCode.success)){
+                    return ResponseHandler.response(resultMap.get("session"), MessageCode.success, true, HttpStatus.OK);
                 }
-            return ResponseHandler.response(null, ResponseMessgae.invalidCredentials, true, HttpStatus.BAD_REQUEST);
+            return ResponseHandler.response(null, messageSource.getMessage(MessageCode.invalidCredentials, null, LocaleContextHolder.getLocale()), true, HttpStatus.BAD_REQUEST);
         }catch (Exception e){
             log.error("EXCEPTION WHILE AuthenticationController :: userAuthentication e{}", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, messageSource.getMessage(MessageCode.backText, null, LocaleContextHolder.getLocale()), false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -52,7 +57,7 @@ public class AuthenticationController {
     public ResponseEntity<Object> logout(HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> result = new HashMap<>();
         authenticationService.logout(request, result);
-        return ResponseHandler.response(null, ResponseMessgae.logout, true, HttpStatus.OK);
+        return ResponseHandler.response(null, messageSource.getMessage(MessageCode.logout, null, LocaleContextHolder.getLocale()), true, HttpStatus.OK);
     }
 
 }

@@ -9,7 +9,7 @@ import com.punchin.service.BankerService;
 import com.punchin.service.MISExport;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
-import com.punchin.utility.constant.ResponseMessgae;
+import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -46,13 +46,13 @@ public class BankerController {
         try {
             log.info("BankerController :: getDashboardData");
             if(!bankerService.isBanker()){
-                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Long> map = bankerService.getDashboardData();
-            return ResponseHandler.response(map, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response(map, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getDashboardData e{}", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -61,7 +61,7 @@ public class BankerController {
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
             if(!bankerService.isBanker()){
-                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             MultipartFile[] files = {multipartFile};
             log.info("BankerController :: uploadClaimData files{}", files.length);
@@ -69,12 +69,12 @@ public class BankerController {
             if (files.length > 0) {
                 for (MultipartFile file : files) {
                     if (!GenericUtils.checkExcelFormat(file)) {
-                        return ResponseHandler.response(null, ResponseMessgae.invalidFormat, false, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+                        return ResponseHandler.response(null, MessageCode.invalidFormat, false, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
                     }
                 }
                 map = bankerService.saveUploadExcelData(files);
                 if (Boolean.parseBoolean(map.get("status").toString())) {
-                    return ResponseHandler.response(map.get("data"), ResponseMessgae.success, true, HttpStatus.CREATED);
+                    return ResponseHandler.response(map.get("data"), MessageCode.success, true, HttpStatus.CREATED);
                 }
             }
             return ResponseHandler.response(null, map.get("message").toString(), false, HttpStatus.BAD_REQUEST);
@@ -90,14 +90,14 @@ public class BankerController {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
             if(!bankerService.isBanker()){
-                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             page = page > 0 ? page - 1 : page;
             Page pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
-            return ResponseHandler.response(pageDTO, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getClaimsList e{}", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -108,16 +108,16 @@ public class BankerController {
             log.info("BankerController :: getClaimData claimId {}", id);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
             if(Objects.isNull(claimsData)){
-                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             BankerClaimDocumentationDTO bankerClaimDocumentationDTO = bankerService.getClaimDataForBankerAction(id);
             if (Objects.nonNull(bankerClaimDocumentationDTO)) {
-                return ResponseHandler.response(bankerClaimDocumentationDTO, ResponseMessgae.success, true, HttpStatus.OK);
+                return ResponseHandler.response(bankerClaimDocumentationDTO, MessageCode.success, true, HttpStatus.OK);
             }
-            return ResponseHandler.response(null, ResponseMessgae.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getClaimData e {}", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -127,16 +127,16 @@ public class BankerController {
         try {
             log.info("BankerController :: submitClaims");
             if(!bankerService.isBanker()){
-                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.submitClaims();
-            if (result.equals(ResponseMessgae.success)) {
-                return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            if (result.equals(MessageCode.success)) {
+                return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, result, false, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -146,16 +146,16 @@ public class BankerController {
         try {
             log.info("BankerController :: discardClaims");
             if(!bankerService.isBanker()){
-                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.discardClaims();
-            if (result.equals(ResponseMessgae.success)) {
-                return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            if (result.equals(MessageCode.success)) {
+                return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
             }
-            return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -166,16 +166,16 @@ public class BankerController {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
             if (Objects.isNull(claimsData)) {
-                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[] {multipartFiles}, docType);
-            if (result.get("message").equals(ResponseMessgae.success)) {
-                return ResponseHandler.response(result, ResponseMessgae.success, true, HttpStatus.OK);
+            if (result.get("message").equals(MessageCode.success)) {
+                return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getAllClaimsData e{}", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -186,16 +186,16 @@ public class BankerController {
             log.info("BankerController :: forwardToVerifier claimId {}", id);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
             if (Objects.isNull(claimsData)) {
-                return ResponseHandler.response(null, ResponseMessgae.forbidden, false, HttpStatus.FORBIDDEN);
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.forwardToVerifier(claimsData);
-            if (result.equals(ResponseMessgae.success)) {
-                return ResponseHandler.response(null, ResponseMessgae.success, true, HttpStatus.OK);
+            if (result.equals(MessageCode.success)) {
+                return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, result, false, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: forwardToVerifier e {}", e);
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -206,10 +206,10 @@ public class BankerController {
             List<ClaimsData> claimsDataList = bankerService.downloadMISFile(claimStatus);
             MISExport misExport = new MISExport(claimsDataList);
             misExport.export(httpServletResponse);
-            return ResponseHandler.response(claimsDataList, ResponseMessgae.success, true, HttpStatus.OK);
+            return ResponseHandler.response(claimsDataList, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
-            return ResponseHandler.response(null, ResponseMessgae.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

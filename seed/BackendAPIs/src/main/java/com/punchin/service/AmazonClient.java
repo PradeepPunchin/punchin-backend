@@ -1,4 +1,4 @@
-package com.punchin.security;
+package com.punchin.service;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.auth.AWSCredentials;
@@ -10,13 +10,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,10 +18,8 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.Date;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -68,7 +60,7 @@ public class AmazonClient {
 
     void uploadFileTos3bucket(String fileName, File file) {
         try {
-            this.s3client.putObject(new PutObjectRequest(bucketName, fileName, file).withCannedAcl(CannedAccessControlList.PublicRead));
+            this.s3client.putObject(new PutObjectRequest(bucketName, fileName, file).withCannedAcl(CannedAccessControlList.Private));
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AmazonClient :: uploadFileTos3bucket ", e);
         }
@@ -107,11 +99,11 @@ public class AmazonClient {
         }
     }
 
-    public String uploadFile(MultipartFile multipartFile) {
+    public String uploadFile(String claimId, MultipartFile multipartFile) {
         try {
             File file = convertMultiPartToFile(multipartFile);
             String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-            String fileName = System.currentTimeMillis() + "-" + RandomStringUtils.randomAlphabetic(4) + extension;
+            String fileName = claimId + "/" + System.currentTimeMillis() + extension;
             uploadFileTos3bucket(fileName, file);
             deleteLocalFile(file);
             return endpointUrl + fileName;
@@ -121,30 +113,4 @@ public class AmazonClient {
         }
     }
 
-    public ResponseEntity<byte[]> download(String key) throws IOException {
-        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
-
-        S3Object s3Object = s3client.getObject(getObjectRequest);
-
-        S3ObjectInputStream objectInputStream = s3Object.getObjectContent();
-
-        byte[] bytes = IOUtils.toByteArray(objectInputStream);
-
-        String fileName = URLEncoder.encode(key, "UTF-8").replaceAll("\\+", "%20");
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        httpHeaders.setContentLength(bytes.length);
-        httpHeaders.setContentDispositionFormData("attachment", fileName);
-
-        return new ResponseEntity<>(bytes, httpHeaders, HttpStatus.OK);
-    }
-
-    public List<S3ObjectSummary> list() {
-        ObjectListing objectListing = s3client.listObjects(new ListObjectsRequest().withBucketName(bucketName));
-
-        List<S3ObjectSummary> s3ObjectSummaries = objectListing.getObjectSummaries();
-
-        return s3ObjectSummaries;
-    }
 }

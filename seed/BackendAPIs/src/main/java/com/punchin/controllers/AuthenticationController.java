@@ -59,5 +59,4 @@ public class AuthenticationController {
         authenticationService.logout(request, result);
         return ResponseHandler.response(null, messageSource.getMessage(MessageCode.logout, null, LocaleContextHolder.getLocale()), true, HttpStatus.OK);
     }
-
 }

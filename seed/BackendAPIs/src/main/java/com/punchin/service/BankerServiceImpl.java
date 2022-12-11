@@ -9,7 +9,6 @@ import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.RoleEnum;
 import com.punchin.repository.*;
-import com.punchin.security.AmazonClient;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ModelMapper;
 import com.punchin.utility.constant.MessageCode;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.management.relation.Role;
 import java.io.InputStream;
 import java.time.ZoneId;
 import java.util.*;
@@ -244,7 +242,7 @@ public class BankerServiceImpl implements BankerService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonClient.uploadFile(multipartFile));
+                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
                 if(Objects.isNull(urls.getDocUrl())){
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;

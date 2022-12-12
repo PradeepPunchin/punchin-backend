@@ -3,6 +3,7 @@ package com.punchin.service;
 import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.ClaimDocumentsDTO;
 import com.punchin.dto.DocumentUrlDTO;
+import com.punchin.dto.PageDTO;
 import com.punchin.entity.*;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
@@ -39,6 +40,9 @@ public class BankerServiceImpl implements BankerService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CommonUtilService commonService;
 
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
@@ -88,7 +92,7 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public Page getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
+    public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
         try {
             log.info("BankerServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
@@ -100,13 +104,23 @@ public class BankerServiceImpl implements BankerService {
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.CLAIM_SUBMITTED, false, pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.IN_PROGRESS, true, pageable);
+                List<ClaimStatus> claimsStatus = new ArrayList<>();
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.IN_PROGRESS);
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.SETTLED, true, pageable);
+            } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
+                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.CLAIM_SUBMITTED, false, pageable);
+            }else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+                page1 = claimsDataRepository.findByClaimStatus(ClaimStatus.UNDER_VERIFICATION, pageable);
             }
-            return page1;
+            return commonService.convertPageToDTO(page1.getContent(), page1);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimsList e{}", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimsList e {}", e);
             return null;
         }
     }
@@ -117,8 +131,19 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerController :: getDashboardData");
             map.put(ClaimStatus.ALL.name(), claimsDataRepository.count());
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
-            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.SETTLED));
+            List<ClaimStatus> claimsStatus = new ArrayList<>();
+            claimsStatus.removeAll(claimsStatus);
+            claimsStatus.add(ClaimStatus.IN_PROGRESS);
+            claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+            claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
+            claimsStatus.removeAll(claimsStatus);
+            claimsStatus.add(ClaimStatus.SETTLED);
+            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
+            claimsStatus.removeAll(claimsStatus);
+            claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);

@@ -1,6 +1,7 @@
 package com.punchin.controllers;
 
 import com.punchin.dto.BankerClaimDocumentationDTO;
+import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimStatus;
@@ -15,6 +16,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,6 +42,9 @@ public class BankerController {
     private BankerService bankerService;
     @Autowired
     private HttpServletResponse httpServletResponse;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
@@ -93,8 +99,8 @@ public class BankerController {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             //page = page > 0 ? page - 1 : page;
-            Page pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
-            return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
+            PageDTO pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
+            return ResponseHandler.response(pageDTO, messageSource.getMessage(MessageCode.success, null, LocaleContextHolder.getLocale()gui), true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getClaimsList e{}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

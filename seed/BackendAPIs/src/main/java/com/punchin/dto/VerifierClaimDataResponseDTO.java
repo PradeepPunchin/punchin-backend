@@ -13,14 +13,15 @@ public class VerifierClaimDataResponseDTO {
     private String nomineeName;
     private String nomineeContactNumber;
     private String nomineeAddress;
-    private Boolean singnedClaimDocument;
-    private Boolean deathCertificate;
-    private Boolean borrowerIdProof;
-    private Boolean borrowerAddressProof;
-    private Boolean nomineeIdProof;
-    private Boolean nomineeAddressProof;
-    private Boolean bankAccountProof;
-    private Boolean firPostmortemReport;
+    private String singnedClaimDocument = "NOT_UPLOADED";
+    private String deathCertificate = "NOT_UPLOADED";
+    private String borrowerIdProof = "NOT_UPLOADED";
+    private String borrowerAddressProof = "NOT_UPLOADED";
+    private String nomineeIdProof = "NOT_UPLOADED";
+    private String nomineeAddressProof = "NOT_UPLOADED";
+    private String bankAccountProof = "NOT_UPLOADED";
+    private String firPostmortemReport = "NOT_UPLOADED";
+    private String additionalDoc = "NOT_UPLOADED";
 }
 
 

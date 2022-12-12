@@ -12,7 +12,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 @Slf4j
-@Configuration
+//@Configuration
 public class RedisConfiguration {
 	@Value("${spring.redis.port}")
 	private String port;

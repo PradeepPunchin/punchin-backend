@@ -18,6 +18,7 @@ public class ClaimDocuments extends BasicEntity {
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     private ClaimsData claimsData;
+    @Enumerated(EnumType.STRING)
     private AgentDocType agentDocType;
     private String docType;
     @OneToMany

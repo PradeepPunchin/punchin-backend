@@ -124,7 +124,7 @@ public class AgentController {
     }
 
     @ApiOperation(value = "Submit claim", notes = "This can be used to forward claim to verifier (Under verification)")
-    @PutMapping(value = UrlMapping.FORWARD_TO_VERIFIER)
+    @PostMapping(value = UrlMapping.FORWARD_TO_VERIFIER)
     public ResponseEntity<Object> forwardToVerifier(@PathVariable Long id) {
         try {
             log.info("AgentController :: forwardToVerifier claimId {}", id);

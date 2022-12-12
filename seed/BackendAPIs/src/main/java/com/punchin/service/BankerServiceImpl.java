@@ -342,57 +342,63 @@ public class BankerServiceImpl implements BankerService {
                             p.setPunchinBankerId(bankerId);
                             break;
                         case 1:
-                            p.setPunchinClaimId("PUN" + RandomStringUtils.randomAlphanumeric(10));
+                            cell.setCellType(CellType.STRING);
+                            p.setBorrowerName(cell.getStringCellValue());
                             break;
                         case 2:
-                            //cell.setCellType(CellType.STRING);
-                            p.setInsurerClaimId("--");
+                            cell.setCellType(CellType.STRING);
+                            p.setBorrowerAddress(cell.getStringCellValue());
                             break;
                         case 3:
+                            cell.setCellType(CellType.STRING);
+                            p.setBorrowerCity(cell.getStringCellValue());
                             if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
                                 p.setClaimInwardDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
                         case 4:
                             cell.setCellType(CellType.STRING);
-                            p.setBorrowerName(cell.getStringCellValue());
+                            if (Objects.nonNull(cell.getStringCellValue())) {
+                                p.setBorrowerPinCode(cell.getStringCellValue());
+                            }
                             break;
                         case 5:
                             cell.setCellType(CellType.STRING);
-                            p.setBorrowerContactNumber(cell.getStringCellValue());
+                            p.setBorrowerState(cell.getStringCellValue());
                             break;
                         case 6:
                             cell.setCellType(CellType.STRING);
-                            p.setBorrowerState(cell.getStringCellValue());
+                            p.setBorrowerContactNumber(cell.getStringCellValue());
                             break;
                         case 7:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanAccountNumber(cell.getStringCellValue());
+                            p.setBorrowerEmailId(cell.getStringCellValue());
                             break;
                         case 8:
                             cell.setCellType(CellType.STRING);
-                            p.setBorrowerAddress(cell.getStringCellValue());
+                            p.setBorrowerAlternateContactNumber(cell.getStringCellValue());
                             break;
                         case 9:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanType(cell.getStringCellValue());
+                            p.setBorrowerAlternateContactDetails(cell.getStringCellValue());
                             break;
                         case 10:
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setLoanAmount(cell.getNumericCellValue());
-                            }
+                            cell.setCellType(CellType.STRING);
+                            p.setLoanAccountNumber(cell.getStringCellValue());
                             break;
                         case 11:
                             cell.setCellType(CellType.STRING);
-                            p.setBranchCode(cell.getStringCellValue());
+                            p.setLoanTypeCategory(cell.getStringCellValue());
                             break;
                         case 12:
-                            cell.setCellType(CellType.STRING);
-                            p.setBranchName(cell.getStringCellValue());
+                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                                p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                            }
                             break;
                         case 13:
-                            cell.setCellType(CellType.STRING);
-                            p.setBranchAddress(cell.getStringCellValue());
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
+                                p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
+                            }
                             break;
                         case 14:
                             cell.setCellType(CellType.STRING);

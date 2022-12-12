@@ -27,15 +27,21 @@ public class ClaimDraftData extends BasicEntity {
     private String borrowerName;
 
     private String borrowerContactNumber;
-
+    private String borrowerCity;
     private String borrowerState;
-
+    private String borrowerPinCode;
+    private String borrowerEmailId;
+    private String borrowerAlternateContactNumber;
+    private String borrowerAlternateContactDetails;
+    private String loanTypeCategory;
     private String loanAccountNumber;
 
     @Column(columnDefinition = "Text")
     private String borrowerAddress;
 
     private String loanType;
+    private Date loanDisbursalDate;
+    private Double loanOutstandingAmount;
 
     private Double loanAmount;
 

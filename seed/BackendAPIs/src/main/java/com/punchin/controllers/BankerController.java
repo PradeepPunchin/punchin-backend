@@ -100,7 +100,7 @@ public class BankerController {
             }
             //page = page > 0 ? page - 1 : page;
             PageDTO pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
-            return ResponseHandler.response(pageDTO, messageSource.getMessage(MessageCode.success, null, LocaleContextHolder.getLocale()), true, HttpStatus.OK);
+            return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getClaimsList e{}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

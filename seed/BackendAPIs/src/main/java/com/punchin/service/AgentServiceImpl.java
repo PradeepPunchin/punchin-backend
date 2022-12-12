@@ -258,8 +258,9 @@ public class AgentServiceImpl implements AgentService {
         log.info("AgentServiceImpl :: discrepancyDocumentUpload claimsData {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
         Map<String, Object> map = new HashMap<>();
         try {
+            ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
             ClaimDocuments claimDocuments = new ClaimDocuments();
-            claimDocuments.setClaimsData(claimsDataRepository.findById(claimId).get());
+            claimDocuments.setClaimsData(claimsData);
             claimDocuments.setDocType(docType);
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments.setUploadSideBy("agent");
@@ -277,6 +278,8 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
             claimDocumentsRepository.save(claimDocuments);
+            claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
+            claimsDataRepository.save(claimsData);
             ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
             claimDocumentsDTO.setId(claimDocuments.getId());
             claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());

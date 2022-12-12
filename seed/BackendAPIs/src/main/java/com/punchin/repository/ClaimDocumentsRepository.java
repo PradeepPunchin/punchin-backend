@@ -28,4 +28,7 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
     ClaimDocuments findFirstByClaimsDataIdAndDocTypeAndUploadSideByAndIsVerifiedAndIsApprovedOrderByIdDesc(Long claimId, String docType, String agent, boolean b, boolean b1);
 
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByOrderById(Long id, String agent);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =")
+    List<ClaimDocuments> getClaimDocumentWithDiscrepancyStatus(Long id);
 }

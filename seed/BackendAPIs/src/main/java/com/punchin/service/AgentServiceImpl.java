@@ -215,7 +215,7 @@ public class AgentServiceImpl implements AgentService {
         Map<String, Object> map = new HashMap<>();
         try {
             log.info("AgentServiceImpl :: getClaimDocuments claimId {}", id);
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(id, "agent");
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.getClaimDocumentWithDiscrepancyStatus(id);
             List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
             List<String> rejectedDocList = new ArrayList<>();
             for (ClaimDocuments claimDocuments : claimDocumentsList) {

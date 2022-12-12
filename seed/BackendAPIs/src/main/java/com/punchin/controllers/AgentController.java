@@ -102,8 +102,8 @@ public class AgentController {
     }
 
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
-    @PutMapping(value = UrlMapping.AGENT_DISCREPANCY_DOCUMENT_UPLOAD)
-    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @ApiParam(name = "multipartFile", value = "The multipart object as an array to upload files.") @Valid @RequestBody MultipartFile multipartFile) {
+    @PostMapping(value = UrlMapping.AGENT_DISCREPANCY_DOCUMENT_UPLOAD)
+    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {
         try {
             log.info("BankerController :: discrepancyDocumentUpload claimId {}, multipartFile {}, docType {}", id, multipartFile, docType);
             if(!agentService.checkAccess(id)){
@@ -184,7 +184,7 @@ public class AgentController {
             if(Boolean.getBoolean(result.get("status").toString())){
                 return ResponseHandler.response(result.get("claimsData"), MessageCode.success, true, HttpStatus.OK);
             }
-            return ResponseHandler.response(null, result.get("claimsData").toString(), false, HttpStatus.BAD_REQUEST);
+            return ResponseHandler.response(result.get("claimsData"), result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentController :: getAllClaimsData e{}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

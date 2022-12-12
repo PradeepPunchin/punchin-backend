@@ -43,13 +43,12 @@ public class AuthenticationController {
                 log.info("LOGIN BY CREDENTIALS");
                 Map<String, Object> resultMap = authenticationService.authenticateUserAccount(credentials);
                 if(resultMap.get("message").equals(MessageCode.success)){
-                    return ResponseHandler.response(resultMap.get("session"), MessageCode.success, true, HttpStatus.OK);
-                    //return ResponseHandler.response(resultMap.get("session"), messageSource.getMessage(MessageCode.success, null, LocaleContextHolder.getLocale()), true, HttpStatus.OK);
+                    return ResponseHandler.response(resultMap.get("session"), "Login successfully", true, HttpStatus.OK);
                 }
-            return ResponseHandler.response(null, messageSource.getMessage(MessageCode.invalidCredentials, null, LocaleContextHolder.getLocale()), true, HttpStatus.BAD_REQUEST);
+            return ResponseHandler.response(null, "Invalid credentials", true, HttpStatus.BAD_REQUEST);
         }catch (Exception e){
             log.error("EXCEPTION WHILE AuthenticationController :: userAuthentication e{}", e);
-            return ResponseHandler.response(null, messageSource.getMessage(MessageCode.backText, null, LocaleContextHolder.getLocale()), false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, "Something went wrong", false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -58,6 +57,6 @@ public class AuthenticationController {
     public ResponseEntity<Object> logout(HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> result = new HashMap<>();
         authenticationService.logout(request, result);
-        return ResponseHandler.response(null, messageSource.getMessage(MessageCode.logout, null, LocaleContextHolder.getLocale()), true, HttpStatus.OK);
+        return ResponseHandler.response(null, "Logout successfully", true, HttpStatus.OK);
     }
 }

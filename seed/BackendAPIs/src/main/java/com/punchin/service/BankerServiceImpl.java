@@ -102,7 +102,7 @@ public class BankerServiceImpl implements BankerService {
             } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
                 page1 = claimDraftDataRepository.findAll(pageable);
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.CLAIM_SUBMITTED, false, pageable);
+                page1 = claimsDataRepository.findByIsForwardToVerifier(true, pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 List<ClaimStatus> claimsStatus = new ArrayList<>();
                 claimsStatus.removeAll(claimsStatus);

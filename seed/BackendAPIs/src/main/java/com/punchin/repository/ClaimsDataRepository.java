@@ -60,4 +60,6 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page findAllByAgentAllocatedAndClaimStatus(User userId, ClaimStatus claimStatus, Pageable pageable);
 
     ClaimsData findByIdAndPunchinBankerId(Long claimId, String userId);
+
+    Long countByClaimStatusIn(List<ClaimStatus> claimStatuses);
 }

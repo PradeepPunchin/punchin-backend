@@ -3,6 +3,7 @@ package com.punchin.repository;
 import com.punchin.entity.User;
 import com.punchin.enums.RoleEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -12,5 +13,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByUserIdIgnoreCase(String userId);
     User findByIdAndRole(Long agentId, RoleEnum role);
     boolean existsByIdAndRole(Long id, RoleEnum banker);
-    User findByRoleAndUserStateIgnoreCase(RoleEnum agent, String borrowerState);
+    User findByRoleAndStateIgnoreCase(RoleEnum roles, String borrowerState);
 }

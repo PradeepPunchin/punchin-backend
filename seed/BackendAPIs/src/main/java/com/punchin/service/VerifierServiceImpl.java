@@ -71,15 +71,23 @@ public class VerifierServiceImpl implements VerifierService {
         Map<String, Long> map = new HashMap<>();
         try {
             log.info("VerifierServiceImpl :: getDashboardData");
+            List<ClaimStatus> claimsStatus = new ArrayList<>();
+            claimsStatus.add(ClaimStatus.IN_PROGRESS);
+            claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+            claimsStatus.add(ClaimStatus.SETTLED);
+            claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+            claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.UNDER_VERIFICATION));
-            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.SETTLED));
+            map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.SETTLED));
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getDashboardData e{}", e);
+            map.put(ClaimStatus.ALL.name(), 0L);
             map.put(ClaimStatus.IN_PROGRESS.name(), 0L);
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), 0L);
-            map.put(ClaimStatus.SETTLED.name(), 0L);
+            map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), 0L);
             return map;
         }
     }

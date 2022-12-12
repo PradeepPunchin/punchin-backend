@@ -312,8 +312,8 @@ public class BankerServiceImpl implements BankerService {
                             p.setPunchinClaimId("PUN" + RandomStringUtils.randomAlphanumeric(10));
                             break;
                         case 2:
-                            cell.setCellType(CellType.STRING);
-                            p.setInsurerClaimId(cell.getStringCellValue());
+                            //cell.setCellType(CellType.STRING);
+                            p.setInsurerClaimId("--");
                             break;
                         case 3:
                             if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
@@ -474,7 +474,7 @@ public class BankerServiceImpl implements BankerService {
             claimsData.setIsForwardToVerifier(true);
             claimsData.setAgentToVerifierTime(System.currentTimeMillis());
             claimsDataRepository.save(claimsData);
-            User user = userRepository.findByRoleAndUserStateIgnoreCase(RoleEnum.AGENT, claimsData.getBorrowerState());
+            User user = userRepository.findByRoleAndStateIgnoreCase(RoleEnum.AGENT, claimsData.getBorrowerState());
             if(Objects.nonNull(user)){
                 ClaimAllocated claimAllocated = new ClaimAllocated();
                 claimAllocated.setUser(user);

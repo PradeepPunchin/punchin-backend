@@ -53,7 +53,7 @@ public class ClaimDraftData extends BasicEntity {
     private String branchAddress;
 
     private String branchPinCode;
-
+    private String branchCity;
     private String branchState;
 
     private String loanAccountManagerName;

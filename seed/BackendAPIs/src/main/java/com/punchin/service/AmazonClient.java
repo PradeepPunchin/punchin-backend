@@ -60,7 +60,7 @@ public class AmazonClient {
 
     void uploadFileTos3bucket(String fileName, File file) {
         try {
-            this.s3client.putObject(new PutObjectRequest(bucketName, fileName, file).withCannedAcl(CannedAccessControlList.Private));
+            this.s3client.putObject(new PutObjectRequest(bucketName, fileName, file).withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AmazonClient :: uploadFileTos3bucket ", e);
         }

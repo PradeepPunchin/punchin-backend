@@ -352,9 +352,6 @@ public class BankerServiceImpl implements BankerService {
                         case 3:
                             cell.setCellType(CellType.STRING);
                             p.setBorrowerCity(cell.getStringCellValue());
-                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setClaimInwardDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
-                            }
                             break;
                         case 4:
                             cell.setCellType(CellType.STRING);
@@ -402,73 +399,83 @@ public class BankerServiceImpl implements BankerService {
                             break;
                         case 14:
                             cell.setCellType(CellType.STRING);
-                            if (Objects.nonNull(cell.getStringCellValue())) {
-                                p.setBranchPinCode(cell.getStringCellValue());
-                            }
+                            p.setBranchCode(cell.getStringCellValue());
                             break;
                         case 15:
-                            p.setBranchState(cell.getStringCellValue());
+                            cell.setCellType(CellType.STRING);
+                            p.setBranchAddress(cell.getStringCellValue());
                             break;
                         case 16:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanAccountManagerName(cell.getStringCellValue());
+                            p.setBranchCity(cell.getStringCellValue());
                             break;
                         case 17:
                             cell.setCellType(CellType.STRING);
-                            p.setAccountManagerContactNumber(cell.getStringCellValue());
+                            p.setBranchPinCode(cell.getStringCellValue());
                             break;
                         case 18:
                             cell.setCellType(CellType.STRING);
-                            p.setInsurerName(cell.getStringCellValue());
+                            p.setBranchState(cell.getStringCellValue());
                             break;
                         case 19:
                             cell.setCellType(CellType.STRING);
-                            p.setPolicyNumber(cell.getStringCellValue());
+                            p.setLoanAccountManagerName(cell.getStringCellValue());
                             break;
                         case 20:
                             cell.setCellType(CellType.STRING);
-                            p.setMasterPolNumber(cell.getStringCellValue());
+                            p.setAccountManagerContactNumber(cell.getStringCellValue());
                             break;
                         case 21:
+                            cell.setCellType(CellType.STRING);
+                            p.setInsurerName(cell.getStringCellValue());
+                            break;
+                        case 22:
+                            cell.setCellType(CellType.STRING);
+                            p.setInsurerName(cell.getStringCellValue());
+                            break;
+                        case 23:
+                            cell.setCellType(CellType.STRING);
+                            p.setPolicyNumber(cell.getStringCellValue());
+                            break;
+                        case 24:
+                            cell.setCellType(CellType.STRING);
+                            p.setMasterPolNumber(cell.getStringCellValue());
+                            break;
+                        case 25:
                             if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
                                 p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
-                        case 22:
+                        case 26:
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicyCoverageDuration((int) cell.getNumericCellValue());
                             }
                             break;
-                        case 23:
+                        case 27:
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicySumAssured((double) cell.getNumericCellValue());
                             }
                             break;
-                        case 24:
+                        case 28:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeName(cell.getStringCellValue());
                             break;
-                        case 25:
+                        case 29:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeRelationShip(cell.getStringCellValue());
                             break;
-                        case 26:
+                        case 30:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeContactNumber(cell.getStringCellValue());
                             break;
-                        case 27:
+                        case 31:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeEmailId(cell.getStringCellValue());
                             break;
-                        case 28:
+                        case 32:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeAddress(cell.getStringCellValue());
                             break;
-
-                        case 29:
-                            //p.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
-                            break;
-
                         default:
                             break;
                     }

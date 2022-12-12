@@ -32,9 +32,6 @@ public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
 
-    @Autowired
-    private MessageSource messageSource;
-
     @ApiOperation(value = "User Login", notes = "This can be used to generate API token")
     @PostMapping(value = UrlMapping.LOGIN)
     public ResponseEntity<Object> userAuthentication(@ApiParam(name = "Credential", value = "The Login request Object for user login", required = true) @Valid @RequestBody LoginRequestDTO credentials){

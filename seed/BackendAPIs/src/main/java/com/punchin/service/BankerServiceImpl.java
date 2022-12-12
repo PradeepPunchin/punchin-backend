@@ -141,6 +141,13 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
                 claimsData.setSubmittedAt(System.currentTimeMillis());
                 claimsDataList.add(claimsData);
+                User user = userRepository.findByRoleAndStateIgnoreCase(RoleEnum.AGENT, claimsData.getBorrowerState());
+                if(Objects.nonNull(user)){
+                    ClaimAllocated claimAllocated = new ClaimAllocated();
+                    claimAllocated.setUser(user);
+                    claimAllocated.setClaimsData(claimsData);
+                    claimAllocatedRepository.save(claimAllocated);
+                }
             }
 
             if (!claimsDataList.isEmpty()) {

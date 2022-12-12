@@ -39,7 +39,7 @@ public class VerifierController {
     public ResponseEntity<Object> getClaimsData(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
-            page = page > 0 ? page - 1 : page;
+            //page = page > 0 ? page - 1 : page;
             PageDTO allClaimsData = verifierService.getAllClaimsData(claimDataFilter, page, limit);
             return ResponseHandler.response(allClaimsData, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
@@ -49,10 +49,10 @@ public class VerifierController {
     }
 
     @GetMapping(value = UrlMapping.VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS)
-    public ResponseEntity<Object> getClaimDataWithDocumentStatus(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
+    public ResponseEntity<Object> getClaimDataWithDocumentStatus(@RequestParam Integer page, @RequestParam Integer limit) {
         try {
-            log.info("VerifierController :: getClaimDataWithDocumentStatus  claimDataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
-            PageDTO pageDTO = verifierService.getClaimDataWithDocumentStatus(claimDataFilter, page, limit);
+            log.info("VerifierController :: getClaimDataWithDocumentStatus page {}, limit {}", page, limit);
+            PageDTO pageDTO = verifierService.getClaimDataWithDocumentStatus(page, limit);
             if (Objects.nonNull(pageDTO)) {
                 return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
             }
@@ -119,11 +119,11 @@ public class VerifierController {
         }
     }
 
-    @GetMapping(value = UrlMapping.VERIFIER_CLAIMS_VERIFICATION_REQUEST)
+    //@GetMapping(value = UrlMapping.VERIFIER_CLAIMS_VERIFICATION_REQUEST)
     public ResponseEntity<Object> getClaimDocVerificationRequest(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
-            page = page > 0 ? page - 1 : page;
+            //page = page > 0 ? page - 1 : page;
             PageDTO allClaimsData = verifierService.getAllClaimsData(claimDataFilter, page, limit);
             return ResponseHandler.response(allClaimsData, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {

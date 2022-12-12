@@ -28,5 +28,5 @@ public interface VerifierService {
 
     ClaimDocuments getClaimDocumentById(Long docId);
 
-    PageDTO getClaimDataWithDocumentStatus(ClaimDataFilter claimDataFilter, Integer page, Integer limit);
+    PageDTO getClaimDataWithDocumentStatus(Integer page, Integer limit);
 }

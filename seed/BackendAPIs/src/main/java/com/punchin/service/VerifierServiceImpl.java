@@ -185,23 +185,11 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     @Override
-    public PageDTO getClaimDataWithDocumentStatus(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
-        Page<ClaimsData> page1 = Page.empty();
+    public PageDTO getClaimDataWithDocumentStatus(Integer page, Integer limit) {
         try {
-            log.info("BankerController :: getClaimDataWithDocumentStatus dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
-            Pageable pageable = PageRequest.of(page, limit, Sort.by("punchin_claim_id").descending());
-
-            if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.ACTION_PENDING, true, pageable);
-            } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.IN_PROGRESS, true, pageable);
-            } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.UNDER_VERIFICATION, true, pageable);
-            } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.SETTLED, true, pageable);
-            } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.VERIFIER_DISCREPENCY, true, pageable);
-            }
+            log.info("BankerController :: getClaimDataWithDocumentStatus page {}, limit {}", page, limit);
+            Pageable pageable = PageRequest.of(page, limit);
+            Page page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.UNDER_VERIFICATION, true, pageable);
             List<ClaimsData> claimsData = page1.getContent();
             List<VerifierClaimDataResponseDTO> dtos = new ArrayList<>();
             for(ClaimsData claimData : claimsData){
@@ -285,7 +273,7 @@ public class VerifierServiceImpl implements VerifierService {
             return commonService.convertPageToDTO(dtos, page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getClaimDataWithDocumentStatus", e);
-            return commonService.convertPageToDTO(page1.getContent(), page1);
+            return null;
         }
     }
 

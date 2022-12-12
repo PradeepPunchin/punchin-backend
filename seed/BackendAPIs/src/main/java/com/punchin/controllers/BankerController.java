@@ -92,7 +92,7 @@ public class BankerController {
             if(!bankerService.isBanker()){
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            page = page > 0 ? page - 1 : page;
+            //page = page > 0 ? page - 1 : page;
             Page pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
             return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {

@@ -21,6 +21,8 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     Page<ClaimsData> findByClaimStatusAndIsForwardToVerifier(ClaimStatus claimStatus, boolean isForwardToVerifier, Pageable pageable);
 
+    Page<ClaimsData> findByClaimStatusIn(List<ClaimStatus> claimStatus, Pageable pageable);
+
     Long countByClaimStatus(ClaimStatus inProgress);
 
     @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND ca.user_id =:userId AND ca.is_active = true")

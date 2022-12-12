@@ -49,16 +49,30 @@ public class VerifierServiceImpl implements VerifierService {
         try {
             log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, pageNo, pageSize);
             Pageable pageable = PageRequest.of(pageNo, pageSize);
-            if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.ACTION_PENDING, true, pageable);
+            List<ClaimStatus> claimsStatus = new ArrayList<>();
+            if (claimDataFilter.ALL.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.IN_PROGRESS);
+                claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+                claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.IN_PROGRESS, true, pageable);
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.IN_PROGRESS);
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.UNDER_VERIFICATION, true, pageable);
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.SETTLED, true, pageable);
-            } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.VERIFIER_DISCREPENCY, true, pageable);
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.SETTLED);
+                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
             }
             return commonService.convertPageToDTO(page1.getContent(), page1);
         } catch (Exception e) {
@@ -77,10 +91,20 @@ public class VerifierServiceImpl implements VerifierService {
             claimsStatus.add(ClaimStatus.SETTLED);
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
             map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.IN_PROGRESS));
-            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.UNDER_VERIFICATION));
-            map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatus(ClaimStatus.SETTLED));
+            claimsStatus.removeAll(claimsStatus);
+            claimsStatus.add(ClaimStatus.IN_PROGRESS);
+            claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+            claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
+            claimsStatus.removeAll(claimsStatus);
+            claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
+            claimsStatus.removeAll(claimsStatus);
+            claimsStatus.add(ClaimStatus.SETTLED);
+            map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getDashboardData e{}", e);

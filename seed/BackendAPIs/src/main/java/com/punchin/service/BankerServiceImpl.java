@@ -137,6 +137,7 @@ public class BankerServiceImpl implements BankerService {
             List<ClaimsData> claimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimDraftDatas) {
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
+                claimsData.setPunchinClaimId("PUN" + RandomStringUtils.randomAlphanumeric(10));
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
                 claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
                 claimsData.setSubmittedAt(System.currentTimeMillis());

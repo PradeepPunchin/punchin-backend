@@ -43,7 +43,8 @@ public class AuthenticationController {
                 log.info("LOGIN BY CREDENTIALS");
                 Map<String, Object> resultMap = authenticationService.authenticateUserAccount(credentials);
                 if(resultMap.get("message").equals(MessageCode.success)){
-                    return ResponseHandler.response(resultMap.get("session"), messageSource.getMessage(MessageCode.success, null, LocaleContextHolder.getLocale()), true, HttpStatus.OK);
+                    return ResponseHandler.response(resultMap.get("session"), MessageCode.success, true, HttpStatus.OK);
+                    //return ResponseHandler.response(resultMap.get("session"), messageSource.getMessage(MessageCode.success, null, LocaleContextHolder.getLocale()), true, HttpStatus.OK);
                 }
             return ResponseHandler.response(null, messageSource.getMessage(MessageCode.invalidCredentials, null, LocaleContextHolder.getLocale()), true, HttpStatus.BAD_REQUEST);
         }catch (Exception e){

@@ -307,7 +307,7 @@ public class BankerServiceImpl implements BankerService {
         log.info("BankerServiceImpl :: saveUploadExcelData file{}, bankerId{}", is, bankerId);
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(is);
-            XSSFSheet sheet = workbook.getSheet("Sheet1");
+            XSSFSheet sheet = workbook.getSheetAt(0);
             if (Objects.isNull(sheet)) {
                 map.put("message", "sheet.not.found");
                 return map;

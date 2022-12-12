@@ -258,42 +258,50 @@ public class AgentServiceImpl implements AgentService {
         log.info("AgentServiceImpl :: discrepancyDocumentUpload claimsData {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
         Map<String, Object> map = new HashMap<>();
         try {
-            ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
-            ClaimDocuments claimDocuments = new ClaimDocuments();
-            claimDocuments.setClaimsData(claimsData);
-            claimDocuments.setDocType(docType);
-            claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
-            claimDocuments.setUploadSideBy("agent");
-            List<DocumentUrls> documentUrls = new ArrayList<>();
-            for (MultipartFile multipartFile : multipartFiles) {
-                DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile));
-                if (Objects.isNull(urls.getDocUrl())) {
-                    map.put("message", MessageCode.fileNotUploaded);
-                    return map;
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndAgentDocType(claimId, AgentDocType.valueOf(docType));
+            if(!claimDocumentsList.isEmpty()) {
+                claimDocumentsList.forEach(claimDocuments -> {claimDocuments.setIsActive(false);});
+                claimDocumentsRepository.saveAll(claimDocumentsList);
+            }
+                ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
+                ClaimDocuments claimDocuments = new ClaimDocuments();
+                claimDocuments.setClaimsData(claimsData);
+                claimDocuments.setAgentDocType(AgentDocType.valueOf(docType));
+                claimDocuments.setDocType(docType);
+                claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+                claimDocuments.setUploadSideBy("agent");
+                List<DocumentUrls> documentUrls = new ArrayList<>();
+                for (MultipartFile multipartFile : multipartFiles) {
+                    DocumentUrls urls = new DocumentUrls();
+                    urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile));
+                    if (Objects.isNull(urls.getDocUrl())) {
+                        map.put("message", MessageCode.fileNotUploaded);
+                        return map;
+                    }
+                    documentUrls.add(urls);
                 }
-                documentUrls.add(urls);
-            }
-            documentUrlsRepository.saveAll(documentUrls);
-            claimDocuments.setDocumentUrls(documentUrls);
-            claimDocuments.setUploadTime(System.currentTimeMillis());
-            claimDocumentsRepository.save(claimDocuments);
-            claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
-            claimsDataRepository.save(claimsData);
-            ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
-            claimDocumentsDTO.setId(claimDocuments.getId());
-            claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
-            claimDocumentsDTO.setDocType(claimDocuments.getDocType());
-            claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
-            claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-            List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
-            for (DocumentUrls documentUrl : documentUrls) {
-                DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
-                documentUrlListDTO.setDocUrl(documentUrl.getDocUrl());
-                documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrl.getDocUrl()));
-                documentUrlDTOS.add(documentUrlListDTO);
-            }
-            claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                documentUrlsRepository.saveAll(documentUrls);
+                claimDocuments.setDocumentUrls(documentUrls);
+                claimDocuments.setUploadTime(System.currentTimeMillis());
+                claimDocumentsRepository.save(claimDocuments);
+                //inactive old rejected doc
+
+                //claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
+                //claimsDataRepository.save(claimsData);
+                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                claimDocumentsDTO.setId(claimDocuments.getId());
+                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                for (DocumentUrls documentUrl : documentUrls) {
+                    DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                    documentUrlListDTO.setDocUrl(documentUrl.getDocUrl());
+                    documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrl.getDocUrl()));
+                    documentUrlDTOS.add(documentUrlListDTO);
+                }
+                claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
             map.put("message", MessageCode.success);
             map.put("claimDocuments", claimDocumentsDTO);
             return map;

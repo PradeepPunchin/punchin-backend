@@ -40,12 +40,12 @@ public class AuthenticationController {
                 log.info("LOGIN BY CREDENTIALS");
                 Map<String, Object> resultMap = authenticationService.authenticateUserAccount(credentials);
                 if(resultMap.get("message").equals(MessageCode.success)){
-                    return ResponseHandler.response(resultMap.get("session"), "Login successfully", true, HttpStatus.OK);
+                    return ResponseHandler.response(resultMap.get("session"), MessageCode.login, true, HttpStatus.OK);
                 }
-            return ResponseHandler.response(null, "Invalid credentials", true, HttpStatus.BAD_REQUEST);
+            return ResponseHandler.response(null, MessageCode.invalidCredentials, true, HttpStatus.BAD_REQUEST);
         }catch (Exception e){
             log.error("EXCEPTION WHILE AuthenticationController :: userAuthentication e{}", e);
-            return ResponseHandler.response(null, "Something went wrong", false, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -54,6 +54,6 @@ public class AuthenticationController {
     public ResponseEntity<Object> logout(HttpServletRequest request, HttpServletResponse response) {
         Map<String, Object> result = new HashMap<>();
         authenticationService.logout(request, result);
-        return ResponseHandler.response(null, "Logout successfully", true, HttpStatus.OK);
+        return ResponseHandler.response(null, MessageCode.logout, true, HttpStatus.OK);
     }
 }

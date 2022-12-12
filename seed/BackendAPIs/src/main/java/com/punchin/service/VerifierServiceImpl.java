@@ -155,7 +155,7 @@ public class VerifierServiceImpl implements VerifierService {
             claimDetailForVerificationDTO.setNomineeName(claimsData.getNomineeName());
             claimDetailForVerificationDTO.setNomineeAddress(claimsData.getNomineeAddress());
             claimDetailForVerificationDTO.setNomineeRelationShip(claimsData.getNomineeRelationShip());
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(claimsData.getId(), "agent");
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent", true);
             List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
@@ -196,6 +196,11 @@ public class VerifierServiceImpl implements VerifierService {
             if (!approveRejectPayloadDTO.isApproved()) {
                 claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsDataRepository.save(claimsData);
+            }else{
+                if(!claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(claimsData.getId(), "agent", true, false)){
+                    claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
+                    claimsDataRepository.save(claimsData);
+                }
             }
             return MessageCode.success;
         } catch (Exception e){

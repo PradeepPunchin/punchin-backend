@@ -182,7 +182,7 @@ public class AgentController {
             documentDTO.setAdditionalDoc(additionalDoc);
             Map<String, Object> result = agentService.uploadDocument(documentDTO);
             if(Boolean.parseBoolean(result.get("status").toString())){
-                return ResponseHandler.response(result.get("claimsData"), MessageCode.success, true, HttpStatus.OK);
+                return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(result.get("claimsData"), result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {

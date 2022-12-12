@@ -163,10 +163,14 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDraftData claimDraftData : claimDraftDatas) {
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
                 claimsData.setPunchinClaimId("PUN" + RandomStringUtils.randomAlphanumeric(10));
-                claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
+                claimsData.setClaimInwardDate(new Date());
+                claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
                 claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
                 claimsData.setSubmittedAt(System.currentTimeMillis());
-                claimsDataList.add(claimsData);
+                claimsData.setIsForwardToVerifier(true);
+                //claimsDataList.add(claimsData);
+                claimsData = claimsDataRepository.save(claimsData);
+                claimDraftDataRepository.delete(claimDraftData);
                 User user = userRepository.findByRoleAndStateIgnoreCase(RoleEnum.AGENT, claimsData.getBorrowerState());
                 if(Objects.nonNull(user)){
                     ClaimAllocated claimAllocated = new ClaimAllocated();
@@ -175,13 +179,7 @@ public class BankerServiceImpl implements BankerService {
                     claimAllocatedRepository.save(claimAllocated);
                 }
             }
-
-            if (!claimsDataList.isEmpty()) {
-                claimsDataRepository.saveAll(claimsDataList);
-                claimDraftDataRepository.deleteAll();
-                return MessageCode.success;
-            }
-            return MessageCode.invalidClaimData;
+            return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: submitClaims e{}", e);
             return MessageCode.backText;
@@ -385,7 +383,7 @@ public class BankerServiceImpl implements BankerService {
                             break;
                         case 11:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanTypeCategory(cell.getStringCellValue());
+                            p.setLoanType(cell.getStringCellValue());
                             break;
                         case 12:
                             if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
@@ -394,40 +392,41 @@ public class BankerServiceImpl implements BankerService {
                             break;
                         case 13:
                             if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
+                                p.setLoanAmount((double) cell.getNumericCellValue());
                             }
                             break;
                         case 14:
-                            cell.setCellType(CellType.STRING);
-                            p.setBranchCode(cell.getStringCellValue());
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
+                                p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
+                            }
                             break;
                         case 15:
                             cell.setCellType(CellType.STRING);
-                            p.setBranchAddress(cell.getStringCellValue());
+                            p.setBranchCode(cell.getStringCellValue());
                             break;
                         case 16:
                             cell.setCellType(CellType.STRING);
-                            p.setBranchCity(cell.getStringCellValue());
+                            p.setBranchAddress(cell.getStringCellValue());
                             break;
                         case 17:
                             cell.setCellType(CellType.STRING);
-                            p.setBranchPinCode(cell.getStringCellValue());
+                            p.setBranchCity(cell.getStringCellValue());
                             break;
                         case 18:
                             cell.setCellType(CellType.STRING);
-                            p.setBranchState(cell.getStringCellValue());
+                            p.setBranchPinCode(cell.getStringCellValue());
                             break;
                         case 19:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanAccountManagerName(cell.getStringCellValue());
+                            p.setBranchState(cell.getStringCellValue());
                             break;
                         case 20:
                             cell.setCellType(CellType.STRING);
-                            p.setAccountManagerContactNumber(cell.getStringCellValue());
+                            p.setLoanAccountManagerName(cell.getStringCellValue());
                             break;
                         case 21:
                             cell.setCellType(CellType.STRING);
-                            p.setInsurerName(cell.getStringCellValue());
+                            p.setAccountManagerContactNumber(cell.getStringCellValue());
                             break;
                         case 22:
                             cell.setCellType(CellType.STRING);

@@ -1,7 +1,7 @@
 package com.punchin.repository;
 
 import com.punchin.entity.ClaimDocuments;
-import com.punchin.enums.BankerDocType;
+import com.punchin.enums.AgentDocType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,6 +29,12 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByOrderById(Long id, String agent);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =:id")
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =:id AND upload_side_by ='agent' AND is_active = true ORDER BY agent_doc_type")
     List<ClaimDocuments> getClaimDocumentWithDiscrepancyStatus(Long id);
+
+    List<ClaimDocuments> findByClaimsDataIdAndAgentDocType(Long claimId, AgentDocType valueOf);
+
+    List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(Long id, String agent, boolean b);
+
+    boolean existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(Long claimId, String agent, boolean b, boolean b1);
 }

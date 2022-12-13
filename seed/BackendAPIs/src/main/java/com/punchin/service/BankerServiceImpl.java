@@ -285,7 +285,7 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setUploadTime(System.currentTimeMillis());
             claimDocumentsRepository.save(claimDocuments);
             //claimDocuments.setClaimsData(null);
-            claimsData.setIsForwardToVerifier(true);
+            //claimsData.setIsForwardToVerifier(true);
             claimsDataRepository.save(claimsData);
             map.put("message", MessageCode.success);
             map.put("claimDocuments", claimDocuments);
@@ -515,7 +515,7 @@ public class BankerServiceImpl implements BankerService {
     public String forwardToVerifier(ClaimsData claimsData) {
         try {
             log.info("BankerController :: forwardToVerifier");
-            claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
+            claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
             claimsData.setIsForwardToVerifier(true);
             claimsData.setAgentToVerifierTime(System.currentTimeMillis());
             claimsDataRepository.save(claimsData);

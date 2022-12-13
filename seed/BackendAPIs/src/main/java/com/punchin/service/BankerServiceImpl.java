@@ -100,7 +100,7 @@ public class BankerServiceImpl implements BankerService {
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
-                page1 = claimDraftDataRepository.findAll(pageable);
+                page1 = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByIsForwardToVerifierAndPunchinBankerId(true, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
@@ -137,6 +137,7 @@ public class BankerServiceImpl implements BankerService {
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+            claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
@@ -158,7 +159,7 @@ public class BankerServiceImpl implements BankerService {
     public String submitClaims() {
         try {
             log.info("BankerController :: submitClaims");
-            List<ClaimDraftData> claimDraftDatas = claimDraftDataRepository.findAll();
+            List<ClaimDraftData> claimDraftDatas = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
             List<ClaimsData> claimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimDraftDatas) {
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
@@ -170,7 +171,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsDataList.add(claimsData);
             }
             claimsDataRepository.saveAll(claimsDataList);
-            claimDraftDataRepository.deleteAll();
+            claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: submitClaims e{}", e);
@@ -182,7 +183,7 @@ public class BankerServiceImpl implements BankerService {
     public String discardClaims() {
         try {
             log.info("BankerController :: discardClaims");
-            claimDraftDataRepository.deleteAll();
+            claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: discardClaims e{}", e);

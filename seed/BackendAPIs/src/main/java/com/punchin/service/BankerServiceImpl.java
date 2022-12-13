@@ -167,7 +167,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
                 claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
                 claimsData.setSubmittedAt(System.currentTimeMillis());
-                claimsData.setIsForwardToVerifier(true);
+               // claimsData.setIsForwardToVerifier(true);
                 //claimsDataList.add(claimsData);
                 claimsData = claimsDataRepository.save(claimsData);
                 claimDraftDataRepository.delete(claimDraftData);

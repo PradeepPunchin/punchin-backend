@@ -384,11 +384,13 @@ public class BankerServiceImpl implements BankerService {
                             }
                             break;
                         case 13:
+                            cell.setCellType(CellType.NUMERIC);
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setLoanAmount((double) cell.getNumericCellValue());
                             }
                             break;
                         case 14:
+                            cell.setCellType(CellType.NUMERIC);
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
                             }
@@ -439,11 +441,13 @@ public class BankerServiceImpl implements BankerService {
                             }
                             break;
                         case 26:
+                            cell.setCellType(CellType.NUMERIC);
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicyCoverageDuration((int) cell.getNumericCellValue());
                             }
                             break;
                         case 27:
+                            cell.setCellType(CellType.NUMERIC);
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicySumAssured((double) cell.getNumericCellValue());
                             }

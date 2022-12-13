@@ -164,21 +164,13 @@ public class BankerServiceImpl implements BankerService {
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
                 claimsData.setPunchinClaimId("PUN" + RandomStringUtils.randomAlphanumeric(10));
                 claimsData.setClaimInwardDate(new Date());
-                claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
+                claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
                 claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
                 claimsData.setSubmittedAt(System.currentTimeMillis());
-               // claimsData.setIsForwardToVerifier(true);
-                //claimsDataList.add(claimsData);
-                claimsData = claimsDataRepository.save(claimsData);
-                claimDraftDataRepository.delete(claimDraftData);
-                User user = userRepository.findByRoleAndStateIgnoreCase(RoleEnum.AGENT, claimsData.getBorrowerState());
-                if(Objects.nonNull(user)){
-                    ClaimAllocated claimAllocated = new ClaimAllocated();
-                    claimAllocated.setUser(user);
-                    claimAllocated.setClaimsData(claimsData);
-                    claimAllocatedRepository.save(claimAllocated);
-                }
+                claimsDataList.add(claimsData);
             }
+            claimsDataRepository.saveAll(claimsDataList);
+            claimDraftDataRepository.deleteAll();
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: submitClaims e{}", e);

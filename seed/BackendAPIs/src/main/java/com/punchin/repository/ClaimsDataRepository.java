@@ -66,4 +66,18 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Long countByClaimStatusIn(List<ClaimStatus> claimStatuses);
 
     Page findByIsForwardToVerifier(boolean b, Pageable pageable);
+
+    Long countByPunchinBankerId(String userId);
+
+    Long countByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId);
+
+    Page findAllByPunchinBankerId(String userId, Pageable pageable);
+
+    Page findByIsForwardToVerifierAndPunchinBankerId(boolean b, String userId, Pageable pageable);
+
+    Page findByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
+
+    Page findByClaimStatusAndIsForwardToVerifierAndPunchinBankerId(ClaimStatus settled, boolean b, String userId, Pageable pageable);
+
+    Page findByClaimStatusAndPunchinBankerId(ClaimStatus underVerification, String userId, Pageable pageable);
 }

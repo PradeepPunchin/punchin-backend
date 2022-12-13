@@ -37,8 +37,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = " select * from claims_data")
     Page<ClaimsData> findAllClaimData(Pageable pageable);
 
-    @Query(nativeQuery = true, value = " select * from claims_data cd where cd.claim_status=:claimStatus ")
-    List<ClaimsData> findByClaimStatus(String claimStatus);
+    List<ClaimsData> findByClaimStatus(ClaimStatus claimStatus);
 
     @Query(nativeQuery = true, value = " select cd.id as id,cd.claim_inward_date as registrationDate,cd.borrower_name as borrowerName, " +
             " cd.nominee_name as nomineeName,cd.nominee_contact_number as nomineeContactNumber,cd.nominee_address as nomineeAddress from claims_data cd where cd.claim_status='UNDER_VERIFICATION' ")

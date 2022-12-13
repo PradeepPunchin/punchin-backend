@@ -16,9 +16,8 @@ import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -322,11 +323,13 @@ public class BankerServiceImpl implements BankerService {
 
                 while (cells.hasNext()) {
                     Cell cell = cells.next();
-
+                    if (exit) {
+                        break;
+                    }
                     switch (cid) {
                         case 0:
                             cell.setCellType(CellType.STRING);
-                            if (Objects.isNull(cell) || cell.equals("") || cell.getStringCellValue() == "") {
+                            if (Objects.isNull(cell) || cell.equals("") || cell.getStringCellValue() == "" || cell.getStringCellValue().isEmpty()) {
                                 exit = true;
                                 break;
                             }
@@ -379,20 +382,20 @@ public class BankerServiceImpl implements BankerService {
                             p.setLoanType(cell.getStringCellValue());
                             break;
                         case 12:
-                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                            if (Objects.nonNull(cell)) {
+                                p.setLoanDisbursalDate(new Date(cell.getStringCellValue()));
                             }
                             break;
                         case 13:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setLoanAmount((double) cell.getNumericCellValue());
+                            cell.setCellType(CellType.STRING);
+                            if (Objects.nonNull(cell.getStringCellValue())) {
+                                p.setLoanAmount(Double.parseDouble(cell.getStringCellValue().replace(",", "")));
                             }
                             break;
                         case 14:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
+                            cell.setCellType(CellType.STRING);
+                            if (Objects.nonNull(cell.getStringCellValue())) {
+                                p.setLoanOutstandingAmount(Double.parseDouble(cell.getStringCellValue().replace(",", "")));
                             }
                             break;
                         case 15:
@@ -436,20 +439,20 @@ public class BankerServiceImpl implements BankerService {
                             p.setMasterPolNumber(cell.getStringCellValue());
                             break;
                         case 25:
-                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                            if (Objects.nonNull(cell)) {
+                                p.setPolicyStartDate(new Date(cell.getStringCellValue()));
                             }
                             break;
                         case 26:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setPolicyCoverageDuration((int) cell.getNumericCellValue());
+                            cell.setCellType(CellType.STRING);
+                            if (Objects.nonNull(cell.getStringCellValue())) {
+                                p.setPolicyCoverageDuration((int) Double.parseDouble(cell.getStringCellValue().replace(",", "")));
                             }
                             break;
                         case 27:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setPolicySumAssured((double) cell.getNumericCellValue());
+                            cell.setCellType(CellType.STRING);
+                            if (Objects.nonNull(cell.getStringCellValue())) {
+                                p.setPolicySumAssured(Double.parseDouble(cell.getStringCellValue().replace(",", "")));
                             }
                             break;
                         case 28:
@@ -498,13 +501,92 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public List<ClaimsData> downloadMISFile(ClaimStatus claimStatus) {
+    public ByteArrayInputStream downloadMISFile() {
         try {
-            log.info("BankerController :: getAllClaimsData dataFilter{}", claimStatus);
-            return claimsDataRepository.findByClaimStatus(claimStatus.toString());
+            String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/logs/Claim_Data_Format.xlsx";
+            log.info("BankerController :: getAllClaimsData dataFilter{}");
+            List<ClaimsData> claimsDataList =  claimsDataRepository.findAll();
+            final String[] HEADERs = { "S.No", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pincode", "Borrower State", "Borrower Contact Number", "Borrower Email id",
+                    "Borrower Alternate Contact Number", "Borrower Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount",
+            "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Contact Name", "Lender Contact Number",
+            "Insurer Name", "Borrower Policy Number", "Master Policy Number", "Policy Start Date", "Policy Tenure", "Policy Sum Assured", "Nominee Name", "Nominee Relationship",
+            "Nominee Contact Number", "Nominee Email id", "Nominee Address"};
+            try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+                Sheet sheet = workbook.createSheet("Sheet1");
+                FileOutputStream fileOut = new FileOutputStream(filename);
+                // Header
+                Row headerRow = sheet.createRow(0);
+
+                /*CellStyle headerStyle = workbook.createCellStyle();
+                headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+                headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                headerStyle.setWrapText(true);
+                XSSFFont font = ((XSSFWorkbook) workbook).createFont();
+                font.setFontName("Arial");
+                font.setFontHeightInPoints((short) 13);
+                font.setBold(true);
+                headerStyle.setFont(font);*/
+
+                for (int col = 0; col < HEADERs.length; col++) {
+                    Cell cell = headerRow.createCell(col);
+                    cell.setCellValue(HEADERs[col]);
+                    /*cell.setCellStyle(headerStyle);*/
+                }
+                CellStyle style = workbook.createCellStyle();
+                CreationHelper createHelper = workbook.getCreationHelper();
+                SimpleDateFormat dateOnly = new SimpleDateFormat("MM/dd/yyyy");
+                int rowIdx = 1;
+                for (ClaimsData claimsData : claimsDataList) {
+                    Row row = sheet.createRow(rowIdx++);
+                    row.createCell(0).setCellValue(claimsData.getId());
+                    row.createCell(1).setCellValue(claimsData.getBorrowerName());
+                    row.createCell(2).setCellValue(claimsData.getBorrowerAddress());
+                    row.createCell(3).setCellValue(claimsData.getBorrowerCity());
+                    row.createCell(4).setCellValue(claimsData.getBorrowerPinCode());
+                    row.createCell(5).setCellValue(claimsData.getBorrowerState());
+                    row.createCell(6).setCellValue(claimsData.getBorrowerContactNumber());
+                    row.createCell(7).setCellValue(claimsData.getBorrowerEmailId());
+                    row.createCell(8).setCellValue(claimsData.getBorrowerAlternateContactNumber());
+                    row.createCell(9).setCellValue(claimsData.getBorrowerAlternateContactDetails());
+                    row.createCell(10).setCellValue(claimsData.getLoanAccountNumber());
+                    row.createCell(11).setCellValue(claimsData.getLoanType());
+                    style.setDataFormat(createHelper.createDataFormat().getFormat("MM/dd/yyyy"));
+                    row.createCell(12).setCellStyle(style);
+                    row.createCell(12).setCellValue(dateOnly.format(claimsData.getLoanDisbursalDate()));
+                    row.createCell(13).setCellValue(claimsData.getLoanAmount());
+                    row.createCell(14).setCellValue(claimsData.getLoanOutstandingAmount());
+                    row.createCell(15).setCellValue(claimsData.getBranchCode());
+                    row.createCell(16).setCellValue(claimsData.getBranchAddress());
+                    row.createCell(17).setCellValue(claimsData.getBranchCity());
+                    row.createCell(18).setCellValue(claimsData.getBranchPinCode());
+                    row.createCell(19).setCellValue(claimsData.getBranchState());
+                    row.createCell(20).setCellValue(claimsData.getLoanAccountManagerName());
+                    row.createCell(21).setCellValue(claimsData.getAccountManagerContactNumber());
+                    row.createCell(22).setCellValue(claimsData.getInsurerName());
+                    row.createCell(23).setCellValue(claimsData.getPolicyNumber());
+                    row.createCell(24).setCellValue(claimsData.getMasterPolNumber());
+                    row.createCell(25).setCellStyle(style);
+                    row.createCell(25).setCellValue(dateOnly.format(claimsData.getPolicyStartDate()));
+                    row.createCell(26).setCellValue(claimsData.getPolicyCoverageDuration());
+                    row.createCell(27).setCellValue(claimsData.getPolicySumAssured());
+                    row.createCell(28).setCellValue(claimsData.getNomineeName());
+                    row.createCell(29).setCellValue(claimsData.getNomineeRelationShip());
+                    row.createCell(30).setCellValue(claimsData.getNomineeContactNumber());
+                    row.createCell(31).setCellValue(claimsData.getNomineeEmailId());
+                    row.createCell(32).setCellValue(claimsData.getNomineeAddress());
+
+                }
+
+                workbook.write(out);
+                workbook.write(fileOut);
+                out.writeTo(fileOut);
+                return new ByteArrayInputStream(out.toByteArray());
+            } catch (IOException e) {
+                throw new RuntimeException("fail to import data to Excel file: " + e.getMessage());
+            }
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getAllClaimsData ", e);
-            return Collections.emptyList();
+            return null;
         }
     }
 

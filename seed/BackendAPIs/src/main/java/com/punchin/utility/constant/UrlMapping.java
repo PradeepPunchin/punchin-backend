@@ -29,6 +29,7 @@ public class UrlMapping {
     public static final String BANKER_UPLOAD_CLAIM = "/claim/upload";
     public static final String BANKER_SUBMIT_CLAIMS = "/claim/submit";
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
+    public static final String BANKER_STANDARIZED_FORMAT = "/download-excel-format";
     public static final String FORWARD_TO_VERIFIER = "/claim/{id}/forward-to-verifier";
 
 

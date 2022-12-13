@@ -113,4 +113,17 @@ public class AmazonClient {
         }
     }
 
+    public String uploadFile(File file) {
+        try {
+            //String extension = "." + FilenameUtils.getExtension(file.getName());
+            String fileName = file.getName();
+            uploadFileTos3bucket(fileName, file);
+            deleteLocalFile(file);
+            return endpointUrl + fileName;
+        } catch (Exception e) {
+            log.error("Exception while uploading file from local:: {}", e.getMessage());
+            return null;
+        }
+    }
+
 }

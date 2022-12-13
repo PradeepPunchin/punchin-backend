@@ -6,6 +6,7 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.service.AmazonClient;
 import com.punchin.service.BankerService;
 import com.punchin.service.MISExport;
 import com.punchin.utility.GenericUtils;
@@ -16,6 +17,10 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +29,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -199,19 +208,54 @@ public class BankerController {
         }
     }
 
-    @GetMapping(value = "/downloadMISFile")
-    public ResponseEntity<Object> downloadMISFile(@RequestParam ClaimStatus claimStatus) {
+    @ApiOperation(value = "Download Excel Sheet", notes = "This can be used to download excel sheet format for upload claim data")
+    @GetMapping(value = UrlMapping.BANKER_STANDARIZED_FORMAT)
+    public ResponseEntity<Object> downloadStandardFormat() {
         try {
-            log.info("BankerController :: downloadMISFile dataFilter{}", claimStatus);
-            List<ClaimsData> claimsDataList = bankerService.downloadMISFile(claimStatus);
-            MISExport misExport = new MISExport(claimsDataList);
-            misExport.export(httpServletResponse);
-            return ResponseHandler.response(claimsDataList, MessageCode.success, true, HttpStatus.OK);
+            log.info("BankerController :: discardClaims");
+            if(!bankerService.isBanker()){
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            return ResponseHandler.response("https://punchin-dev.s3.amazonaws.com/Claim_Data_Format.xlsx", MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /*@GetMapping(value = "/downloadMISFile")
+    public ResponseEntity<Object> downloadMISFile() {
+        try {
+            log.info("BankerController :: downloadMISFile dataFilter{}");
+            //String filename = "sample.xls";
+            InputStreamResource file1 = new InputStreamResource(bankerService.downloadMISFile());
+
+            String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/logs/Claim_Data_Format.xlsx";
+            File file = new File(filename);
+            amazonClient.uploadFile(file);
+            Path path = Paths.get(file.getAbsolutePath());
+            ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+            HttpHeaders headers = new HttpHeaders(); headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
+            *//*HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
+            headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.add("Pragma", "no-cache");
+            headers.add("Expires", "0");*//*
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(file.length())
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"))
+                    .body(new UrlResource(path.toUri()));
+
+            *//*return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"))
+                    .body(file);*//*
+        } catch (Exception e) {
+            log.error("Error while fetching in pagination data");
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }*/
 
 
 }

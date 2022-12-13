@@ -137,7 +137,6 @@ public class BankerServiceImpl implements BankerService {
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-            claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);

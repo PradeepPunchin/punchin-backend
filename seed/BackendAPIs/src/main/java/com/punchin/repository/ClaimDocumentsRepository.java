@@ -25,7 +25,7 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     boolean existsByClaimsDataIdAndUploadSideByAndIsVerified(Long claimId, String sideBy, boolean isVerified);
 
-    ClaimDocuments findFirstByClaimsDataIdAndDocTypeAndUploadSideByAndIsVerifiedAndIsApprovedOrderByIdDesc(Long claimId, String docType, String agent, boolean b, boolean b1);
+    ClaimDocuments findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByAndIsVerifiedAndIsApprovedOrderByIdDesc(Long claimId, AgentDocType docType, String agent, boolean b, boolean b1);
 
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByOrderById(Long id, String agent);
 

@@ -227,7 +227,7 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
                 claimDocumentsDTO.setReason(claimDocuments.getReason());
                 if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()){
-                    rejectedDocList.add(claimDocuments.getDocType());
+                    rejectedDocList.add(claimDocuments.getAgentDocType().name());
                 }
                 List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                 List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
@@ -258,16 +258,21 @@ public class AgentServiceImpl implements AgentService {
         log.info("AgentServiceImpl :: discrepancyDocumentUpload claimsData {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
         Map<String, Object> map = new HashMap<>();
         try {
+            String oldDocType = docType;
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndAgentDocType(claimId, AgentDocType.valueOf(docType));
             if(!claimDocumentsList.isEmpty()) {
-                claimDocumentsList.forEach(claimDocuments -> {claimDocuments.setIsActive(false);});
+                for(ClaimDocuments claimDocuments : claimDocumentsList){
+                    claimDocuments.setIsActive(false);
+                    oldDocType = claimDocuments.getDocType();
+                }
+                claimDocumentsList.forEach(claimDocuments -> {});
                 claimDocumentsRepository.saveAll(claimDocumentsList);
             }
                 ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
                 ClaimDocuments claimDocuments = new ClaimDocuments();
                 claimDocuments.setClaimsData(claimsData);
                 claimDocuments.setAgentDocType(AgentDocType.valueOf(docType));
-                claimDocuments.setDocType(docType);
+                claimDocuments.setDocType(oldDocType);
                 claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
                 claimDocuments.setUploadSideBy("agent");
                 List<DocumentUrls> documentUrls = new ArrayList<>();
@@ -317,7 +322,7 @@ public class AgentServiceImpl implements AgentService {
     public boolean checkDocumentIsInDiscrepancy(Long claimId, String docType) {
         try {
             log.info("AgentServiceImpl :: checkDocumentIsInDiscrepancy");
-            ClaimDocuments claimDocuments = claimDocumentsRepository.findFirstByClaimsDataIdAndDocTypeAndUploadSideByAndIsVerifiedAndIsApprovedOrderByIdDesc(claimId, docType, "agent", true, false);
+            ClaimDocuments claimDocuments = claimDocumentsRepository.findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByAndIsVerifiedAndIsApprovedOrderByIdDesc(claimId, AgentDocType.valueOf(docType), "agent", true, false);
             return Objects.nonNull(claimDocuments) ? true : false;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: checkDocumentIsInDiscrepancy e{}", e);

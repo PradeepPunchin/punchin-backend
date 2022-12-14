@@ -57,22 +57,22 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(),pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(),pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(),pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
-                page1 = claimsDataRepository.findByClaimStatusIn(claimsStatus, pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             }
             return commonService.convertPageToDTO(page1.getContent(), page1);
         } catch (Exception e) {
@@ -92,19 +92,19 @@ public class VerifierServiceImpl implements VerifierService {
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
+            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.IN_PROGRESS);
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
-            map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatusIn(claimsStatus));
+            map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getDashboardData e{}", e);

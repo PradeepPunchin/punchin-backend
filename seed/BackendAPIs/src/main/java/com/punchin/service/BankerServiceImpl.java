@@ -323,13 +323,11 @@ public class BankerServiceImpl implements BankerService {
 
                 while (cells.hasNext()) {
                     Cell cell = cells.next();
-                    if (exit) {
-                        break;
-                    }
+
                     switch (cid) {
                         case 0:
                             cell.setCellType(CellType.STRING);
-                            if (Objects.isNull(cell) || cell.equals("") || cell.getStringCellValue() == "" || cell.getStringCellValue().isEmpty()) {
+                            if (Objects.isNull(cell) || cell.equals("") || cell.getStringCellValue() == "") {
                                 exit = true;
                                 break;
                             }
@@ -382,20 +380,20 @@ public class BankerServiceImpl implements BankerService {
                             p.setLoanType(cell.getStringCellValue());
                             break;
                         case 12:
-                            if (Objects.nonNull(cell)) {
-                                p.setLoanDisbursalDate(new Date(cell.getStringCellValue()));
+                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                                p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
                         case 13:
-                            cell.setCellType(CellType.STRING);
-                            if (Objects.nonNull(cell.getStringCellValue())) {
-                                p.setLoanAmount(Double.parseDouble(cell.getStringCellValue().replace(",", "")));
+                            cell.setCellType(CellType.NUMERIC);
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
+                                p.setLoanAmount((double) cell.getNumericCellValue());
                             }
                             break;
                         case 14:
-                            cell.setCellType(CellType.STRING);
-                            if (Objects.nonNull(cell.getStringCellValue())) {
-                                p.setLoanOutstandingAmount(Double.parseDouble(cell.getStringCellValue().replace(",", "")));
+                            cell.setCellType(CellType.NUMERIC);
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
+                                p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
                             }
                             break;
                         case 15:
@@ -439,20 +437,20 @@ public class BankerServiceImpl implements BankerService {
                             p.setMasterPolNumber(cell.getStringCellValue());
                             break;
                         case 25:
-                            if (Objects.nonNull(cell)) {
-                                p.setPolicyStartDate(new Date(cell.getStringCellValue()));
+                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                                p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                             }
                             break;
                         case 26:
-                            cell.setCellType(CellType.STRING);
-                            if (Objects.nonNull(cell.getStringCellValue())) {
-                                p.setPolicyCoverageDuration((int) Double.parseDouble(cell.getStringCellValue().replace(",", "")));
+                            cell.setCellType(CellType.NUMERIC);
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
+                                p.setPolicyCoverageDuration((int) cell.getNumericCellValue());
                             }
                             break;
                         case 27:
-                            cell.setCellType(CellType.STRING);
-                            if (Objects.nonNull(cell.getStringCellValue())) {
-                                p.setPolicySumAssured(Double.parseDouble(cell.getStringCellValue().replace(",", "")));
+                            cell.setCellType(CellType.NUMERIC);
+                            if (Objects.nonNull(cell.getNumericCellValue())) {
+                                p.setPolicySumAssured((double) cell.getNumericCellValue());
                             }
                             break;
                         case 28:
@@ -499,6 +497,7 @@ public class BankerServiceImpl implements BankerService {
             return map;
         }
     }
+
 
     @Override
     public ByteArrayInputStream downloadMISFile() {

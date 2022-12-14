@@ -30,14 +30,12 @@ public class ZipUtils {
             zos = new ZipOutputStream(fos);
 
             log.info("Output to Zip : " + zipFile);
-            FileInputStream in = null;
 
             for (String file: this.fileList) {
                 log.info("File Added : " + file);
                 ZipEntry ze = new ZipEntry(file);
                 zos.putNextEntry(ze);
-                try {
-                    in = new FileInputStream(sourceFolder + File.separator + file);
+                try (FileInputStream in = new FileInputStream(sourceFolder + File.separator + file)){
                     log.info("FILE read : file {}", sourceFolder + File.separator + file);
                     int len;
                     while ((len = in .read(buffer)) > 0) {
@@ -47,9 +45,7 @@ public class ZipUtils {
                     }
                 } finally {
                     log.info("FileInputStream closing");
-                    in.close();
                     log.info("FileInputStream closed");
-
                 }
             }
 

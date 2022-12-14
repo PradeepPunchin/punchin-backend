@@ -159,5 +159,18 @@ public class VerifierController {
         }
     }
 
+    @ApiOperation(value = "Download All file", notes = "This can be used to donwload all document on claim.")
+    @GetMapping(value = UrlMapping.DOWNLOAD_DASHBOARD_DATA)
+    public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {
+        try {
+            log.info("VerifierController :: downloadAllDocuments");
+            String url = verifierService.downloadAllDocuments(id);
+            log.info("Verifier Dashboard count fetched Successfully");
+            return ResponseHandler.response(url, MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE downloading claim documents::", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
 

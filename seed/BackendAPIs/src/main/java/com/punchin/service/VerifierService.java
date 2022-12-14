@@ -29,4 +29,6 @@ public interface VerifierService {
     ClaimDocuments getClaimDocumentById(Long docId);
 
     PageDTO getClaimDataWithDocumentStatus(Integer page, Integer limit);
+
+    String downloadAllDocuments(Long claimId);
 }

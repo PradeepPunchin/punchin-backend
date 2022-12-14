@@ -83,4 +83,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Long countByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state);
 
     Page<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state, Pageable pageable);
+
+    @Query(nativeQuery = true, value = "SELECT punchin_claim_id FROM claims_data WHERE id=:claimId")
+    String findPunchinClaimIdById(Long claimId);
 }

@@ -16,6 +16,7 @@ public class UrlMapping {
     public static final String GET_CLAIMS_LIST = "/claim";
     public static final String GET_CLAIM_DATA = "/claim/{id}";
     public static final String GET_CLAIM_DOCUMENTS = "/claim/{id}/documents";
+    public static final String DOWNLOAD_DASHBOARD_DATA = "/claim/{id}/download-all-documents";
 
 
 

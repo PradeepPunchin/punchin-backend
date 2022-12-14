@@ -1,29 +1,31 @@
 package com.punchin.service;
 
+import com.punchin.utility.ZipUtils;
 import com.punchin.dto.*;
 import com.punchin.entity.*;
 import com.punchin.enums.AgentDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.KycOrAddressDocType;
 import com.punchin.repository.ClaimAllocatedRepository;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.repository.DocumentUrlsRepository;
 import com.punchin.utility.GenericUtils;
-import com.punchin.utility.ObjectMapperUtils;
-import com.punchin.utility.constant.Literals;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Paths;
 import java.util.*;
 
 @Slf4j
@@ -39,7 +41,8 @@ public class VerifierServiceImpl implements VerifierService {
     private ClaimDocumentsRepository claimDocumentsRepository;
     @Autowired
     private ClaimAllocatedRepository claimAllocatedRepository;
-
+    @Autowired
+    private AmazonClient amazonClient;
     @Autowired
     private DocumentUrlsRepository documentUrlsRepository;
 
@@ -320,6 +323,45 @@ public class VerifierServiceImpl implements VerifierService {
             return null;
         }
     }
+
+    @Override
+    public String downloadAllDocuments(Long claimId) {
+        try {
+            String filePath = Paths.get("").toAbsolutePath().toString() + "/BackendAPIs/logs/";
+            log.info("VerifierServiceImpl :: downloadAllDocuments docId {}", claimId);
+            String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
+            for(ClaimDocuments claimDocuments : claimDocumentsList){
+                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                for (DocumentUrls documentUrls : documentUrlsList){
+                    downloadDocumentInDirectory(documentUrls.getDocUrl(), claimId);
+                }
+            }
+            ZipUtils appZip = new ZipUtils();
+            appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
+            appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
+            return amazonClient.uploadFile(new File(filePath + punchinClaimId + ".zip"));
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: downloadAllDocuments ", e);
+            return null;
+        }
+    }
+
+    private void downloadDocumentInDirectory(String docUrl, Long claimId) {
+        try {
+            URL url = new URL(docUrl);
+            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+            File file1 = new File(Paths.get("").toAbsolutePath().toString() + "/BackendAPIs/logs/" +claimId);
+            file1.mkdirs();
+            FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);
+            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            fos.close();
+            rbc.close();
+        } catch (Exception e){
+            log.error("ERROR WHILE DOWNLOADING FILE FROM URL e {}", e);
+        }
+    }
+
 
 }
 

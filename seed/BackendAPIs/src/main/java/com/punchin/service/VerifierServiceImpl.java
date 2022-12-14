@@ -331,7 +331,7 @@ public class VerifierServiceImpl implements VerifierService {
     @Override
     public String downloadAllDocuments(Long claimId) {
         try {
-            String filePath = Paths.get("").toAbsolutePath().toString() + "/BackendAPIs/downloads/";
+            String filePath = downloadFolderUrl;
             log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
@@ -356,7 +356,7 @@ public class VerifierServiceImpl implements VerifierService {
             log.info("ready to download claim documnets docUrl {}", docUrl);
             URL url = new URL(docUrl);
             ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-            File file1 = new File(Paths.get("").toAbsolutePath().toString() + "/BackendAPIs/downloads/" +claimId);
+            File file1 = new File(downloadFolderUrl +claimId);
             file1.mkdirs();
             log.info("Directory created");
             FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);

@@ -328,7 +328,7 @@ public class VerifierServiceImpl implements VerifierService {
     public String downloadAllDocuments(Long claimId) {
         try {
             String filePath = Paths.get("").toAbsolutePath().toString() + "/BackendAPIs/logs/";
-            log.info("VerifierServiceImpl :: downloadAllDocuments docId {}", claimId);
+            log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
             for(ClaimDocuments claimDocuments : claimDocumentsList){
@@ -349,12 +349,15 @@ public class VerifierServiceImpl implements VerifierService {
 
     private void downloadDocumentInDirectory(String docUrl, Long claimId) {
         try {
+            log.info("ready to download claim documnets docUrl {}", docUrl);
             URL url = new URL(docUrl);
             ReadableByteChannel rbc = Channels.newChannel(url.openStream());
             File file1 = new File(Paths.get("").toAbsolutePath().toString() + "/BackendAPIs/logs/" +claimId);
             file1.mkdirs();
+            log.info("Directory created");
             FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);
             fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            log.info("File downloaded");
             fos.close();
             rbc.close();
         } catch (Exception e){

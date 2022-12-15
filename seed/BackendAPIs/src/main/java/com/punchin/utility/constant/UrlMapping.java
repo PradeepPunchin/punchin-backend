@@ -28,6 +28,7 @@ public class UrlMapping {
     //Banker Endpoints
     public static final String BANKER_UPLOAD_DOCUMENT = "/claim/{id}/uploadDocument/{docType}";
     public static final String BANKER_UPLOAD_CLAIM = "/claim/upload";
+    public static final String BANKER_CSV_UPLOAD_CLAIM = "/csv/claim/upload";
     public static final String BANKER_SUBMIT_CLAIMS = "/claim/submit";
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
     public static final String BANKER_STANDARIZED_FORMAT = "/download-excel-format";

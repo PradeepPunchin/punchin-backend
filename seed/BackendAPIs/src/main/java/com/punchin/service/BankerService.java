@@ -6,7 +6,7 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
-import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -31,11 +31,16 @@ public interface BankerService {
 
     Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType);
 
-    ByteArrayInputStream downloadMISFile();
+    ByteArrayInputStream downloadMISFile(ClaimStatus claimStatus);
 
     String forwardToVerifier(ClaimsData claimsData);
 
     boolean isBanker();
 
     ClaimsData isClaimByBanker(Long claimId);
+
+    List<ClaimsData> downloadMISFile1(ClaimStatus claimStatus);
+
+    ResponseEntity<Object> saveUploadCSVData(MultipartFile file);
+
 }

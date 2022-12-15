@@ -4,11 +4,11 @@ import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
-import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.ClaimStatus;
 import com.punchin.service.AmazonClient;
 import com.punchin.service.BankerService;
-import com.punchin.service.MISExport;
+import com.punchin.utility.BASE64DecodedMultipartFile;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
@@ -17,10 +17,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,14 +25,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 @CrossOrigin
 @RestController
@@ -48,13 +41,16 @@ public class BankerController {
     private BankerService bankerService;
     @Autowired
     private HttpServletResponse httpServletResponse;
+    @Autowired
+    private AmazonClient amazonClient;
+    public static final Random random = new Random();
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("BankerController :: getDashboardData");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Long> map = bankerService.getDashboardData();
@@ -69,7 +65,7 @@ public class BankerController {
     @PostMapping(value = UrlMapping.BANKER_UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             MultipartFile[] files = {multipartFile};
@@ -98,7 +94,7 @@ public class BankerController {
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             //page = page > 0 ? page - 1 : page;
@@ -116,7 +112,7 @@ public class BankerController {
         try {
             log.info("BankerController :: getClaimData claimId {}", id);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
-            if(Objects.isNull(claimsData)){
+            if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             BankerClaimDocumentationDTO bankerClaimDocumentationDTO = bankerService.getClaimDataForBankerAction(id);
@@ -135,7 +131,7 @@ public class BankerController {
     public ResponseEntity<Object> submitClaims() {
         try {
             log.info("BankerController :: submitClaims");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.submitClaims();
@@ -154,7 +150,7 @@ public class BankerController {
     public ResponseEntity<Object> discardClaims() {
         try {
             log.info("BankerController :: discardClaims");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.discardClaims();
@@ -177,7 +173,7 @@ public class BankerController {
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[] {multipartFiles}, docType);
+            Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[]{multipartFiles}, docType);
             if (result.get("message").equals(MessageCode.success)) {
                 return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
             }
@@ -213,7 +209,7 @@ public class BankerController {
     public ResponseEntity<Object> downloadStandardFormat() {
         try {
             log.info("BankerController :: discardClaims");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             return ResponseHandler.response("https://punchin-dev.s3.amazonaws.com/Claim_Data_Format.xlsx", MessageCode.success, true, HttpStatus.OK);
@@ -223,39 +219,30 @@ public class BankerController {
         }
     }
 
-    /*@GetMapping(value = "/downloadMISFile")
-    public ResponseEntity<Object> downloadMISFile() {
+    @GetMapping(value = "/downloadMISFile")
+    public ResponseEntity<Object> downloadMISFile(@RequestParam ClaimStatus claimStatus) {
         try {
-            log.info("BankerController :: downloadMISFile dataFilter{}");
-            //String filename = "sample.xls";
-            InputStreamResource file1 = new InputStreamResource(bankerService.downloadMISFile());
-
-            String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/logs/Claim_Data_Format.xlsx";
-            File file = new File(filename);
-            amazonClient.uploadFile(file);
-            Path path = Paths.get(file.getAbsolutePath());
-            ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
-            HttpHeaders headers = new HttpHeaders(); headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
-            *//*HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
-            headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-            headers.add("Pragma", "no-cache");
-            headers.add("Expires", "0");*//*
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .contentLength(file.length())
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"))
-                    .body(new UrlResource(path.toUri()));
-
-            *//*return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"))
-                    .body(file);*//*
+            log.info("BankerController :: downloadMISFile dataFilter{}", claimStatus);
+            ByteArrayInputStream byteArrayInputStream = bankerService.downloadMISFile(claimStatus);
+            BASE64DecodedMultipartFile base64DecodedMultipartFile = new BASE64DecodedMultipartFile(byteArrayInputStream.readAllBytes(), "Claims-Data" + ".xlsx");
+            return ResponseHandler.response(amazonClient.uploadFile("Claims-Data", base64DecodedMultipartFile), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }*/
+    }
 
+    @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
+    @PostMapping(value = UrlMapping.BANKER_CSV_UPLOAD_CLAIM)
+    public ResponseEntity<Object> uploadCSVFileClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
+        try {
+            return bankerService.saveUploadCSVData(multipartFile);
+        } catch (
+                Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: uploadClaimData ", e);
+            return ResponseHandler.response(null, e.getMessage(), false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
 
 }

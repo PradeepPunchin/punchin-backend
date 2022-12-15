@@ -232,6 +232,8 @@ public class BankerServiceImpl implements BankerService {
                     claimDocumentsDTOS.add(claimDocumentsDTO);
                 }
                 dto.setClaimDocumentsDTOS(claimDocumentsDTOS);
+                List<ClaimDocuments> claimDocuments = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActive(claimsData.getId(), "banker", false);
+                claimDocumentsRepository.deleteAll(claimDocuments);
                 return dto;
             }
             return null;

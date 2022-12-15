@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
@@ -260,6 +258,7 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
             ClaimDocuments claimDocuments = new ClaimDocuments();
+            claimDocuments.setIsActive(false);
             claimDocuments.setClaimsData(claimsData);
             claimDocuments.setDocType(docType.getValue());
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
@@ -619,5 +618,43 @@ public class BankerServiceImpl implements BankerService {
     @Override
     public ClaimsData isClaimByBanker(Long claimId) {
         return claimsDataRepository.findByIdAndPunchinBankerId(claimId,GenericUtils.getLoggedInUser().getUserId());
+    }
+
+    @Override
+    public ClaimDocuments getClaimDocuments(Long docId) {
+        try {
+            log.info("BankerController :: getClaimDocuments docId {}", docId);
+            Optional<ClaimDocuments> optionalClaimDocuments = claimDocumentsRepository.findById(docId);
+            return optionalClaimDocuments.isPresent() ? optionalClaimDocuments.get() : null;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimDocuments ", e);
+            return null;
+        }
+    }
+
+    @Override
+    public String deleteBankDocument(ClaimDocuments claimDocuments) {
+        try {
+            log.info("BankerController :: deleteBankDocument claimDocuments {}", claimDocuments);
+            claimDocumentsRepository.delete(claimDocuments);
+            return MessageCode.success;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: deleteBankDocument ", e);
+            return MessageCode.backText;
+        }
+    }
+
+    @Override
+    public String saveASDraftDocument(ClaimsData claimsData) {
+        try {
+            log.info("BankerController :: saveASDraftDocument claimsData {}", claimsData);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataId(claimsData.getId());
+            claimDocumentsList.forEach(claimDocuments -> {claimDocuments.setIsActive(true);});
+            claimDocumentsRepository.saveAll(claimDocumentsList);
+            return MessageCode.success;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: saveASDraftDocument ", e);
+            return MessageCode.backText;
+        }
     }
 }

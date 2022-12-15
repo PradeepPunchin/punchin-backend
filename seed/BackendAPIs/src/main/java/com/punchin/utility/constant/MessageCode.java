@@ -22,6 +22,8 @@ public class MessageCode {
     public static final String invalidDocId = "Invalid doc id";
     public static final String documentInUnderVerification = "Document under verification";
     public static final String documentNotUploaded = "Document not uploaded";
+    public static final String DOCUMENT_DELETED = "Document deleted successfully";
+    public static final String DOCUMENT_SAVEAS_DRAFT = "Document save as draft successfully";
 
 
 
@@ -31,4 +33,6 @@ public class MessageCode {
     public static final String claimAllocated = "Claim allocated";
     public static final String claimDocumentApproved = "Claim document approved successfully";
     public static final String claimDocumentRejected = "Claim document rejected successfully";
+    public static final String INVALID_DOCUMENT_ID = "Invalid document id";
+
 }

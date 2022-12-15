@@ -2,6 +2,7 @@ package com.punchin.service;
 
 import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
@@ -38,4 +39,10 @@ public interface BankerService {
     boolean isBanker();
 
     ClaimsData isClaimByBanker(Long claimId);
+
+    ClaimDocuments getClaimDocuments(Long docId);
+
+    String deleteBankDocument(ClaimDocuments claimDocuments);
+
+    String saveASDraftDocument(ClaimsData claimsData);
 }

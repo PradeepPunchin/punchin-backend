@@ -2,6 +2,7 @@ package com.punchin.controllers;
 
 import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimStatus;
@@ -223,39 +224,47 @@ public class BankerController {
         }
     }
 
-    /*@GetMapping(value = "/downloadMISFile")
-    public ResponseEntity<Object> downloadMISFile() {
+    @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
+    @DeleteMapping(value = UrlMapping.BANKER_DELETE_DOCUMENT)
+    public ResponseEntity<Object> deleteBankDocument(@PathVariable Long docId) {
         try {
-            log.info("BankerController :: downloadMISFile dataFilter{}");
-            //String filename = "sample.xls";
-            InputStreamResource file1 = new InputStreamResource(bankerService.downloadMISFile());
+            log.info("BankerController :: getClaimData docId {}", docId);
 
-            String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/logs/Claim_Data_Format.xlsx";
-            File file = new File(filename);
-            amazonClient.uploadFile(file);
-            Path path = Paths.get(file.getAbsolutePath());
-            ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
-            HttpHeaders headers = new HttpHeaders(); headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
-            *//*HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.getName());
-            headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-            headers.add("Pragma", "no-cache");
-            headers.add("Expires", "0");*//*
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .contentLength(file.length())
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"))
-                    .body(new UrlResource(path.toUri()));
-
-            *//*return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"))
-                    .body(file);*//*
+            if(!bankerService.isBanker()){
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            ClaimDocuments claimDocuments = bankerService.getClaimDocuments(docId);
+            if(Objects.nonNull(claimDocuments)){
+                String result = bankerService.deleteBankDocument(claimDocuments);
+                if(result.equals(MessageCode.success)){
+                    return ResponseHandler.response(null, MessageCode.DOCUMENT_DELETED, true, HttpStatus.OK);
+                }
+                return ResponseHandler.response(null, result, false, HttpStatus.BAD_REQUEST);
+            }
+            return ResponseHandler.response(null, MessageCode.INVALID_DOCUMENT_ID, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("Error while fetching in pagination data");
+            log.error("EXCEPTION WHILE BankerController :: getClaimData e {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }*/
+    }
 
-
+    @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
+    @PostMapping(value = UrlMapping.BANKER_SAVEAS_DRAFT_DOCUMENT)
+    public ResponseEntity<Object> saveASDraftDocument(@PathVariable Long claimId) {
+        try {
+            log.info("BankerController :: getClaimData claimId {}", claimId);
+            ClaimsData claimsData = bankerService.isClaimByBanker(claimId);
+            if(Objects.isNull(claimsData)){
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            String result = bankerService.saveASDraftDocument(claimsData);
+            if(result.equals(MessageCode.success)){
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_SAVEAS_DRAFT, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getClaimData e {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.punchin.utility.constant;
 
 public class UrlMapping {
 
+
     private UrlMapping(){}
 
     public static final String BASEURL = "/api/v1";
@@ -32,6 +33,9 @@ public class UrlMapping {
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
     public static final String BANKER_STANDARIZED_FORMAT = "/download-excel-format";
     public static final String FORWARD_TO_VERIFIER = "/claim/{id}/forward-to-verifier";
+    public static final String BANKER_DELETE_DOCUMENT = "/claim/document/delete/{docId}";
+    public static final String BANKER_SAVEAS_DRAFT_DOCUMENT = "/claim/{claimId}/documents/save-draft";
+
 
 
     //Verifier Endpoints

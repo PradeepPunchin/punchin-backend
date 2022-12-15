@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 public class CSVHelper {
     public static final String TYPE = "text/csv";
-    static String[] HEADERS = {"Punchin ClaimId, Insurer ClaimId, Punchin BankerId, Claim InwardDate,S. No", "Borrower Name", " Borrower Address", "Borrower City", " Borrower Pincode", " Borrower State", "Borrower Contact Number",
+    static String[] HEADERS = {"Punchin ClaimId, Insurer ClaimId, Punchin BankerId, Claim InwardDate,S.No", "Borrower Name", " Borrower Address", "Borrower City", " Borrower Pincode", " Borrower State", "Borrower Contact Number",
             "Borrower EmailId", " Borrower Alternate Contact Number", " Borrower Alternate Contact Details", " Loan Account Number", "Loan Category/Type", " Loan Disbursal Date", "Loan Disbursal Amount",
             "Lender Branch Code", "Lender Branch Address", "Lender Branch City", " Lender Branch Pin code", " Lender Branch State", " Lenders Contact Name", " Lender Contact Number", " Insurer Name",
             "Borrower Policy Number", " Master Policy Number", " Policy StartDate", " Policy Tenure", " Policy SumAssured", " Nominee Name", "Nominee Relationship", " Nominee Contact Number",

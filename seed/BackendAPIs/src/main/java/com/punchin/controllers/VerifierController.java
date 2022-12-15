@@ -3,7 +3,6 @@ package com.punchin.controllers;
 import com.punchin.dto.ClaimDetailForVerificationDTO;
 import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
-import com.punchin.dto.VerifierClaimDataResponseDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
@@ -55,6 +54,21 @@ public class VerifierController {
             PageDTO pageDTO = verifierService.getClaimDataWithDocumentStatus(page, limit);
             if (Objects.nonNull(pageDTO)) {
                 return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierController :: getClaimDataWithDocumentStatus e {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping(value = UrlMapping.DOWNLOAD_VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS)
+    public ResponseEntity<Object> downloadClaimDataWithDocumentStatus(@RequestParam Integer page, @RequestParam Integer limit) {
+        try {
+            log.info("VerifierController :: downloadClaimData page {}, limit {}", page, limit);
+            String url = verifierService.downloadClaimDataWithDocumentStatus(page, limit);
+            if (Objects.nonNull(url)) {
+                return ResponseHandler.response(url, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -145,10 +159,10 @@ public class VerifierController {
                 return ResponseHandler.response(null, MessageCode.invalidDocId, false, HttpStatus.BAD_REQUEST);
             }
             String message = verifierService.acceptAndRejectDocument(claimsData, claimDocuments, approveRejectPayloadDTO);
-            if(message.equals(MessageCode.success)){
-                if(approveRejectPayloadDTO.isApproved()){
+            if (message.equals(MessageCode.success)) {
+                if (approveRejectPayloadDTO.isApproved()) {
                     return ResponseHandler.response(null, MessageCode.claimDocumentApproved, true, HttpStatus.OK);
-                }else{
+                } else {
                     return ResponseHandler.response(null, MessageCode.claimDocumentRejected, true, HttpStatus.OK);
                 }
             }

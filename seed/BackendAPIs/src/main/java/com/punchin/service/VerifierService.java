@@ -3,13 +3,11 @@ package com.punchin.service;
 import com.punchin.dto.ClaimDetailForVerificationDTO;
 import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
-import com.punchin.dto.VerifierClaimDataResponseDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
 
-import java.util.List;
 import java.util.Map;
 
 public interface VerifierService {
@@ -31,4 +29,6 @@ public interface VerifierService {
     PageDTO getClaimDataWithDocumentStatus(Integer page, Integer limit);
 
     String downloadAllDocuments(Long claimId);
+
+    String downloadClaimDataWithDocumentStatus(Integer page, Integer limit);
 }

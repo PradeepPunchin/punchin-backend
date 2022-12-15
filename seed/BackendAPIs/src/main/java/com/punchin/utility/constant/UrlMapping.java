@@ -40,6 +40,7 @@ public class UrlMapping {
     public static final String VERIFIER_CLAIMS_VERIFICATION_REQUEST = "/claim/verification-requests";
     public static final String VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS = "/claim/{id}/document/{docId}/doc-approve-reject";
     public static final String VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS = "/claim/data-with-document-status";
+    public static final String DOWNLOAD_VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS = "/downloadMIS/claim/data-with-document-status";
 
 
     //Agent Endpoints

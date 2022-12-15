@@ -1,5 +1,6 @@
 package com.punchin.controllers;
 
+import com.punchin.enums.Platform;
 import com.punchin.service.AuthenticationService;
 import com.punchin.dto.LoginRequestDTO;
 import com.punchin.utility.ResponseHandler;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 
 @CrossOrigin
@@ -38,11 +40,14 @@ public class AuthenticationController {
         try{
             log.info("AuthenticationController :: userAuthentication LoginRequestDTO{}", credentials);
                 log.info("LOGIN BY CREDENTIALS");
+                if(Objects.isNull(credentials.getPlatform())){
+                    credentials.setPlatform(Platform.ANDROID);
+                }
                 Map<String, Object> resultMap = authenticationService.authenticateUserAccount(credentials);
                 if(resultMap.get("message").equals(MessageCode.success)){
                     return ResponseHandler.response(resultMap.get("session"), MessageCode.login, true, HttpStatus.OK);
                 }
-            return ResponseHandler.response(null, MessageCode.invalidCredentials, true, HttpStatus.BAD_REQUEST);
+            return ResponseHandler.response(null, resultMap.get("message").toString(), true, HttpStatus.BAD_REQUEST);
         }catch (Exception e){
             log.error("EXCEPTION WHILE AuthenticationController :: userAuthentication e{}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

@@ -160,7 +160,7 @@ public class VerifierController {
     }
 
     @ApiOperation(value = "Download All file", notes = "This can be used to donwload all document on claim.")
-    @GetMapping(value = UrlMapping.DOWNLOAD_DASHBOARD_DATA)
+    @GetMapping(value = UrlMapping.DOWNLOAD_CLAIM_DOCUMENT_DATA)
     public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {
         try {
             log.info("VerifierController :: downloadAllDocuments");

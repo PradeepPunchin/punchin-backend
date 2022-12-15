@@ -1,5 +1,6 @@
 package com.punchin.dto;
 
+import com.punchin.enums.Platform;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -11,4 +12,7 @@ public class LoginRequestDTO {
 
     @ApiModelProperty(value = "This is used to describe password of user")
     private String password;
+
+    @ApiModelProperty(value = "This is used to describe which platform used for login")
+    private Platform platform;
 }

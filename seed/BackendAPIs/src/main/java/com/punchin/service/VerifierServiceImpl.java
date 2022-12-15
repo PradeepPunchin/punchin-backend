@@ -344,6 +344,7 @@ public class VerifierServiceImpl implements VerifierService {
             ZipUtils appZip = new ZipUtils();
             appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
             appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
+            new File(filePath + claimId).deleteOnExit();
             return amazonClient.uploadFile(new File(filePath + punchinClaimId + ".zip"));
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: downloadAllDocuments ", e);

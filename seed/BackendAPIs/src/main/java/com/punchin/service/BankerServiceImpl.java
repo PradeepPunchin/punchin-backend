@@ -211,7 +211,7 @@ public class BankerServiceImpl implements BankerService {
                 dto.setLoanAmountPaidByBorrower(0.0D);
                 dto.setOutstandingLoanAmount(0.0D);
                 dto.setBalanceClaimAmount(0.0D);
-                List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(claimsData.getId(), "banker");
+                List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActive(claimsData.getId(), "banker", true);
                 List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
                     ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();

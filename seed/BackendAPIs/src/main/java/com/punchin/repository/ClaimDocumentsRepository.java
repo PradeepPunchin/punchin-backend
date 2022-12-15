@@ -39,4 +39,6 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
     boolean existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(Long claimId, String agent, boolean b, boolean b1);
 
     List<ClaimDocuments> findByClaimsDataId(Long id);
+
+    List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActive(Long id, String banker, boolean b);
 }

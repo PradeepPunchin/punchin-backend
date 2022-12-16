@@ -58,13 +58,7 @@ public class VerifierServiceImpl implements VerifierService {
             Pageable pageable = PageRequest.of(pageNo, pageSize);
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
-                claimsStatus.add(ClaimStatus.IN_PROGRESS);
-                claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                claimsStatus.add(ClaimStatus.SETTLED);
-                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
-                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(),pageable);
+                page1 = claimsDataRepository.findByBorrowerState(GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
@@ -81,7 +75,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.SETTLED);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             }
-            return commonService.convertPageToDTO(page1.getContent(), page1);
+            return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getAllClaimsData", e);
             return commonService.convertPageToDTO(page1.getContent(), page1);
@@ -93,13 +87,7 @@ public class VerifierServiceImpl implements VerifierService {
         try {
             log.info("VerifierServiceImpl :: getDashboardData");
             List<ClaimStatus> claimsStatus = new ArrayList<>();
-            claimsStatus.add(ClaimStatus.IN_PROGRESS);
-            claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-            claimsStatus.add(ClaimStatus.SETTLED);
-            claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-            claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
-            claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
+            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByBorrowerState(GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.IN_PROGRESS);
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
@@ -371,5 +359,101 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
 
+    private PageDTO convertInDocumentStatusDTO(Page page){
+        try {
+            log.info("BankerController :: convertInDocumentStatusDTO page {}, limit {}", page);
+            List<ClaimsData> claimsData = page.getContent();
+            List<VerifierClaimDataResponseDTO> dtos = new ArrayList<>();
+            for(ClaimsData claimData : claimsData){
+                VerifierClaimDataResponseDTO dto = new VerifierClaimDataResponseDTO();
+                dto.setId(claimData.getId());
+                dto.setClaimDate(claimData.getClaimInwardDate());
+                dto.setBorrowerName(claimData.getBorrowerName());
+                dto.setNomineeAddress(claimData.getNomineeAddress());
+                dto.setNomineeName(claimData.getNomineeName());
+                dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
+                List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "agent");
+                for(ClaimDocuments claimDocuments : claimDocumentsList){
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
+                        dto.setSingnedClaimDocument("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setSingnedClaimDocument("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setSingnedClaimDocument("REJECTED");
+                        }
+                    }
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.DEATH_CERTIFICATE)) {
+                        dto.setDeathCertificate("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setDeathCertificate("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setDeathCertificate("REJECTED");
+                        }
+                    }
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ID_PROOF)) {
+                        dto.setBorrowerIdProof("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setBorrowerIdProof("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBorrowerIdProof("REJECTED");
+                        }
+                    }
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ADDRESS_PROOF)) {
+                        dto.setBorrowerAddressProof("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setBorrowerAddressProof("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBorrowerAddressProof("REJECTED");
+                        }
+                    }
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ID_PROOF)) {
+                        dto.setNomineeIdProof("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setNomineeIdProof("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setNomineeIdProof("REJECTED");
+                        }
+                    }
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ADDRESS_PROOF)) {
+                        dto.setNomineeAddressProof("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setNomineeAddressProof("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setNomineeAddressProof("REJECTED");
+                        }
+                    }
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
+                        dto.setBankAccountProof("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setBankAccountProof("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBankAccountProof("REJECTED");
+                        }
+                    }
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.FIR_POSTMORTEM_REPORT)) {
+                        dto.setFirPostmortemReport("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setFirPostmortemReport("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setFirPostmortemReport("REJECTED");
+                        }
+                    }
+                    if(claimDocuments.getAgentDocType().equals(AgentDocType.ADDITIONAL)) {
+                        dto.setAdditionalDoc("UPLOADED");
+                        if(claimDocuments.getIsVerified() && claimDocuments.getIsApproved()){
+                            dto.setAdditionalDoc("APPROVED");
+                        }else if(claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setAdditionalDoc("REJECTED");
+                        }
+                    }
+                }
+                dtos.add(dto);
+            }
+            return commonService.convertPageToDTO(dtos, page);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: convertInDocumentStatusDTO", e);
+            return null;
+        }
+    }
 }
 

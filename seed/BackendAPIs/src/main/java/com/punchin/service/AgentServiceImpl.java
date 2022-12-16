@@ -99,18 +99,17 @@ public class AgentServiceImpl implements AgentService {
         Map<String, Object> map = new HashMap<>();
         try{
             log.info("AgentServiceImpl :: getDashboardData");
-            List<String> statusList = new ArrayList<>();
+            List<ClaimStatus> statusList = new ArrayList<>();
             map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimsDataRepository.countByAgentId(GenericUtils.getLoggedInUser().getId()));//claimAllocatedRepository.countByClaimStatusByAgent(GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
-            statusList.add(ClaimStatus.IN_PROGRESS.name());
-            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
+            statusList.add(ClaimStatus.IN_PROGRESS);
+            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
-            statusList.add(ClaimStatus.ACTION_PENDING.name());
-             statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
+            statusList.add(ClaimStatus.ACTION_PENDING);
             map.put(ClaimStatus.ACTION_PENDING.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
-            statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
+            statusList.add(ClaimStatus.UNDER_VERIFICATION);
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
 
             return map;

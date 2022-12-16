@@ -165,10 +165,11 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setClaimInwardDate(new Date());
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
-                User agent = userRepository.findByAgentAndState(RoleEnum.AGENT, claimsData.getBorrowerState());
+                User agent = userRepository.findByAgentAndState(RoleEnum.AGENT.name(), claimsData.getBorrowerState().toLowerCase());
                 if(Objects.nonNull(agent)){
                     claimsData.setAgentId(agent.getId());
                 }
+                claimsDataList.add(claimsData);
             }
             claimsDataRepository.saveAll(claimsDataList);
             claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
@@ -596,6 +597,7 @@ public class BankerServiceImpl implements BankerService {
             claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
             claimsData.setSubmittedAt(System.currentTimeMillis());
             claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getId());
+            claimsDataRepository.save(claimsData);
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: forwardToVerifier e{}", e);

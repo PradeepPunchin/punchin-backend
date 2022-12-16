@@ -67,24 +67,69 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
             if (!userRepository.existsByUserIdIgnoreCase("verifier")) {
                 User user = new User();
                 user.setUserId("verifier");
-                user.setFirstName("verifier");
+                user.setFirstName("verifier UP");
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("verifier@123"));
                 user.setRole(RoleEnum.VERIFIER);
+                user.setState("UP");
+                users.add(user);
+
+                user = new User();
+                user.setUserId("verifier2");
+                user.setFirstName("verifier DL");
+                user.setLastName("test");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("verifier@123"));
+                user.setRole(RoleEnum.VERIFIER);
+                user.setState("DL");
+                users.add(user);
+
+                user = new User();
+                user.setUserId("verifier3");
+                user.setFirstName("verifier PB");
+                user.setLastName("test");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("verifier@123"));
+                user.setRole(RoleEnum.VERIFIER);
+                user.setState("PB");
                 users.add(user);
             }
             if (!userRepository.existsByUserIdIgnoreCase("agent")) {
                 User user = new User();
                 user.setUserId("agent");
-                user.setFirstName("agent");
+                user.setFirstName("agent UP");
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
-                user.setState("gujarat");
+                user.setState("UP");
+                users.add(user);
+
+                user = new User();
+                user.setUserId("agent2");
+                user.setFirstName("agent DL");
+                user.setLastName("test");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("agent@123"));
+                user.setRole(RoleEnum.AGENT);
+                user.setState("DL");
+                users.add(user);
+
+                user = new User();
+                user.setUserId("agent3");
+                user.setFirstName("agent PB");
+                user.setLastName("test");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("agent@123"));
+                user.setRole(RoleEnum.AGENT);
+                user.setState("PB");
                 users.add(user);
             }
             userRepository.saveAll(users);

@@ -50,7 +50,11 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page findByClaimStatus(ClaimStatus underVerification, Pageable pageable);
     Long countByAgentId(Long id);
 
-    Long countByClaimStatusInAndAgentId(List<String> statusList, Long id);
+    Long countByClaimStatusInAndAgentId(List<ClaimStatus> statusList, Long id);
 
     boolean existsByIdAndAgentId(Long claimId, Long id);
+
+    Long countByBorrowerState(String state);
+
+    Page<ClaimsData> findByBorrowerState(String state, Pageable pageable);
 }

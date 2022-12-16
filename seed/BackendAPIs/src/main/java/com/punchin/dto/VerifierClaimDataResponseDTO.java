@@ -1,5 +1,6 @@
 package com.punchin.dto;
 
+import com.punchin.enums.ClaimStatus;
 import lombok.Data;
 
 import java.util.Date;
@@ -8,11 +9,13 @@ import java.util.Date;
 public class VerifierClaimDataResponseDTO {
 
     private Long id;
+    private String punchinClaimId;
     private Date claimDate;
     private String borrowerName;
     private String nomineeName;
     private String nomineeContactNumber;
     private String nomineeAddress;
+    private ClaimStatus claimStatus;
     private String singnedClaimDocument = "NOT_UPLOADED";
     private String deathCertificate = "NOT_UPLOADED";
     private String borrowerIdProof = "NOT_UPLOADED";

@@ -20,7 +20,7 @@ public class MessageCode {
     public static final String invalidFormat = "Invalid file format";
     public static final String invalidAgentId = "Invalid agent id";
     public static final String invalidDocId = "Invalid doc id";
-    public static final String documentInUnderVerification = "Document under verification";
+    public static final String documentInUnderVerification = "Document already under verification";
     public static final String documentNotUploaded = "Document not uploaded";
     public static final String DOCUMENT_DELETED = "Document deleted successfully";
     public static final String DOCUMENT_SAVEAS_DRAFT = "Document save as draft successfully";

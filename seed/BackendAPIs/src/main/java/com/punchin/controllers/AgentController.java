@@ -109,7 +109,7 @@ public class AgentController {
             if(!agentService.checkAccess(id)){
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            if(!agentService.checkDocumentIsInDiscrepancy(id, docType)){
+            if(!agentService.checkDocumentIsInDiscrepancy(id, docType) && !docType.equals(AgentDocType.OTHER.name())){
                 return ResponseHandler.response(null, MessageCode.documentInUnderVerification, false, HttpStatus.BAD_REQUEST);
             }
             Map<String, Object> result = agentService.discrepancyDocumentUpload(id, new MultipartFile[] {multipartFile}, docType);

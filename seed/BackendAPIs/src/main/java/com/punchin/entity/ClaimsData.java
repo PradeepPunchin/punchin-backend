@@ -62,7 +62,9 @@ public class ClaimsData extends BasicEntity {
     private String nomineeAddress;
     @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
-    private String submittedBy;
+    private Long agentId;
+    private Long bankerId;
+    private Long submittedBy;
     private Long submittedAt;
     private Boolean isForwardToVerifier = false;
     private Long bankerToVerifierTime;

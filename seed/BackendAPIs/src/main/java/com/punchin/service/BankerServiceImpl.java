@@ -5,10 +5,7 @@ import com.punchin.dto.ClaimDocumentsDTO;
 import com.punchin.dto.DocumentUrlDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.*;
-import com.punchin.enums.BankerDocType;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.RoleEnum;
+import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ModelMapper;
@@ -96,26 +93,29 @@ public class BankerServiceImpl implements BankerService {
             log.info("BankerServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
             Page page1 = Page.empty();
+            List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
                 page1 = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
-            } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByIsForwardToVerifierAndPunchinBankerId(true, GenericUtils.getLoggedInUser().getUserId(), pageable);
+            } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
+                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+            }  else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
-                List<ClaimStatus> claimsStatus = new ArrayList<>();
-                claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+            } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus,GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifierAndPunchinBankerId(ClaimStatus.SETTLED,true,  GenericUtils.getLoggedInUser().getUserId(), pageable);
-            } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifierAndPunchinBankerId(ClaimStatus.CLAIM_SUBMITTED, false,  GenericUtils.getLoggedInUser().getUserId(), pageable);
-            }else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusAndPunchinBankerId(ClaimStatus.UNDER_VERIFICATION,GenericUtils.getLoggedInUser().getUserId(), pageable);
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             }
             return commonService.convertPageToDTO(page1.getContent(), page1);
         } catch (Exception e) {
@@ -136,7 +136,6 @@ public class BankerServiceImpl implements BankerService {
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-            claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
@@ -164,10 +163,12 @@ public class BankerServiceImpl implements BankerService {
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
                 claimsData.setPunchinClaimId("P" + RandomStringUtils.randomNumeric(10));
                 claimsData.setClaimInwardDate(new Date());
-                claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
-                claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getUserId());
-                claimsData.setSubmittedAt(System.currentTimeMillis());
-                claimsDataList.add(claimsData);
+                claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
+                claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
+                User agent = userRepository.findByAgentAndState(RoleEnum.AGENT, claimsData.getBorrowerState());
+                if(Objects.nonNull(agent)){
+                    claimsData.setAgentId(agent.getId());
+                }
             }
             claimsDataRepository.saveAll(claimsDataList);
             claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
@@ -232,6 +233,7 @@ public class BankerServiceImpl implements BankerService {
                     claimDocumentsDTOS.add(claimDocumentsDTO);
                 }
                 dto.setClaimDocumentsDTOS(claimDocumentsDTOS);
+                //For delete unsaved document
                 List<ClaimDocuments> claimDocuments = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActive(claimsData.getId(), "banker", false);
                 claimDocumentsRepository.deleteAll(claimDocuments);
                 return dto;
@@ -262,6 +264,7 @@ public class BankerServiceImpl implements BankerService {
             ClaimDocuments claimDocuments = new ClaimDocuments();
             claimDocuments.setIsActive(false);
             claimDocuments.setClaimsData(claimsData);
+            claimDocuments.setAgentDocType(AgentDocType.valueOf(docType.getValue()));
             claimDocuments.setDocType(docType.getValue());
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments.setUploadSideBy("banker");
@@ -279,9 +282,6 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
             claimDocumentsRepository.save(claimDocuments);
-            //claimDocuments.setClaimsData(null);
-            //claimsData.setIsForwardToVerifier(true);
-            claimsDataRepository.save(claimsData);
             map.put("message", MessageCode.success);
             map.put("claimDocuments", claimDocuments);
             return map;
@@ -499,7 +499,6 @@ public class BankerServiceImpl implements BankerService {
         }
     }
 
-
     @Override
     public ByteArrayInputStream downloadMISFile() {
         try {
@@ -594,17 +593,9 @@ public class BankerServiceImpl implements BankerService {
     public String forwardToVerifier(ClaimsData claimsData) {
         try {
             log.info("BankerController :: forwardToVerifier");
-            claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
-            claimsData.setIsForwardToVerifier(true);
-            claimsData.setAgentToVerifierTime(System.currentTimeMillis());
-            claimsDataRepository.save(claimsData);
-            User user = userRepository.findByRoleAndStateIgnoreCase(RoleEnum.AGENT, claimsData.getBorrowerState());
-            if(Objects.nonNull(user)){
-                ClaimAllocated claimAllocated = new ClaimAllocated();
-                claimAllocated.setUser(user);
-                claimAllocated.setClaimsData(claimsData);
-                claimAllocatedRepository.save(claimAllocated);
-            }
+            claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
+            claimsData.setSubmittedAt(System.currentTimeMillis());
+            claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getId());
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: forwardToVerifier e{}", e);

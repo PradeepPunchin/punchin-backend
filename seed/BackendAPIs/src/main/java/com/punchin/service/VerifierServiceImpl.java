@@ -127,7 +127,7 @@ public class VerifierServiceImpl implements VerifierService {
     public ClaimsData getClaimData(Long claimId) {
         try {
             log.info("VerifierServiceImpl :: getClaimData");
-            return claimsDataRepository.findByIdAndIsForwardToVerifier(claimId, true);
+            return claimsDataRepository.findByIdAndUserId(claimId, GenericUtils.getLoggedInUser().getId());
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getClaimData ", e);
             return null;
@@ -233,7 +233,7 @@ public class VerifierServiceImpl implements VerifierService {
         try {
             log.info("BankerController :: getClaimDataWithDocumentStatus page {}, limit {}", page, limit);
             Pageable pageable = PageRequest.of(page, limit);
-            Page page1 = claimsDataRepository.findByClaimStatusAndIsForwardToVerifier(ClaimStatus.UNDER_VERIFICATION, true, pageable);
+            Page page1 = claimsDataRepository.findByClaimStatus(ClaimStatus.UNDER_VERIFICATION, pageable);
             List<ClaimsData> claimsData = page1.getContent();
             List<VerifierClaimDataResponseDTO> dtos = new ArrayList<>();
             for(ClaimsData claimData : claimsData){

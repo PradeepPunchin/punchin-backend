@@ -54,12 +54,7 @@ public class AgentServiceImpl implements AgentService {
             Page<ClaimsData> page1 = Page.empty();
             List<String> statusList = new ArrayList<>();
             if(claimDataFilter.ALLOCATED.equals(claimDataFilter)){
-                statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
-                statusList.add(ClaimStatus.IN_PROGRESS.name());
-                statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
-                statusList.add(ClaimStatus.ACTION_PENDING.name());
-                statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
-                page1 = claimsDataRepository.findAllByAgentAllocated(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findAllByAgentAllocated(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if(claimDataFilter.ACTION_PENDING.equals(claimDataFilter)){
                 statusList.add(ClaimStatus.ACTION_PENDING.name());
                 statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
@@ -81,7 +76,7 @@ public class AgentServiceImpl implements AgentService {
                     AgentClaimListDTO agentClaimListDTO = new AgentClaimListDTO();
                     agentClaimListDTO.setId(claimsData.getId());
                     agentClaimListDTO.setClaimDate(claimsData.getClaimInwardDate());
-                    agentClaimListDTO.setAllocationDate(new Date(claimAllocatedRepository.getAllocationDate(claimsData.getId(), GenericUtils.getLoggedInUser().getId())));
+                    agentClaimListDTO.setAllocationDate(claimsData.getClaimInwardDate());
                     agentClaimListDTO.setClaimId(claimsData.getPunchinClaimId());
                     agentClaimListDTO.setBorrowerName(claimsData.getBorrowerName());
                     agentClaimListDTO.setBorrowerAddress(claimsData.getBorrowerAddress());
@@ -105,23 +100,19 @@ public class AgentServiceImpl implements AgentService {
         try{
             log.info("AgentServiceImpl :: getDashboardData");
             List<String> statusList = new ArrayList<>();
+            map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimsDataRepository.countByAgentId(GenericUtils.getLoggedInUser().getId()));//claimAllocatedRepository.countByClaimStatusByAgent(GenericUtils.getLoggedInUser().getId()));
+            statusList.removeAll(statusList);
             statusList.add(ClaimStatus.IN_PROGRESS.name());
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimAllocatedRepository.countByClaimStatusByAgent(statusList, GenericUtils.getLoggedInUser().getId()));
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.ACTION_PENDING.name());
              statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
-            map.put(ClaimStatus.ACTION_PENDING.name(), claimAllocatedRepository.countByClaimStatusByAgent(statusList, GenericUtils.getLoggedInUser().getId()));
+            map.put(ClaimStatus.ACTION_PENDING.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
-            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimAllocatedRepository.countByClaimStatusByAgent(statusList, GenericUtils.getLoggedInUser().getId()));
-            statusList.removeAll(statusList);
-            statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
-            statusList.add(ClaimStatus.IN_PROGRESS.name());
-            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
-            statusList.add(ClaimStatus.ACTION_PENDING.name());
-            statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
-            map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimAllocatedRepository.countByClaimStatusByAgent(statusList, GenericUtils.getLoggedInUser().getId()));
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
+
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getDashboardData e{}", e);
@@ -137,7 +128,7 @@ public class AgentServiceImpl implements AgentService {
     public boolean checkAccess(Long claimId) {
         try {
             log.info("AgentServiceImpl :: checkAccess");
-            return claimAllocatedRepository.existsByUserIdAndClaimsDataId(GenericUtils.getLoggedInUser().getId(), claimId);
+            return claimsDataRepository.existsByIdAndAgentId(claimId, GenericUtils.getLoggedInUser().getId());
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: checkAccess e{}", e);
             return false;

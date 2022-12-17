@@ -109,6 +109,8 @@ public class AgentServiceImpl implements AgentService {
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.ACTION_PENDING);
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED);
+            statusList.add(ClaimStatus.CLAIM_INTIMATED);
             map.put(ClaimStatus.ACTION_PENDING.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.UNDER_VERIFICATION);

@@ -45,4 +45,6 @@ public interface BankerService {
     String deleteBankDocument(ClaimDocuments claimDocuments);
 
     String saveASDraftDocument(ClaimsData claimsData);
+
+    String downloadMISReport(ClaimDataFilter claimDataFilter);
 }

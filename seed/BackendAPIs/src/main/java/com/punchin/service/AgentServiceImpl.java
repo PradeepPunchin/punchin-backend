@@ -185,8 +185,6 @@ public class AgentServiceImpl implements AgentService {
                 claimDocuments.add(uploadDocumentOnS3(AgentDocType.ADDITIONAL, documentDTO.getAdditionalDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getAdditionalDoc()}));
             }
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
-            claimsData.setAgentToVerifier(true);
-            claimsData.setAgentToVerifierTime(System.currentTimeMillis());
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
             claimDataDTO.setClaimDocuments(claimDocuments);
             map.put("claimsData", claimDataDTO);
@@ -340,8 +338,8 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: forwardToVerifier claimId {}", claimId);
             ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
-            claimsData.setAgentToVerifier(true);
-            claimsData.setAgentToVerifierTime(System.currentTimeMillis());
+            //claimsData.setAgentToVerifier(true);
+            //claimsData.setAgentToVerifierTime(System.currentTimeMillis());
             claimsDataRepository.save(claimsData);
             return MessageCode.success;
         } catch (Exception e) {

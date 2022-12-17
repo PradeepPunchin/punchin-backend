@@ -13,11 +13,18 @@ import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.poi.hssf.usermodel.HSSFPalette;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,31 +40,22 @@ import java.util.*;
 @Service
 @Transactional
 public class BankerServiceImpl implements BankerService {
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private CommonUtilService commonService;
-
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
-
     @Autowired
     private ClaimDraftDataRepository claimDraftDataRepository;
-
     @Autowired
     private DocumentUrlsRepository documentUrlsRepository;
-
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
-
     @Autowired
     private ClaimAllocatedRepository claimAllocatedRepository;
-
     @Autowired
     private AmazonClient amazonClient;
-
     @Autowired
     private ModelMapper modelMapper;
 
@@ -379,7 +377,7 @@ public class BankerServiceImpl implements BankerService {
                             break;
                         case 10:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanAccountNumber(cell.getStringCellValue());
+                            p.setLoanAccountNumber(String.valueOf(cell.getNumericCellValue()));
                             break;
                         case 11:
                             cell.setCellType(CellType.STRING);
@@ -654,6 +652,134 @@ public class BankerServiceImpl implements BankerService {
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: saveASDraftDocument ", e);
             return MessageCode.backText;
+        }
+    }
+
+    @Override
+    public String downloadMISReport(ClaimDataFilter claimDataFilter) {
+        try {
+            log.info("BankerController :: downloadMISReport claimDataFilter {}", claimDataFilter);
+            List<ClaimsData> claimsDataList = new ArrayList<>();
+            List<ClaimStatus> claimsStatus = new ArrayList<>();
+            if (claimDataFilter.ALL.equals(claimDataFilter)) {
+                claimsDataList = claimsDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
+            } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
+            }  else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
+            } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.IN_PROGRESS);
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
+            } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus,GenericUtils.getLoggedInUser().getUserId());
+            } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
+            }
+            return amazonClient.uploadFile(generateMisExcelReport(claimsDataList));
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: downloadMISReport ", e);
+            return null;
+        }
+    }
+
+    private File generateMisExcelReport(List<ClaimsData> claimsDataList){
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+            String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            File file = new File(filename);
+            log.info("BankerController :: generateMisExcelReport dataFilter{}");
+            final String[] HEADERs = { "S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",
+                    "Alternate Mobile No.", "Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount","Loan O/S Amount",
+                    "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Local Contact Name", "Lenders Local Contact Mobile No.",
+                    "Insurer Name", "Borrower Policy Number", "Master Policy Number", "Policy Start Date", "Policy Tenure", "Policy Sum Assured", "Nominee Name", "Nominee Relationship",
+                    "Nominee Contact Number", "Nominee Email id", "Nominee Address", "Claim Action", "Claim Status", "Claim Status Date", "Documents Pending"};
+            try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(filename)) {
+                Sheet sheet = workbook.createSheet("Sheet1");
+                // Header
+                Row headerRow = sheet.createRow(0);
+                HSSFWorkbook hwb = new HSSFWorkbook();
+                HSSFPalette palette = hwb.getCustomPalette();
+                HSSFColor headerBackgroundColor = palette.findSimilarColor(222, 234, 246);
+
+                CellStyle headerStyle = workbook.createCellStyle();
+                headerStyle.setFillForegroundColor(headerBackgroundColor.getIndex());
+                headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                XSSFFont font = ((XSSFWorkbook) workbook).createFont();
+                font.setFontName("Calibri");
+                font.setFontHeightInPoints((short) 12);
+                font.setBold(true);
+                headerStyle.setFont(font);
+
+                for (int col = 0; col < HEADERs.length; col++) {
+                    Cell cell = headerRow.createCell(col);
+                    cell.setCellValue(HEADERs[col]);
+                    cell.setCellStyle(headerStyle);
+                }
+                CellStyle style = workbook.createCellStyle();
+                CreationHelper createHelper = workbook.getCreationHelper();
+                int rowIdx = 1;
+                for (ClaimsData claimsData : claimsDataList) {
+                    Row row = sheet.createRow(rowIdx++);
+                    row.createCell(0).setCellValue(rowIdx);
+                    row.createCell(1).setCellValue(claimsData.getPunchinBankerId());
+                    row.createCell(2).setCellValue(format.format(claimsData.getClaimInwardDate()).toString());
+                    row.createCell(3).setCellValue(claimsData.getBorrowerName());
+                    row.createCell(4).setCellValue(claimsData.getBorrowerAddress());
+                    row.createCell(5).setCellValue(claimsData.getBorrowerCity());
+                    row.createCell(6).setCellValue(claimsData.getBorrowerPinCode());
+                    row.createCell(7).setCellValue(claimsData.getBorrowerState());
+                    row.createCell(8).setCellValue(claimsData.getBorrowerContactNumber());
+                    row.createCell(9).setCellValue(claimsData.getBorrowerEmailId());
+                    row.createCell(10).setCellValue(claimsData.getBorrowerAlternateContactNumber());
+                    row.createCell(11).setCellValue(claimsData.getBorrowerAlternateContactDetails());
+                    row.createCell(12).setCellValue(claimsData.getLoanAccountNumber());
+                    row.createCell(13).setCellValue(claimsData.getLoanType());
+                    row.createCell(14).setCellValue(format.format(claimsData.getLoanDisbursalDate()));
+                    row.createCell(15).setCellValue(claimsData.getLoanAmount());
+                    row.createCell(16).setCellValue(claimsData.getLoanOutstandingAmount());
+                    row.createCell(17).setCellValue(claimsData.getBranchCode());
+                    row.createCell(18).setCellValue(claimsData.getBranchAddress());
+                    row.createCell(19).setCellValue(claimsData.getBranchCity());
+                    row.createCell(20).setCellValue(claimsData.getBranchPinCode());
+                    row.createCell(21).setCellValue(claimsData.getBranchState());
+                    row.createCell(22).setCellValue(claimsData.getLoanAccountManagerName());
+                    row.createCell(23).setCellValue(claimsData.getAccountManagerContactNumber());
+                    row.createCell(24).setCellValue(claimsData.getInsurerName());
+                    row.createCell(25).setCellValue(claimsData.getPolicyNumber());
+                    row.createCell(26).setCellValue(claimsData.getMasterPolNumber());
+                    row.createCell(27).setCellValue(format.format(claimsData.getPolicyStartDate()));
+                    row.createCell(28).setCellValue(claimsData.getPolicyCoverageDuration());
+                    row.createCell(29).setCellValue(claimsData.getPolicySumAssured());
+                    row.createCell(30).setCellValue(claimsData.getNomineeName());
+                    row.createCell(32).setCellValue(claimsData.getNomineeRelationShip());
+                    row.createCell(33).setCellValue(claimsData.getNomineeContactNumber());
+                    row.createCell(34).setCellValue(claimsData.getNomineeEmailId());
+                    row.createCell(35).setCellValue(claimsData.getNomineeAddress());
+                    row.createCell(36).setCellValue("OPEN");
+                    row.createCell(37).setCellValue(claimsData.getClaimStatus().name());
+                    row.createCell(38).setCellValue(format.format(new Date()));
+                    row.createCell(39).setCellValue("");
+                }
+                for(int i = 0; i < 40; i++) {
+                    sheet.autoSizeColumn(i);
+                }
+                workbook.write(fileOut);
+                return file;
+            } catch (IOException e) {
+                throw new RuntimeException("fail to export data to Excel file: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: generateMisExcelReport ", e);
+            return null;
         }
     }
 }

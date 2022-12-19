@@ -48,6 +48,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     String findPunchinClaimIdById(Long claimId);
 
     Page findByClaimStatus(ClaimStatus underVerification, Pageable pageable);
+
     Long countByAgentId(Long id);
 
     Long countByClaimStatusInAndAgentId(List<ClaimStatus> statusList, Long id);
@@ -67,4 +68,9 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     List<ClaimsData> findAllByPunchinBankerId(String userId);
 
     List<ClaimsData> findByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED'," +
+            " 'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.loan_account_number ilike %:searchedKeyword% " +
+            "or cd.borrower_name ilike %:searchedKeyword% or cd.nominee_name ilike %:searchedKeyword% or cd.id ilike %:searchedKeyword% ")
+    Page<ClaimsData> findClaimSearchedData(@Param("searchedKeyword") String searchedKeyword, Pageable pageable);
 }

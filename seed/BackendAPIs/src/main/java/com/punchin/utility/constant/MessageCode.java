@@ -34,5 +34,9 @@ public class MessageCode {
     public static final String claimDocumentApproved = "Claim document approved successfully";
     public static final String claimDocumentRejected = "Claim document rejected successfully";
     public static final String INVALID_DOCUMENT_ID = "Invalid document id";
+    public static final String SEARCHED_CLAIM_DATA_FETCHED_SUCCESS = "Searched claim data fetch succeeded";
+    public static final String NO_RECORD_FOUND = "No record found";
+    public static final String ERROR_SEARCHED_CLAIM_DATA_FETCHED = "Error while Searching claim data";
+
 
 }

@@ -1,14 +1,11 @@
 package com.punchin.service;
 
 import com.punchin.dto.AgentUploadDocumentDTO;
-import com.punchin.dto.ClaimDocumentsDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Map;
 
 public interface AgentService {
@@ -31,4 +28,6 @@ public interface AgentService {
     boolean checkDocumentUploaded(Long id);
 
     String forwardToVerifier(Long id);
+
+    PageDTO getClaimSearchedData(String searchedKeyword, Integer pageNo, Integer limit);
 }

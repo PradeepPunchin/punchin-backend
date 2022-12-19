@@ -74,7 +74,7 @@ public class BankerServiceImpl implements BankerService {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
             for (MultipartFile file : files) {
                 List<ClaimDraftData> claimDraftData = ExcelHelper.excelToClaimsDraftData(file.getInputStream());
-                if (Objects.nonNull(claimDraftData)) {
+                if (!claimDraftData.isEmpty()) {
                     claimDraftData = claimDraftDataRepository.saveAll(claimDraftData);
                     map.put("data", claimDraftData);
                     map.put("status", true);

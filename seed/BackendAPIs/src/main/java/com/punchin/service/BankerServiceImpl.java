@@ -10,16 +10,12 @@ import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.RoleEnum;
 import com.punchin.repository.*;
-import com.punchin.utility.CSVHelper;
-import com.punchin.utility.GenericUtils;
-import com.punchin.utility.ModelMapper;
-import com.punchin.utility.ResponseHandler;
+import com.punchin.utility.*;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -31,9 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
 import java.util.*;
 
 @Slf4j
@@ -74,22 +72,19 @@ public class BankerServiceImpl implements BankerService {
         map.put("status", false);
         try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
-            String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
-                List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
-                if (Objects.nonNull(claimsData)) {
-                    claimsData = claimDraftDataRepository.saveAll(claimsData);
-                    map.put("data", claimsData);
+                List<ClaimDraftData> claimDraftData = ExcelHelper.excelToClaimsDraftData(file.getInputStream());
+                if (Objects.nonNull(claimDraftData)) {
+                    claimDraftData = claimDraftDataRepository.saveAll(claimDraftData);
+                    map.put("data", claimDraftData);
                     map.put("status", true);
                     map.put("message", MessageCode.success);
                     return map;
                 }
-                map.put("message", data.get("message"));
             }
             return map;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData e{}", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData ", e);
             return map;
         }
     }
@@ -293,213 +288,6 @@ public class BankerServiceImpl implements BankerService {
             return map;
         }
     }
-
-
-    public Map<String, Object> convertExcelToListOfClaimsData(InputStream is, String bankerId) {
-        Map<String, Object> map = new HashMap<>();
-        List<ClaimDraftData> list = new ArrayList<>();
-        log.info("BankerServiceImpl :: saveUploadExcelData file{}, bankerId{}", is, bankerId);
-        try {
-            XSSFWorkbook workbook = new XSSFWorkbook(is);
-            XSSFSheet sheet = workbook.getSheetAt(0);
-            if (Objects.isNull(sheet)) {
-                map.put("message", "sheet.not.found");
-                return map;
-            }
-            int rowNumber = 0;
-            boolean exit = false;
-            Row row1 = sheet.getRow(1);
-            for (Row row : sheet) {
-                if (rowNumber == 0) {
-                    rowNumber++;
-                    continue;
-                }
-                if (exit) {
-                    break;
-                }
-                Iterator<Cell> cells = row.iterator();
-
-                int cid = 0;
-
-                ClaimDraftData p = new ClaimDraftData();
-
-                while (cells.hasNext()) {
-                    Cell cell = cells.next();
-
-                    switch (cid) {
-                        case 0:
-                            cell.setCellType(CellType.STRING);
-                            if (Objects.isNull(cell) || cell.equals("") || cell.getStringCellValue() == "") {
-                                exit = true;
-                                break;
-                            }
-                            p.setPunchinBankerId(bankerId);
-                            break;
-                        case 1:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerName(cell.getStringCellValue());
-                            break;
-                        case 2:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerAddress(cell.getStringCellValue());
-                            break;
-                        case 3:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerCity(cell.getStringCellValue());
-                            break;
-                        case 4:
-                            cell.setCellType(CellType.STRING);
-                            if (Objects.nonNull(cell.getStringCellValue())) {
-                                p.setBorrowerPinCode(cell.getStringCellValue());
-                            }
-                            break;
-                        case 5:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerState(cell.getStringCellValue());
-                            break;
-                        case 6:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerContactNumber(cell.getStringCellValue());
-                            break;
-                        case 7:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerEmailId(cell.getStringCellValue());
-                            break;
-                        case 8:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerAlternateContactNumber(cell.getStringCellValue());
-                            break;
-                        case 9:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerAlternateContactDetails(cell.getStringCellValue());
-                            break;
-                        case 10:
-                            cell.setCellType(CellType.STRING);
-                            p.setLoanAccountNumber(cell.getStringCellValue());
-                            break;
-                        case 11:
-                            cell.setCellType(CellType.STRING);
-                            p.setLoanType(cell.getStringCellValue());
-                            break;
-                        case 12:
-                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
-                            }
-                            break;
-                        case 13:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setLoanAmount((double) cell.getNumericCellValue());
-                            }
-                            break;
-                        case 14:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
-                            }
-                            break;
-                        case 15:
-                            cell.setCellType(CellType.STRING);
-                            p.setBranchCode(cell.getStringCellValue());
-                            break;
-                        case 16:
-                            cell.setCellType(CellType.STRING);
-                            p.setBranchAddress(cell.getStringCellValue());
-                            break;
-                        case 17:
-                            cell.setCellType(CellType.STRING);
-                            p.setBranchCity(cell.getStringCellValue());
-                            break;
-                        case 18:
-                            cell.setCellType(CellType.STRING);
-                            p.setBranchPinCode(cell.getStringCellValue());
-                            break;
-                        case 19:
-                            cell.setCellType(CellType.STRING);
-                            p.setBranchState(cell.getStringCellValue());
-                            break;
-                        case 20:
-                            cell.setCellType(CellType.STRING);
-                            p.setLoanAccountManagerName(cell.getStringCellValue());
-                            break;
-                        case 21:
-                            cell.setCellType(CellType.STRING);
-                            p.setAccountManagerContactNumber(cell.getStringCellValue());
-                            break;
-                        case 22:
-                            cell.setCellType(CellType.STRING);
-                            p.setInsurerName(cell.getStringCellValue());
-                            break;
-                        case 23:
-                            cell.setCellType(CellType.STRING);
-                            p.setPolicyNumber(cell.getStringCellValue());
-                            break;
-                        case 24:
-                            cell.setCellType(CellType.STRING);
-                            p.setMasterPolNumber(cell.getStringCellValue());
-                            break;
-                        case 25:
-                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
-                            }
-                            break;
-                        case 26:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setPolicyCoverageDuration((int) cell.getNumericCellValue());
-                            }
-                            break;
-                        case 27:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setPolicySumAssured((double) cell.getNumericCellValue());
-                            }
-                            break;
-                        case 28:
-                            cell.setCellType(CellType.STRING);
-                            p.setNomineeName(cell.getStringCellValue());
-                            break;
-                        case 29:
-                            cell.setCellType(CellType.STRING);
-                            p.setNomineeRelationShip(cell.getStringCellValue());
-                            break;
-                        case 30:
-                            cell.setCellType(CellType.STRING);
-                            p.setNomineeContactNumber(cell.getStringCellValue());
-                            break;
-                        case 31:
-                            cell.setCellType(CellType.STRING);
-                            p.setNomineeEmailId(cell.getStringCellValue());
-                            break;
-                        case 32:
-                            cell.setCellType(CellType.STRING);
-                            p.setNomineeAddress(cell.getStringCellValue());
-                            break;
-                        default:
-                            break;
-                    }
-                    cid++;
-                }
-                if (!exit) {
-                    list.add(p);
-                }
-            }
-            map.put("claimsData", list);
-            if (list.isEmpty()) {
-                map.put("message", "data.not.found");
-            }
-            return map;
-        } catch (IllegalStateException e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: convertExcelToListOfClaimsData ", e);
-            map.put("message", "invalid.column.type");
-            return map;
-        } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: convertExcelToListOfClaimsData ", e);
-            map.put("message", MessageCode.invalidFormat);
-            return map;
-        }
-    }
-
 
     @Override
     public ByteArrayInputStream downloadMISFile(ClaimStatus claimStatus) {

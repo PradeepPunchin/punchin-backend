@@ -380,7 +380,7 @@ public class BankerServiceImpl implements BankerService {
                             break;
                         case 10:
                             cell.setCellType(CellType.STRING);
-                            p.setLoanAccountNumber(String.valueOf(cell.getNumericCellValue()));
+                            p.setLoanAccountNumber(cell.getStringCellValue());
                             break;
                         case 11:
                             cell.setCellType(CellType.STRING);

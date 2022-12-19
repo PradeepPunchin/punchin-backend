@@ -193,12 +193,9 @@ public class AgentController {
 
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA)
-    public ResponseEntity<Object> getClaimSearchedData(@RequestParam String searchedKeyword, @RequestParam long agentId, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchedKeyword") String searchedKeyword, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
         try {
-            log.info("Get Searched data request received for searchedKeyword :{}, agent id :{}, pageNo :{} , limit :{} ", searchedKeyword, agentId, pageNo, limit);
-            if (!agentService.checkAccess(agentId)) {
-                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
-            }
+            log.info("Get Searched data request received for searchedKeyword :{}, pageNo :{} , limit :{} ", searchedKeyword, pageNo, limit);
             PageDTO searchedClaimData = agentService.getClaimSearchedData(searchedKeyword, pageNo, limit);
             if (searchedClaimData != null) {
                 log.info("Searched claim data fetched successfully");

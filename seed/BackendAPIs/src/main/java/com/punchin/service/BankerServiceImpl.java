@@ -696,7 +696,7 @@ public class BankerServiceImpl implements BankerService {
 
     private File generateMisExcelReport(List<ClaimsData> claimsDataList){
         try {
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             String filename = downloadFolderPath + "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             File file = new File(filename);

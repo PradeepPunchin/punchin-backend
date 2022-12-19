@@ -21,6 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
@@ -40,6 +41,8 @@ import java.util.*;
 @Service
 @Transactional
 public class BankerServiceImpl implements BankerService {
+    @Value("${data.downloads.folder.url}")
+    String downloadFolderPath;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -694,7 +697,8 @@ public class BankerServiceImpl implements BankerService {
     private File generateMisExcelReport(List<ClaimsData> claimsDataList){
         try {
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-            String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            String filename = downloadFolderPath + "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             File file = new File(filename);
             log.info("BankerController :: generateMisExcelReport dataFilter{}");
             final String[] HEADERs = { "S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",

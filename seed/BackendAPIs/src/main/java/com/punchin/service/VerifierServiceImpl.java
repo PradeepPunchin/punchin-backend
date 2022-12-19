@@ -150,9 +150,11 @@ public class VerifierServiceImpl implements VerifierService {
             claimDetailForVerificationDTO.setNomineeName(claimsData.getNomineeName());
             claimDetailForVerificationDTO.setNomineeAddress(claimsData.getNomineeAddress());
             claimDetailForVerificationDTO.setNomineeRelationShip(claimsData.getNomineeRelationShip());
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent", true);
-            List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
-            for (ClaimDocuments claimDocuments : claimDocumentsList) {
+
+            //Agent
+            List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent", true);
+            List<ClaimDocumentsDTO> agentDocumentsListDTOs = new ArrayList<>();
+            for (ClaimDocuments claimDocuments : agentDocumentsList) {
                 ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
                 claimDocumentsDTO.setId(claimDocuments.getId());
                 claimDocumentsDTO.setDocType(claimDocuments.getDocType());
@@ -168,9 +170,32 @@ public class VerifierServiceImpl implements VerifierService {
                     documentUrlDTOS.add(documentUrlListDTO);
                 }
                 claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
-                claimDocumentsDTOS.add(claimDocumentsDTO);
+                agentDocumentsListDTOs.add(claimDocumentsDTO);
             }
-            claimDetailForVerificationDTO.setClaimDocumentsDTOS(claimDocumentsDTOS);
+            claimDetailForVerificationDTO.setAgentClaimDocumentsDTOs(agentDocumentsListDTOs);
+
+            //Banker
+            List<ClaimDocuments> bankerDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent", true);
+            List<ClaimDocumentsDTO> bankerDocumentsListDTOs = new ArrayList<>();
+            for (ClaimDocuments claimDocuments : bankerDocumentsList) {
+                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                claimDocumentsDTO.setId(claimDocuments.getId());
+                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                for (DocumentUrls documentUrls : documentUrlsList) {
+                    DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                    documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
+                    documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
+                    documentUrlDTOS.add(documentUrlListDTO);
+                }
+                claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                bankerDocumentsListDTOs.add(claimDocumentsDTO);
+            }
+            claimDetailForVerificationDTO.setBankerClaimDocumentsDTOs(agentDocumentsListDTOs);
             return claimDetailForVerificationDTO;
         } catch (Exception e){
             log.error("EXCEPTION WHILE VerifierController :: getDocumentDetails e {}", e);
@@ -188,15 +213,16 @@ public class VerifierServiceImpl implements VerifierService {
             claimDocuments.setVerifierId(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments.setVerifyTime(System.currentTimeMillis());
             claimDocumentsRepository.save(claimDocuments);
-            if (!approveRejectPayloadDTO.isApproved()) {
-                claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
-                claimsDataRepository.save(claimsData);
-            }else{
-                if(!claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(claimsData.getId(), "agent", true, false)){
-                    claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
-                    claimsDataRepository.save(claimsData);
+            if(claimDocuments.getUploadSideBy().equalsIgnoreCase("agent")) {
+                if (!approveRejectPayloadDTO.isApproved()) {
+                    claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
+                } else {
+                    if (!claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(claimsData.getId(), "agent", true, false)) {
+                        claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
+                    }
                 }
             }
+            claimsDataRepository.save(claimsData);
             return MessageCode.success;
         } catch (Exception e){
             log.error("EXCEPTION WHILE VerifierServiceImpl :: acceptAndRejectDocuments ", e);

@@ -39,9 +39,12 @@ public class AuthenticationServiceImpl implements AuthenticationService{
     @Override
     public Map<String, Object> authenticateUserAccount(LoginRequestDTO credentials) {
         log.info("AuthenticationServiceImpl :: authenticateUserAccount credentials{}", credentials);
-        User user = userRepository.findByUserIdIgnoreCase(credentials.getUserId());
         Map<String, Object> mapResult = new HashMap<>();
-        if(Objects.nonNull(user) && user.getPassword() != null && BCrypt.checkpw(credentials.getPassword(), user.getPassword())){
+        User user = userRepository.findByUserIdIgnoreCase(credentials.getUserId());
+        if(Objects.isNull(user)){
+            mapResult.put("message", MessageCode.INVALID_USERID);
+        }
+        if(user.getPassword() != null && BCrypt.checkpw(credentials.getPassword(), user.getPassword())){
             if(user.getRole().equals(RoleEnum.AGENT) && credentials.getPlatform().equals(Platform.WEB)){
                 mapResult.put("message", MessageCode.unauthorized);
             }else {
@@ -49,7 +52,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
                 mapResult.put("message", MessageCode.success);
             }
         }else{
-            mapResult.put("message", MessageCode.invalidCredentials);
+            mapResult.put("message", MessageCode.INVALID_PASSWORD);
         }
         return mapResult;
     }

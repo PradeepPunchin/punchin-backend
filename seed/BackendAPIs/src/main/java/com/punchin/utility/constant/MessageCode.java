@@ -14,7 +14,9 @@ public class MessageCode {
     public static final String forbidden = "Access denied";
 
 
-    public static final String invalidCredentials = "Invalid credentials";
+    public static final String INVALID_USERID = "Invalid user id";
+    public static final String INVALID_PASSWORD = "Invalid password";
+
     public static final String login = "login successfully";
     public static final String logout = "logout successfully";
     public static final String invalidFormat = "Invalid file format";

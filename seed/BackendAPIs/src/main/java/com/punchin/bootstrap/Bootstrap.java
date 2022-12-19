@@ -63,6 +63,26 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setPassword(passwordEncoder.encode("banker@123"));
                 user.setRole(RoleEnum.BANKER);
                 users.add(user);
+
+                user = new User();
+                user.setUserId("banker2");
+                user.setFirstName("banker2");
+                user.setLastName("test");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("banker@123"));
+                user.setRole(RoleEnum.BANKER);
+                users.add(user);
+
+                user = new User();
+                user.setUserId("banker3");
+                user.setFirstName("banker3");
+                user.setLastName("test");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("banker@123"));
+                user.setRole(RoleEnum.BANKER);
+                users.add(user);
             }
             if (!userRepository.existsByUserIdIgnoreCase("verifier")) {
                 User user = new User();

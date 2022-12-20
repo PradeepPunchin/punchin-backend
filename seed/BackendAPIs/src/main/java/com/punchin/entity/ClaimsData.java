@@ -2,11 +2,11 @@ package com.punchin.entity;
 
 import com.punchin.enums.CauseOfDeathEnum;
 import com.punchin.enums.ClaimStatus;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Entity

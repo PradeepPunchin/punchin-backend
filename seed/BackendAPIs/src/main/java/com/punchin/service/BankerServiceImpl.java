@@ -58,6 +58,8 @@ public class BankerServiceImpl implements BankerService {
     @Autowired
     private ClaimAllocatedRepository claimAllocatedRepository;
     @Autowired
+    private AmazonS3FileManagers amazonS3FileManagers;
+    @Autowired
     private AmazonClient amazonClient;
     @Autowired
     private ModelMapper modelMapper;
@@ -277,7 +279,7 @@ public class BankerServiceImpl implements BankerService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
                 if(Objects.isNull(urls.getDocUrl())){
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;

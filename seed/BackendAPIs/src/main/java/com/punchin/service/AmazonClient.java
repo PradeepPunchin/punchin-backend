@@ -76,29 +76,6 @@ public class AmazonClient {
         }
     }
 
-    public String generateTempS3Url(String key) {
-        try {
-            // Set the presigned URL to expire after one hour.
-            Date expiration = new Date();
-            //expiration time set 5 minute
-            int expTimeInMS = 100;
-            long expTimeMillis = expiration.getTime() + expTimeInMS * 60 * 60;
-            expiration.setTime(expTimeMillis);
-
-            // Generate the presigned URL.
-            GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, key.replace("https://pando2.s3.ap-southeast-1.amazonaws.com/", "")).withMethod(HttpMethod.GET).withExpiration(expiration);
-
-            URL url = this.s3client.generatePresignedUrl(generatePresignedUrlRequest);
-            log.info("temperory URL is : url{} and expiration time is time{}", url, expiration);
-
-            return url.toString();
-
-        } catch (Exception e) {
-            log.error("EXCEPTION OCCURRED WHILE GENERATING S3 FILE TEMPORARY URL... e{}", e);
-            return null;
-        }
-    }
-
     public String uploadFile(String claimId, MultipartFile multipartFile) {
         try {
             File file = convertMultiPartToFile(multipartFile);

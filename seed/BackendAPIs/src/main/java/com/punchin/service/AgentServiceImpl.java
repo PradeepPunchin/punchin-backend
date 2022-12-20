@@ -44,7 +44,7 @@ public class AgentServiceImpl implements AgentService {
     private DocumentUrlsRepository documentUrlsRepository;
 
     @Autowired
-    private AmazonClient amazonClient;
+    private AmazonS3FileManagers amazonS3FileManagers;
 
     @Override
     public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
@@ -271,7 +271,7 @@ public class AgentServiceImpl implements AgentService {
                 List<DocumentUrls> documentUrls = new ArrayList<>();
                 for (MultipartFile multipartFile : multipartFiles) {
                     DocumentUrls urls = new DocumentUrls();
-                    urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile));
+                    urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile));
                     if (Objects.isNull(urls.getDocUrl())) {
                         map.put("message", MessageCode.fileNotUploaded);
                         return map;
@@ -362,7 +362,7 @@ public class AgentServiceImpl implements AgentService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
                 documentUrls.add(urls);
             }
             documentUrlsRepository.saveAll(documentUrls);

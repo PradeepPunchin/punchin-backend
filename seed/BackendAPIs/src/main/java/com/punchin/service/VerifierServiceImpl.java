@@ -74,6 +74,10 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
+            } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
@@ -309,6 +313,7 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setPunchinClaimId(claimData.getPunchinClaimId());
                 dto.setClaimDate(claimData.getClaimInwardDate());
                 dto.setBorrowerName(claimData.getBorrowerName());
+                dto.setBorrowerAddress(claimData.getBorrowerAddress());
                 dto.setNomineeAddress(claimData.getNomineeAddress());
                 dto.setNomineeName(claimData.getNomineeName());
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());

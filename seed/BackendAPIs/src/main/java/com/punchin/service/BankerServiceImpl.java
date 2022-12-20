@@ -280,7 +280,7 @@ public class BankerServiceImpl implements BankerService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
+                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "banker"));
                 if(Objects.isNull(urls.getDocUrl())){
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;

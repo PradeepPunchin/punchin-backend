@@ -60,7 +60,7 @@ public class AmazonS3FileManagers {
     public String uploadFileToAmazonS3(String key, File uncompressedFile, String name) throws IOException {
         String path = System.getProperty("user.dir") +  "/";
         File compressedFile = new File(path + name);
-        getCompressedFile(uncompressedFile, compressedFile);
+        //getCompressedFile(uncompressedFile, compressedFile);
         AmazonS3 client = getAmazonConnection();
         PutObjectRequest por = new PutObjectRequest(bucketName, key + name, compressedFile);
         por.setCannedAcl(CannedAccessControlList.Private);

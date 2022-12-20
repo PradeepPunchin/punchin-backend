@@ -23,13 +23,13 @@ public class AmazonS3FileManagers {
     public static final String AWS_END_POINT = "s3.ap-south-1.amazonaws.com";
     public static final String S_3_SIGNER_TYPE = "AWSS3V4SignerType";
 
-    @Value("${bucket.name}")
+    @Value("${amazon.client.bucket.name}")
     private String bucketName;
 
-    @Value("${aws.access.key}")
+    @Value("${amazon.client.access.key}")
     private String awsAccessKey;
 
-    @Value("${aws.secret.key}")
+    @Value("${amazon.client.secret.key}")
     private String awsSecretKey;
     /**
      * Get Access Credentials from Environment variable.

@@ -45,7 +45,8 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private AmazonS3FileManagers amazonS3FileManagers;
-
+    @Autowired
+    private AmazonClient amazonClient;
     @Autowired
     private CommonUtilService commonUtilService;
 
@@ -275,7 +276,7 @@ public class AgentServiceImpl implements AgentService {
                 List<DocumentUrls> documentUrls = new ArrayList<>();
                 for (MultipartFile multipartFile : multipartFiles) {
                     DocumentUrls urls = new DocumentUrls();
-                    urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile));
+                    urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
                     if (Objects.isNull(urls.getDocUrl())) {
                         map.put("message", MessageCode.fileNotUploaded);
                         return map;
@@ -366,7 +367,7 @@ public class AgentServiceImpl implements AgentService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
+                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "agent"));
                 documentUrls.add(urls);
             }
             documentUrlsRepository.saveAll(documentUrls);

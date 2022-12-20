@@ -62,7 +62,7 @@ public class AmazonS3FileManagers {
         File compressedFile = new File(path + name);
         //getCompressedFile(uncompressedFile, compressedFile);
         AmazonS3 client = getAmazonConnection();
-        PutObjectRequest por = new PutObjectRequest(bucketName, key + name, compressedFile);
+        PutObjectRequest por = new PutObjectRequest(bucketName, key + name, uncompressedFile);
         por.setCannedAcl(CannedAccessControlList.Private);
         client.putObject(por).getVersionId();
         return client.getUrl(bucketName, key + name).toString();

@@ -175,7 +175,7 @@ public class VerifierServiceImpl implements VerifierService {
             claimDetailForVerificationDTO.setAgentClaimDocumentsDTOs(agentDocumentsListDTOs);
 
             //Banker
-            List<ClaimDocuments> bankerDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent", true);
+            List<ClaimDocuments> bankerDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "banker", true);
             List<ClaimDocumentsDTO> bankerDocumentsListDTOs = new ArrayList<>();
             for (ClaimDocuments claimDocuments : bankerDocumentsList) {
                 ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
@@ -247,7 +247,7 @@ public class VerifierServiceImpl implements VerifierService {
         try {
             log.info("BankerController :: getClaimDataWithDocumentStatus page {}, limit {}", page, limit);
             Pageable pageable = PageRequest.of(page, limit);
-            Page page1 = claimsDataRepository.findByClaimStatus(ClaimStatus.UNDER_VERIFICATION, pageable);
+            Page page1 = claimsDataRepository.findByClaimStatusAndBorrowerStateIgnoreCase(ClaimStatus.UNDER_VERIFICATION, GenericUtils.getLoggedInUser().getState(), pageable);
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getClaimDataWithDocumentStatus", e);

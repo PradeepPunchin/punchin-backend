@@ -20,6 +20,8 @@ public class UrlMapping {
     public static final String GET_CLAIM_DOCUMENTS = "/claim/{id}/documents";
     public static final String DOWNLOAD_CLAIM_DOCUMENT_DATA = "/claim/{id}/download-all-documents";
     public static final String DOWNLOAD_MIS_REPORT = "/claim/download-mis-report";
+    public static final String GET_CLAIM_SEARCHED_DATA = "/claim/search";
+
 
 
     //Authentication Endpoints
@@ -47,6 +49,5 @@ public class UrlMapping {
     //Agent Endpoints
     public static final String AGENT_UPLOAD_DOCUMENT = "/claim/{id}/uploadDocument";
     public static final String AGENT_DISCREPANCY_DOCUMENT_UPLOAD = "/claim/{id}/discrepancy-document-upload/{docType}";
-    public static final String GET_CLAIM_SEARCHED_DATA = "/getClaimSearchedData";
 
 }

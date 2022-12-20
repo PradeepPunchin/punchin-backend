@@ -80,4 +80,6 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
             "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and (cd.borrower_name Ilike %:searchedKeyword% or cd.nominee_name Ilike %:searchedKeyword%) ")
     Page<ClaimsData> findClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, Pageable pageable);
+
+    Page findByClaimStatusAndBorrowerStateIgnoreCase(ClaimStatus underVerification, String state, Pageable pageable);
 }

@@ -313,6 +313,7 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setPunchinClaimId(claimData.getPunchinClaimId());
                 dto.setClaimDate(claimData.getClaimInwardDate());
                 dto.setBorrowerName(claimData.getBorrowerName());
+                dto.setBorrowerAddress(claimData.getBorrowerAddress());
                 dto.setNomineeAddress(claimData.getNomineeAddress());
                 dto.setNomineeName(claimData.getNomineeName());
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());

@@ -17,6 +17,7 @@ public class ClaimsData extends BasicEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false, unique = true)
     private Long id;
+    private Date uploadDate;
     private String punchinClaimId;
     private String insurerClaimId;
     private String punchinBankerId;

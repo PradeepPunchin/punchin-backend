@@ -58,22 +58,22 @@ public class VerifierServiceImpl implements VerifierService {
             Pageable pageable = PageRequest.of(pageNo, pageSize);
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByBorrowerState(GenericUtils.getLoggedInUser().getState(), pageable);
+                page1 = claimsDataRepository.findByBorrowerStateOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(),pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(),pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(),pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(),pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
-                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
@@ -281,7 +281,7 @@ public class VerifierServiceImpl implements VerifierService {
 
     private void downloadDocumentInDirectory(String docUrl, Long claimId) {
         try {
-            log.info("ready to download claim documnets docUrl {}", docUrl);
+            log.info("ready to download claim documents docUrl {}", docUrl);
             URL url = new URL(docUrl);
             ReadableByteChannel rbc = Channels.newChannel(url.openStream());
             File file1 = new File(downloadFolderUrl +claimId);

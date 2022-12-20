@@ -29,5 +29,5 @@ public interface AgentService {
 
     String forwardToVerifier(Long id);
 
-    PageDTO getClaimSearchedData(String searchedKeyword, Integer pageNo, Integer limit);
+    PageDTO getClaimSearchedData(String caseType, String searchedKeyword, Integer pageNo, Integer limit);
 }

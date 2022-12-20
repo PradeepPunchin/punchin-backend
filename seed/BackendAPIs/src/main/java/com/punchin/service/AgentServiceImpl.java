@@ -379,15 +379,22 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    public PageDTO getClaimSearchedData(String searchedKeyword, Integer pageNo, Integer limit) {
-        log.info("Get searched data from searched keyword : {}  page: {}, limit: {}", pageNo, limit, searchedKeyword);
+    public PageDTO getClaimSearchedData(String caseType, String searchedKeyword, Integer pageNo, Integer limit) {
+        log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", caseType, searchedKeyword, pageNo, limit);
         Pageable pageable = PageRequest.of(pageNo, limit);
-        Page<ClaimsData> claimSearchedData = claimsDataRepository.findClaimSearchedData(searchedKeyword, pageable);
-        if (claimSearchedData.isEmpty()) {
+        Page<ClaimsData> claimSearchedData = null;
+        if (caseType.equalsIgnoreCase("Claim Data Id")) {
+            claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable);
+        } else if (caseType.equalsIgnoreCase("Loan Account Number")) {
+            claimSearchedData = claimsDataRepository.findClaimSearchedDataByLoanAccountNumber(searchedKeyword, pageable);
+        } else if (caseType.equalsIgnoreCase("Name")) {
+            claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable);
+        }
+        if (claimSearchedData == null || claimSearchedData.isEmpty()) {
             log.info("No claims data found");
             return null;
         }
-        log.info("searched claim data feteched successfully");
+        log.info("searched claim data fetched successfully");
         return commonUtilService.getDetailsPage(claimSearchedData.getContent(), claimSearchedData.getContent().size(), claimSearchedData.getTotalPages(), claimSearchedData.getTotalElements());
     }
 

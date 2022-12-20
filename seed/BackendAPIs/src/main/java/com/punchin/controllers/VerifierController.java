@@ -77,7 +77,7 @@ public class VerifierController {
         }
     }
 
-    @PostMapping(value = UrlMapping.VERIFIER_ALLOCATE_CLAIM)
+   /* @PostMapping(value = UrlMapping.VERIFIER_ALLOCATE_CLAIM)
     public ResponseEntity<Object> allocateClaimToAgent(@PathVariable Long id, @PathVariable Long agentId) {
         try {
             log.info("VerifierController :: allocateClaimToAgent claimId {}, agentId {}", id, agentId);
@@ -98,7 +98,7 @@ public class VerifierController {
             log.error("EXCEPTION WHILE VerifierController :: allocateClaimToAgent e{}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
+    }*/
 
     @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
     public ResponseEntity<Object> getClaimDocuments(@PathVariable Long id) {
@@ -120,7 +120,7 @@ public class VerifierController {
     }
 
     //@GetMapping(value = UrlMapping.VERIFIER_CLAIMS_VERIFICATION_REQUEST)
-    public ResponseEntity<Object> getClaimDocVerificationRequest(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
+/*    public ResponseEntity<Object> getClaimDocVerificationRequest(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             //page = page > 0 ? page - 1 : page;
@@ -130,7 +130,7 @@ public class VerifierController {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
+    }*/
 
     @PostMapping(value = UrlMapping.VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS)
     public ResponseEntity<Object> acceptAndRejectDocuments(@PathVariable Long id, @PathVariable Long docId, @RequestBody DocumentApproveRejectPayloadDTO approveRejectPayloadDTO) {

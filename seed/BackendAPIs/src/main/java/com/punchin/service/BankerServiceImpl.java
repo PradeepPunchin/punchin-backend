@@ -390,8 +390,12 @@ public class BankerServiceImpl implements BankerService {
                             p.setLoanType(cell.getStringCellValue());
                             break;
                         case 12:
-                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                            if(cell.getCellType().equals(CellType.NUMERIC)) {
+                                if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                                    p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                                }
+                            }else if(cell.getCellType().equals(CellType.STRING)) {
+                                p.setLoanDisbursalDate(new Date(cell.getStringCellValue()));
                             }
                             break;
                         case 13:

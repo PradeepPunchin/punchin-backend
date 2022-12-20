@@ -195,7 +195,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
                 bankerDocumentsListDTOs.add(claimDocumentsDTO);
             }
-            claimDetailForVerificationDTO.setBankerClaimDocumentsDTOs(agentDocumentsListDTOs);
+            claimDetailForVerificationDTO.setBankerClaimDocumentsDTOs(bankerDocumentsListDTOs);
             return claimDetailForVerificationDTO;
         } catch (Exception e){
             log.error("EXCEPTION WHILE VerifierController :: getDocumentDetails e {}", e);

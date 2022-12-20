@@ -43,6 +43,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
         User user = userRepository.findByUserIdIgnoreCase(credentials.getUserId());
         if(Objects.isNull(user)){
             mapResult.put("message", MessageCode.INVALID_USERID);
+            return mapResult;
         }
         if(user.getPassword() != null && BCrypt.checkpw(credentials.getPassword(), user.getPassword())){
             if(user.getRole().equals(RoleEnum.AGENT) && credentials.getPlatform().equals(Platform.WEB)){

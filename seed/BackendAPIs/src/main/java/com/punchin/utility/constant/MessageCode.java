@@ -41,5 +41,6 @@ public class MessageCode {
     public static final String ERROR_SEARCHED_CLAIM_DATA_FETCHED = "Error while Searching claim data";
     public static final String ERROR_UPLOAD_DOCUMENT = "Error while uploading document";
     public static final String DOCUMENT_UPLOADED_SUCCESS = "Document uploaded successfully";
+    public static final String ALL_AGENTS_LIST_FETCHED_SUCCESS = "All agents list fetched successfully";
 
 }

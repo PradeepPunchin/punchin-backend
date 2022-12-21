@@ -1,9 +1,6 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.ClaimDetailForVerificationDTO;
-import com.punchin.dto.DocumentApproveRejectPayloadDTO;
-import com.punchin.dto.PageDTO;
-import com.punchin.dto.VerifierClaimDataResponseDTO;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
@@ -21,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -145,10 +143,10 @@ public class VerifierController {
                 return ResponseHandler.response(null, MessageCode.invalidDocId, false, HttpStatus.BAD_REQUEST);
             }
             String message = verifierService.acceptAndRejectDocument(claimsData, claimDocuments, approveRejectPayloadDTO);
-            if(message.equals(MessageCode.success)){
-                if(approveRejectPayloadDTO.isApproved()){
+            if (message.equals(MessageCode.success)) {
+                if (approveRejectPayloadDTO.isApproved()) {
                     return ResponseHandler.response(null, MessageCode.claimDocumentApproved, true, HttpStatus.OK);
-                }else{
+                } else {
                     return ResponseHandler.response(null, MessageCode.claimDocumentRejected, true, HttpStatus.OK);
                 }
             }
@@ -172,5 +170,21 @@ public class VerifierController {
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping(value = UrlMapping.GET_ALL_AGENTS_VERIFIER)
+    public ResponseEntity<Object> getAllAgentsForVerifier(@RequestParam long id) {
+        try {
+            log.info("Request received for verifier's agent list {}", id);
+            List<AgentListResponseDTO> allAgentsList = verifierService.getAllAgentsForVerifier(id);
+            if (!allAgentsList.isEmpty()) {
+                return ResponseHandler.response(allAgentsList, MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error while fetching verifier's agents list", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
 

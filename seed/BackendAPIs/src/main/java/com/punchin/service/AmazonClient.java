@@ -76,11 +76,11 @@ public class AmazonClient {
         }
     }
 
-    public String uploadFile(String claimId, MultipartFile multipartFile) {
+    public String uploadFile(String claimId, MultipartFile multipartFile, String folderName) {
         try {
             File file = convertMultiPartToFile(multipartFile);
             String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-            String fileName = claimId + "-" + System.currentTimeMillis() + extension;
+            String fileName = folderName + "/" + claimId + "-" + System.currentTimeMillis() + extension;
             uploadFileTos3bucket(fileName, file);
             deleteLocalFile(file);
             return endpointUrl + fileName;

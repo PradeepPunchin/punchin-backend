@@ -34,15 +34,15 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     Long countByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId);
 
-    Page findAllByPunchinBankerId(String userId, Pageable pageable);
+    Page findAllByPunchinBankerIdOrderByCreatedAtDesc(String userId, Pageable pageable);
 
     Page findByIsForwardToVerifierAndPunchinBankerId(boolean b, String userId, Pageable pageable);
 
-    Page findByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
+    Page findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
 
     Long countByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state);
 
-    Page<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state, Pageable pageable);
+    Page<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state, Pageable pageable);
 
     @Query(nativeQuery = true, value = "SELECT punchin_claim_id FROM claims_data WHERE id=:claimId")
     String findPunchinClaimIdById(Long claimId);
@@ -57,11 +57,11 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     Long countByBorrowerState(String state);
 
-    Page<ClaimsData> findByBorrowerState(String state, Pageable pageable);
+    Page<ClaimsData> findByBorrowerStateOrderByCreatedAtDesc(String state, Pageable pageable);
 
-    Page<ClaimsData> findByAgentId(Long id, Pageable pageable);
+    Page<ClaimsData> findByAgentIdOrderByCreatedAtDesc(Long id, Pageable pageable);
 
-    Page<ClaimsData> findByClaimStatusInAndAgentId(List<ClaimStatus> statusList, Long id, Pageable pageable);
+    Page<ClaimsData> findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(List<ClaimStatus> statusList, Long id, Pageable pageable);
 
     ClaimsData findByIdAndBorrowerState(Long claimId, String state);
 

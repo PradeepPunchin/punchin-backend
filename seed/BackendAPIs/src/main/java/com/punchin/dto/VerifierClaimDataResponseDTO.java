@@ -15,6 +15,7 @@ public class VerifierClaimDataResponseDTO {
     private String nomineeName;
     private String nomineeContactNumber;
     private String nomineeAddress;
+    private String borrowerAddress;
     private ClaimStatus claimStatus;
     private String singnedClaimDocument = "NOT_UPLOADED";
     private String deathCertificate = "NOT_UPLOADED";

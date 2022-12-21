@@ -17,7 +17,7 @@ import java.util.List;
 public class ClaimDataDTO {
 
     private Long id;
-
+    private Date uploadDate;
     private String punchinClaimId;
 
     private String insurerClaimId;

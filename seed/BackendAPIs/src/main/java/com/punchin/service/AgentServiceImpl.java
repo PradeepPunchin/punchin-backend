@@ -45,7 +45,8 @@ public class AgentServiceImpl implements AgentService {
 
     @Autowired
     private AmazonS3FileManagers amazonS3FileManagers;
-
+    @Autowired
+    private AmazonClient amazonClient;
     @Autowired
     private CommonUtilService commonUtilService;
 
@@ -57,22 +58,22 @@ public class AgentServiceImpl implements AgentService {
             Page<ClaimsData> page1 = Page.empty();
             List<ClaimStatus> statusList = new ArrayList<>();
             if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByAgentId(GenericUtils.getLoggedInUser().getId(), pageable);    //findAllByAgentAllocated(GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByAgentIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getId(), pageable);    //findAllByAgentAllocated(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.ACTION_PENDING);
                 statusList.add(ClaimStatus.AGENT_ALLOCATED);
                 statusList.add(ClaimStatus.CLAIM_INTIMATED);
                 statusList.add(ClaimStatus.CLAIM_SUBMITTED);
-                page1 = claimsDataRepository.findByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.IN_PROGRESS);
-                page1 = claimsDataRepository.findByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
-                page1 = claimsDataRepository.findByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.UNDER_VERIFICATION);
-                page1 = claimsDataRepository.findByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             }
             if (!page1.isEmpty()) {
                 List<AgentClaimListDTO> agentClaimListDTOS = new ArrayList<>();
@@ -275,7 +276,7 @@ public class AgentServiceImpl implements AgentService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile));
+                urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
@@ -366,7 +367,7 @@ public class AgentServiceImpl implements AgentService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
+                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "agent"));
                 documentUrls.add(urls);
             }
             documentUrlsRepository.saveAll(documentUrls);

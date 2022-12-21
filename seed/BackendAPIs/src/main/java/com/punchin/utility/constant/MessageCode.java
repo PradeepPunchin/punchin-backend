@@ -39,6 +39,6 @@ public class MessageCode {
     public static final String SEARCHED_CLAIM_DATA_FETCHED_SUCCESS = "Searched claim data fetch succeeded";
     public static final String NO_RECORD_FOUND = "No record found";
     public static final String ERROR_SEARCHED_CLAIM_DATA_FETCHED = "Error while Searching claim data";
-
+    public static final String ERROR_UPLOAD_DOCUMENT = "Error while uploading document";
 
 }

@@ -6,6 +6,7 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
+import com.punchin.enums.SearchCaseEnum;
 import com.punchin.service.AmazonClient;
 import com.punchin.service.BankerService;
 import com.punchin.utility.BASE64DecodedMultipartFile;
@@ -26,10 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.ByteArrayInputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 @CrossOrigin
 @RestController
@@ -245,4 +243,45 @@ public class BankerController {
 
     }
 
+
+    @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
+    @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_BANKER)
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+        try {
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+            PageDTO searchedClaimData = bankerService.getBankerClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
+            if (searchedClaimData != null) {
+                log.info("Searched claim data fetched successfully");
+                return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            log.info("No records found");
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: Get searched data :: e {} ", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+/*
+    @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
+    @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA)
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+        try {
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+            PageDTO searchedClaimData = agentService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
+            if (searchedClaimData != null) {
+                log.info("Searched claim data fetched successfully");
+                return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            log.info("No records found");
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: Get searched data :: e {} ", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+*/
 }

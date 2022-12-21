@@ -5,10 +5,7 @@ import com.punchin.dto.ClaimDocumentsDTO;
 import com.punchin.dto.DocumentUrlDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.*;
-import com.punchin.enums.BankerDocType;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.RoleEnum;
+import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.*;
 import com.punchin.utility.constant.MessageCode;
@@ -27,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -65,6 +64,10 @@ public class BankerServiceImpl implements BankerService {
 
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private EntityManager entityManager;
+    @Autowired
+    private CommonUtilService commonUtilService;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -464,4 +467,188 @@ public class BankerServiceImpl implements BankerService {
 
     }
 
+    @Override
+    public List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
+        log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+        String queryCondition = "";
+        if (Objects.isNull(searchedKeyword))
+            searchedKeyword = "";
+        List<String> statusList = new ArrayList<>();
+        if (claimDataFilter.ALLOCATED.equals(claimDataFilter) || Objects.isNull(claimDataFilter)) {
+            ClaimStatus claimStatuses[] = ClaimStatus.values();
+            for (ClaimStatus claimStatus : claimStatuses)
+                statusList.add(claimStatus.toString());
+        } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.ACTION_PENDING.toString());
+            statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
+            statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
+        } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.IN_PROGRESS.toString());
+        } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
+        } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
+        }
+        if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            queryCondition = getPunchInClaimId(searchedKeyword);
+        } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            queryCondition = getLoanAccountNo(searchedKeyword);
+        } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            queryCondition = getBorrowerName(searchedKeyword);
+        }
+        return getClaimDataFilter(searchedKeyword, statusList, pageNo, limit, queryCondition);
+    }
+
+    private String getPunchInClaimId(String search) {
+        if (!search.equals(""))
+            return "and cd.punchin_claim_id Ilike %:search%) ";
+        return "";
+    }
+
+    private String getLoanAccountNo(String search) {
+        if (!search.equals(""))
+            return "and cd.loan_account_number Ilike %:search%) ";
+        return "";
+    }
+
+    private String getBorrowerName(String search) {
+        if (!search.equals(""))
+            return "and (cd.borrower_name Ilike %:search%) ";
+        return "";
+    }
+
+    private List<Map<String, Object>> getClaimDataFilter(String search, List<String> claimStatus, Integer pageNo, Integer pageSize, String queryCondition) {
+        String query = "select distinct cd.id as id,cd.punchin_claim_id as punchinClaimId,cd.insurer_claim_id as insurerClaimId, " +
+                " cd.punchin_banker_id as punchinBankerId,cd.claim_inward_date as claimInwardDate,cd.borrower_name as borrowerName, " +
+                " cd.borrower_contact_number as borrowerContactNumber,cd.borrower_city as borrowerCity,cd.borrower_state as borrowerState, " +
+                " cd.borrower_pin_code as borrowerPinCode, cd.borrower_email_id as borrowerEmailId,cd.borrower_alternate_contact_number as borrowerAlternateContactNumber, " +
+                " cd.borrower_alternate_contact_details as borrowerAlternateContactDetails,cd.borrower_dob as borrowerDob, cd.loan_account_number as loanAccountNumber, " +
+                " cd.borrower_address as borrowerAddress,cd.loan_type as loanType ,cd.loan_disbursal_date as loanDisbursalDate, " +
+                " cd.loan_outstanding_amount as loanOutstandingAmount,cd.loan_amount as loanAmount, " +
+                " cd.loan_amount_paid_by_borrower as loanAmountPaidByBorrower,cd.loan_amount_balance as loanAmountBalance, " +
+                " cd.branch_code as branchCode,cd.branch_name as branchName,cd.branch_address as branchAddress,cd.branch_pin_code as branchPinCode, " +
+                " cd.branch_city as branchCity,cd.branch_state as branchState,cd.loan_account_manager_name as loanAccountManagerName, " +
+                " cd.account_manager_contact_number as accountManagerContactNumber,cd.insurer_name as insurerName,cd.master_pol_number as masterPolNumber " +
+                " cd.policy_number as policyNumber,cd.policy_start_date as policyStartDate,cd.policy_coverage_duration as policyCoverageDuration, " +
+                " cd.policy_sum_assured as policySumAssured,cd.nominee_name as nomineeName,cd.nominee_relation_ship as nomineeRelationShip, " +
+                " cd.nominee_contact_number as nomineeContactNumber,cd.nominee_email_id as nomineeEmailId,cd.nominee_address as nomineeAddress," +
+                " cd.claim_status as claimStatus from claims_data cd where cd.claim_status in (:claimStatus) " + queryCondition;
+        Query q = entityManager.createNativeQuery(query);
+        Query q1 = entityManager.createNativeQuery(query);
+        q.setParameter("claimStatus", claimStatus);
+        q.setParameter("search", search);
+        q1.setParameter("claimStatus", claimStatus);
+        q1.setParameter("search", search);
+        q.setMaxResults(pageSize);
+        q.setFirstResult(pageNo * pageSize);
+        List<Object[]> list = q.getResultList();
+        List<Object[]> list1 = q1.getResultList();
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        for (Object[] row : list) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", row[0]);
+            map.put("punchinClaimId", row[1]);
+            map.put("insurerClaimId", row[2]);
+            map.put("punchinBankerId", row[3]);
+            map.put("claimInwardDate", row[4]);
+            map.put("borrowerName", row[5]);
+            map.put("borrowerContactNumber", row[6]);
+            map.put("borrowerCity", row[7]);
+            map.put("borrowerState", row[8]);
+            map.put("borrowerPinCode", row[9]);
+            map.put("borrowerEmailId", row[10]);
+            map.put("borrowerAlternateContactNumber", row[11]);
+            map.put("borrowerAlternateContactDetails", row[12]);
+            map.put("borrowerDob", row[13]);
+            map.put("loanAccountNumber", row[14]);
+            map.put("borrowerAddress", row[15]);
+            map.put("loanType", row[16]);
+            map.put("loanDisbursalDate", row[17]);
+            map.put("loanOutstandingAmount", row[18]);
+            map.put("loanAmount", row[19]);
+            map.put("loanAmountPaidByBorrower", row[20]);
+            map.put("loanAmountBalance", row[21]);
+            map.put("branchCode", row[22]);
+            map.put("branchName", row[23]);
+            map.put("branchAddress", row[24]);
+            map.put("branchPinCode", row[25]);
+            map.put("branchCity", row[26]);
+            map.put("branchState", row[27]);
+            map.put("loanAccountManagerName", row[28]);
+            map.put("accountManagerContactNumber", row[29]);
+            map.put("insurerName", row[30]);
+            map.put("masterPolNumber", row[31]);
+            map.put("policyNumber", row[32]);
+            map.put("policyStartDate", row[33]);
+            map.put("policyCoverageDuration", row[34]);
+            map.put("policySumAssured", row[35]);
+            map.put("nomineeName", row[36]);
+            map.put("nomineeRelationShip", row[37]);
+            map.put("nomineeContactNumber", row[38]);
+            map.put("nomineeEmailId", row[39]);
+            map.put("nomineeAddress", row[40]);
+            map.put("claimStatus", row[41]);
+            map.put("count", list1.stream().count());
+            mapList.add(map);
+        }
+        return mapList;
+    }
+
+    @Override
+    public PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
+        log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+        Pageable pageable = PageRequest.of(pageNo, limit);
+        long agentId = 10L;
+        Page<ClaimsData> claimSearchedData = null;
+        List<ClaimStatus> statusList = new ArrayList<>();
+        if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
+            claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId1(searchedKeyword, pageable, agentId);
+        } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.ACTION_PENDING);
+            statusList.add(ClaimStatus.AGENT_ALLOCATED);
+            statusList.add(ClaimStatus.CLAIM_INTIMATED);
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED);
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByLoanAccountNumber(searchedKeyword, pageable, statusList, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
+            }
+        } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.IN_PROGRESS);
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByLoanAccountNumber(searchedKeyword, pageable, statusList, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
+            }
+        } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByLoanAccountNumber(searchedKeyword, pageable, statusList, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
+            }
+        } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.UNDER_VERIFICATION);
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByLoanAccountNumber(searchedKeyword, pageable, statusList, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
+            }
+        }
+        if (claimSearchedData == null || claimSearchedData.isEmpty()) {
+            log.info("No claims data found");
+            return null;
+        }
+        log.info("searched claim data fetched successfully");
+        return commonUtilService.getDetailsPage(claimSearchedData.getContent(), claimSearchedData.getContent().size(), claimSearchedData.getTotalPages(), claimSearchedData.getTotalElements());
+    }
 }

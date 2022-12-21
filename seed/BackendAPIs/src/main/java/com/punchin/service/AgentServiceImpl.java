@@ -384,7 +384,7 @@ public class AgentServiceImpl implements AgentService {
     public PageDTO getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
         log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
         Pageable pageable = PageRequest.of(pageNo, limit);
-        Long agentId = 10L;
+        Long agentId = GenericUtils.getLoggedInUser().getId();
         Page<ClaimsData> claimSearchedData = null;
         List<String> statusList = new ArrayList<>();
         if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {

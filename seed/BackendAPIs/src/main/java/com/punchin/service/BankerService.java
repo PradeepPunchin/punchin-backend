@@ -2,6 +2,7 @@ package com.punchin.service;
 
 import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
@@ -40,11 +41,18 @@ public interface BankerService {
 
     ClaimsData isClaimByBanker(Long claimId);
 
-    List<ClaimsData> downloadMISFile1(ClaimStatus claimStatus);
+    ClaimDocuments getClaimDocuments(Long docId);
+
+    String deleteBankDocument(ClaimDocuments claimDocuments);
+
+    String saveASDraftDocument(ClaimsData claimsData);
+
+    String downloadMISReport(ClaimDataFilter claimDataFilter);
+
 
     ResponseEntity<Object> saveUploadCSVData(MultipartFile file);
 
     List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter);
 
-    PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter);
+    PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter);
 }

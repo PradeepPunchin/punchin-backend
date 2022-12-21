@@ -26,7 +26,8 @@ public enum AgentDocType {
     POS_LETTER(22, "POS_LETTER"),
     PROPOSAL_FORM(23, "PROPOSAL_FORM"),
     SANCTION_LETTER(24, "SANCTION_LETTER"),
-    SMQ(25, "SMQ");
+    SMQ(25, "SMQ"),
+    MEF(26, "MEF");
 
     private String value;
     private int key;

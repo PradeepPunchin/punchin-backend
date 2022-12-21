@@ -8,7 +8,9 @@ public enum BankerDocType {
     POS_LETTER(5, "POS_LETTER"),
     PROPOSAL_FORM(6, "PROPOSAL_FORM"),
     SANCTION_LETTER(7, "SANCTION_LETTER"),
-    SMQ(8, "SMQ");
+    SMQ(8, "SMQ"),
+    MEF(9, "SMQ"),
+    OTHER(10, "OTHER");
 
     private String value;
     private int key;

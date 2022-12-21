@@ -1,8 +1,6 @@
 package com.punchin.repository;
 
-import com.punchin.dto.ClaimDataResponse;
 import com.punchin.entity.ClaimsData;
-import com.punchin.entity.User;
 import com.punchin.enums.ClaimStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,87 +14,100 @@ import java.util.List;
 @Repository
 public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
-    Page<ClaimsData> findByClaimStatus(ClaimStatus claimStatus, Pageable pageable);
-
     Page<ClaimsData> findByClaimStatusAndIsForwardToVerifier(ClaimStatus claimStatus, boolean isForwardToVerifier, Pageable pageable);
-
-    Page<ClaimsData> findByClaimStatusIn(List<ClaimStatus> claimStatus, Pageable pageable);
-
-    Long countByClaimStatus(ClaimStatus inProgress);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
             "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.punchin_claim_id Ilike %:searchedKeyword% and cd.agent_id=:agentId ")
-    Page<ClaimsData> findClaimSearchedDataByClaimDataId1(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, long agentId);
+    Page<ClaimsData> findClaimSearchedDataByClaimDataId1(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, Long agentId);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.punchin_claim_id Ilike %:searchedKeyword% and cd.agent_id=:agentId ")
-    Page<ClaimsData> findClaimSearchedDataByClaimDataId(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, List<ClaimStatus> claimStatus, long agentId);
+    Page<ClaimsData> findClaimSearchedDataByClaimDataId(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, List<String> claimStatus, Long agentId);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.loan_account_number Ilike %:searchedKeyword% and cd.agent_id=:agentId ")
-    Page<ClaimsData> findClaimSearchedDataByLoanAccountNumber(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, List<ClaimStatus> claimStatus, long agentId);
+    Page<ClaimsData> findClaimSearchedDataByLoanAccountNumber(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, List<String> claimStatus, Long agentId);
 
-    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and (cd.borrower_name Ilike %:searchedKeyword% or cd.nominee_name Ilike %:searchedKeyword%) and cd.agent_id=:agentId ")
-    Page<ClaimsData> findClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, List<ClaimStatus> claimStatus, long agentId);
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and (cd.borrower_name Ilike %:searchedKeyword%) and cd.agent_id=:agentId ")
+    Page<ClaimsData> findClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, List<String> claimStatus, Long agentId);
 
 
-    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND ca.user_id =:userId AND ca.is_active = true")
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
+            "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.punchin_claim_id Ilike %:searchedKeyword% and cd.banker_id=:bankerId ")
+    List<ClaimsData> findBankerClaimSearchedDataByClaimDataId1(@Param("searchedKeyword") String searchedKeyword, Long bankerId);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.punchin_claim_id Ilike %:searchedKeyword% and cd.banker_id=:bankerId ")
+    List<ClaimsData> findBankerClaimSearchedDataByClaimDataId(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, Long bankerId);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.loan_account_number Ilike %:searchedKeyword% and cd.banker_id=:bankerId ")
+    List<ClaimsData> findBankerClaimSearchedDataByLoanAccountNumber(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, Long bankerId);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and (cd.borrower_name Ilike %:searchedKeyword%) and cd.banker_id=:bankerId ")
+    List<ClaimsData> findBankerClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, Long bankerId);
+
+
+    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND ca.user_id =:userId AND ca.is_active = true")
     Page<ClaimsData> findAllByAgentAllocated(Long userId, Pageable pageable);
 
-    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.claim_status IN (:claimStatus) AND cd.is_deleted = false AND cd.is_forward_to_verifier = true AND ca.user_id =:userId AND ca.is_active = true")
-    Page<ClaimsData> findAllByAgentAllocated(List<String> claimStatus, Long userId, Pageable pageable);
-
-    @Query(nativeQuery = true, value = " select * from claims_data cd where cd.claim_status=:claimStatus ")
-    Page<ClaimsData> findClaimDataByStatus(String claimStatus, Pageable pageable);
-
-    @Query(nativeQuery = true, value = " select * from claims_data")
-    Page<ClaimsData> findAllClaimData(Pageable pageable);
-
-    List<ClaimsData> findByClaimStatus(ClaimStatus claimStatus);
-
-    @Query(nativeQuery = true, value = " select cd.id as id,cd.claim_inward_date as registrationDate,cd.borrower_name as borrowerName, " +
-            " cd.nominee_name as nomineeName,cd.nominee_contact_number as nomineeContactNumber,cd.nominee_address as nomineeAddress from claims_data cd where cd.claim_status='UNDER_VERIFICATION' ")
-    List<ClaimDataResponse> findClaimsDataVerifier(Pageable pageable);
-
-    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND cd.claim_status =:claimStatus AND ca.user_id =:userId AND ca.is_active = true")
-    Page<ClaimsData> findAllByAgentAllocatedAndClaimStatus(Long userId, ClaimStatus claimStatus, Pageable pageable);
-
-    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND cd.claim_status IN(:claimStatus) AND ca.user_id =:userId AND ca.is_active = true")
+    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND cd.claim_status IN(:claimStatus) AND ca.user_id =:userId AND ca.is_active = true")
     Page<ClaimsData> findAllByAgentAllocatedAndClaimStatus(Long userId, List<String> claimStatus, Pageable pageable);
 
-    ClaimsData findByIdAndIsForwardToVerifier(Long claimId, boolean forwardStatus);
-
-    @Query(nativeQuery = true, value = "select distinct * from claims_data cd inner join users u on u.user_state=cd.borrower_state and u.user_id='agent' ")
-    List<ClaimsData> getClaimsByAgentState(Pageable pageable);
-
-    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status= 'UNDER_VERIFICATION' and cd.is_forward_to_verifier= true and cd.id=:claimDataId ")
-    ClaimsData findClaimDataForVerifier(@Param("claimDataId") Long claimDataId);
-
-    @Query(nativeQuery = true, value = "SELECT cd.* FROM claim_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claim_data_id WHERE cd.is_deleted = false AND cd.is_forward_to_verifier = true AND cd.claim_status =:claimStatus AND ca.user_id =:userId AND ca.is_active = true")
-    Page findAllByAgentAllocatedAndClaimStatus(User userId, ClaimStatus claimStatus, Pageable pageable);
+    @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE ca.claims_data_id =:claimId AND cd.is_deleted = false AND ca.user_id =:userId AND ca.is_active = true")
+    ClaimsData findByIdAndUserId(Long claimId, Long userId);
 
     ClaimsData findByIdAndPunchinBankerId(Long claimId, String userId);
-
-    Long countByClaimStatusIn(List<ClaimStatus> claimStatuses);
-
-    Page findByIsForwardToVerifier(boolean b, Pageable pageable);
 
     Long countByPunchinBankerId(String userId);
 
     Long countByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId);
 
-    Page findAllByPunchinBankerId(String userId, Pageable pageable);
+    Page findAllByPunchinBankerIdOrderByCreatedAtDesc(String userId, Pageable pageable);
 
     Page findByIsForwardToVerifierAndPunchinBankerId(boolean b, String userId, Pageable pageable);
 
-    Page findByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
-
-    Page findByClaimStatusAndIsForwardToVerifierAndPunchinBankerId(ClaimStatus settled, boolean b, String userId, Pageable pageable);
-
-    Page findByClaimStatusAndPunchinBankerId(ClaimStatus underVerification, String userId, Pageable pageable);
+    Page findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
 
     Long countByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state);
 
-    Page<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state, Pageable pageable);
+    Page<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state, Pageable pageable);
 
     @Query(nativeQuery = true, value = "SELECT punchin_claim_id FROM claims_data WHERE id=:claimId")
     String findPunchinClaimIdById(Long claimId);
+
+    Page findByClaimStatus(ClaimStatus underVerification, Pageable pageable);
+
+    List<ClaimsData> findByClaimStatus(ClaimStatus claimStatus);
+
+
+    Long countByAgentId(Long id);
+
+    Long countByClaimStatusInAndAgentId(List<ClaimStatus> statusList, Long id);
+
+    boolean existsByIdAndAgentId(Long claimId, Long id);
+
+    Long countByBorrowerState(String state);
+
+    Page<ClaimsData> findByBorrowerStateOrderByCreatedAtDesc(String state, Pageable pageable);
+
+    Page<ClaimsData> findByAgentIdOrderByCreatedAtDesc(Long id, Pageable pageable);
+
+    Page<ClaimsData> findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(List<ClaimStatus> statusList, Long id, Pageable pageable);
+
+    ClaimsData findByIdAndBorrowerState(Long claimId, String state);
+
+    List<ClaimsData> findAllByPunchinBankerId(String userId);
+
+    List<ClaimsData> findByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
+            "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and (CAST(cd.id AS varchar) Ilike %:searchedKeyword%) ")
+    Page<ClaimsData> findClaimSearchedDataByClaimDataId(@Param("searchedKeyword") String searchedKeyword, Pageable pageable);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
+            "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.loan_account_number Ilike %:searchedKeyword% ")
+    Page<ClaimsData> findClaimSearchedDataByLoanAccountNumber(@Param("searchedKeyword") String searchedKeyword, Pageable pageable);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
+            "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and (cd.borrower_name Ilike %:searchedKeyword% or cd.nominee_name Ilike %:searchedKeyword%) ")
+    Page<ClaimsData> findClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, Pageable pageable);
+
+    Page findByClaimStatusAndBorrowerStateIgnoreCase(ClaimStatus underVerification, String state, Pageable pageable);
 }

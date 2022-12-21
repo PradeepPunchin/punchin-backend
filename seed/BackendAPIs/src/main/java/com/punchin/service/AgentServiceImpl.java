@@ -45,6 +45,8 @@ public class AgentServiceImpl implements AgentService {
     private DocumentUrlsRepository documentUrlsRepository;
 
     @Autowired
+    private AmazonS3FileManagers amazonS3FileManagers;
+    @Autowired
     private AmazonClient amazonClient;
     @Autowired
     private CommonUtilService commonUtilService;
@@ -55,27 +57,24 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
             Page<ClaimsData> page1 = Page.empty();
-            List<String> statusList = new ArrayList<>();
+            List<ClaimStatus> statusList = new ArrayList<>();
             if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
-                statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
-                statusList.add(ClaimStatus.IN_PROGRESS.name());
-                statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
-                statusList.add(ClaimStatus.ACTION_PENDING.name());
-                statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
-                page1 = claimsDataRepository.findAllByAgentAllocated(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByAgentIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getId(), pageable);    //findAllByAgentAllocated(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
-                statusList.add(ClaimStatus.ACTION_PENDING.name());
-                statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
-                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser().getId(), statusList, pageable);
+                statusList.add(ClaimStatus.ACTION_PENDING);
+                statusList.add(ClaimStatus.AGENT_ALLOCATED);
+                statusList.add(ClaimStatus.CLAIM_INTIMATED);
+                statusList.add(ClaimStatus.CLAIM_SUBMITTED);
+                page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
-                statusList.add(ClaimStatus.IN_PROGRESS.name());
-                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser().getId(), statusList, pageable);
+                statusList.add(ClaimStatus.IN_PROGRESS);
+                page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-                statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
-                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser().getId(), statusList, pageable);
+                statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
-                statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
-                page1 = claimsDataRepository.findAllByAgentAllocatedAndClaimStatus(GenericUtils.getLoggedInUser().getId(), statusList, pageable);
+                statusList.add(ClaimStatus.UNDER_VERIFICATION);
+                page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             }
             if (!page1.isEmpty()) {
                 List<AgentClaimListDTO> agentClaimListDTOS = new ArrayList<>();
@@ -84,7 +83,7 @@ public class AgentServiceImpl implements AgentService {
                     AgentClaimListDTO agentClaimListDTO = new AgentClaimListDTO();
                     agentClaimListDTO.setId(claimsData.getId());
                     agentClaimListDTO.setClaimDate(claimsData.getClaimInwardDate());
-                    agentClaimListDTO.setAllocationDate(new Date(claimAllocatedRepository.getAllocationDate(claimsData.getId(), GenericUtils.getLoggedInUser().getId())));
+                    agentClaimListDTO.setAllocationDate(claimsData.getClaimInwardDate());
                     agentClaimListDTO.setClaimId(claimsData.getPunchinClaimId());
                     agentClaimListDTO.setBorrowerName(claimsData.getBorrowerName());
                     agentClaimListDTO.setBorrowerAddress(claimsData.getBorrowerAddress());
@@ -107,24 +106,21 @@ public class AgentServiceImpl implements AgentService {
         Map<String, Object> map = new HashMap<>();
         try {
             log.info("AgentServiceImpl :: getDashboardData");
-            List<String> statusList = new ArrayList<>();
-            statusList.add(ClaimStatus.IN_PROGRESS.name());
-            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimAllocatedRepository.countByClaimStatusByAgent(statusList, GenericUtils.getLoggedInUser().getId()));
+            List<ClaimStatus> statusList = new ArrayList<>();
+            map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimsDataRepository.countByAgentId(GenericUtils.getLoggedInUser().getId()));//claimAllocatedRepository.countByClaimStatusByAgent(GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
-            statusList.add(ClaimStatus.ACTION_PENDING.name());
-            statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
-            map.put(ClaimStatus.ACTION_PENDING.name(), claimAllocatedRepository.countByClaimStatusByAgent(statusList, GenericUtils.getLoggedInUser().getId()));
+            statusList.add(ClaimStatus.IN_PROGRESS);
+            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
-            statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
-            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimAllocatedRepository.countByClaimStatusByAgent(statusList, GenericUtils.getLoggedInUser().getId()));
+            statusList.add(ClaimStatus.ACTION_PENDING);
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED);
+            statusList.add(ClaimStatus.CLAIM_INTIMATED);
+            map.put(ClaimStatus.ACTION_PENDING.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
-            statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
-            statusList.add(ClaimStatus.IN_PROGRESS.name());
-            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
-            statusList.add(ClaimStatus.ACTION_PENDING.name());
-            statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
-            map.put(ClaimStatus.AGENT_ALLOCATED.name(), claimAllocatedRepository.countByClaimStatusByAgent(statusList, GenericUtils.getLoggedInUser().getId()));
+            statusList.add(ClaimStatus.UNDER_VERIFICATION);
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
+
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getDashboardData e{}", e);
@@ -140,7 +136,7 @@ public class AgentServiceImpl implements AgentService {
     public boolean checkAccess(Long claimId) {
         try {
             log.info("AgentServiceImpl :: checkAccess");
-            return claimAllocatedRepository.existsByUserIdAndClaimsDataId(GenericUtils.getLoggedInUser().getId(), claimId);
+            return claimsDataRepository.existsByIdAndAgentId(claimId, GenericUtils.getLoggedInUser().getId());
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: checkAccess e{}", e);
             return false;
@@ -196,8 +192,6 @@ public class AgentServiceImpl implements AgentService {
                 claimDocuments.add(uploadDocumentOnS3(AgentDocType.ADDITIONAL, documentDTO.getAdditionalDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getAdditionalDoc()}));
             }
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
-            claimsData.setAgentToVerifier(true);
-            claimsData.setAgentToVerifierTime(System.currentTimeMillis());
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
             claimDataDTO.setClaimDocuments(claimDocuments);
             map.put("claimsData", claimDataDTO);
@@ -243,6 +237,7 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
                 claimDocumentsDTOS.add(claimDocumentsDTO);
             }
+            rejectedDocList.add(AgentDocType.OTHER.name());
             map.put("claimDocuments", claimDocumentsDTOS);
             map.put("rejectedDocList", rejectedDocList);
             map.put("message", MessageCode.success);
@@ -282,7 +277,7 @@ public class AgentServiceImpl implements AgentService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile));
+                urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
@@ -351,8 +346,8 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: forwardToVerifier claimId {}", claimId);
             ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
-            claimsData.setAgentToVerifier(true);
-            claimsData.setAgentToVerifierTime(System.currentTimeMillis());
+            //claimsData.setAgentToVerifier(true);
+            //claimsData.setAgentToVerifierTime(System.currentTimeMillis());
             claimsDataRepository.save(claimsData);
             return MessageCode.success;
         } catch (Exception e) {
@@ -373,7 +368,7 @@ public class AgentServiceImpl implements AgentService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
+                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "agent"));
                 documentUrls.add(urls);
             }
             documentUrlsRepository.saveAll(documentUrls);
@@ -389,16 +384,16 @@ public class AgentServiceImpl implements AgentService {
     public PageDTO getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
         log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
         Pageable pageable = PageRequest.of(pageNo, limit);
-        long agentId = 10L;
+        Long agentId = 10L;
         Page<ClaimsData> claimSearchedData = null;
-        List<ClaimStatus> statusList = new ArrayList<>();
+        List<String> statusList = new ArrayList<>();
         if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
             claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId1(searchedKeyword, pageable, agentId);
         } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.ACTION_PENDING);
-            statusList.add(ClaimStatus.AGENT_ALLOCATED);
-            statusList.add(ClaimStatus.CLAIM_INTIMATED);
-            statusList.add(ClaimStatus.CLAIM_SUBMITTED);
+            statusList.add(ClaimStatus.ACTION_PENDING.toString());
+            statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
+            statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
@@ -407,7 +402,7 @@ public class AgentServiceImpl implements AgentService {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
             }
         } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.IN_PROGRESS);
+            statusList.add(ClaimStatus.IN_PROGRESS.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
@@ -416,7 +411,7 @@ public class AgentServiceImpl implements AgentService {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
             }
         } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
@@ -425,7 +420,7 @@ public class AgentServiceImpl implements AgentService {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
             }
         } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.UNDER_VERIFICATION);
+            statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {

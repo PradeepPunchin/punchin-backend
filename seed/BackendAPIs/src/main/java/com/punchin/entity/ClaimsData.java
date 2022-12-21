@@ -17,6 +17,7 @@ public class ClaimsData extends BasicEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false, unique = true)
     private Long id;
+    private Date uploadDate;
     private String punchinClaimId;
     private String insurerClaimId;
     private String punchinBankerId;
@@ -62,16 +63,14 @@ public class ClaimsData extends BasicEntity {
     private String nomineeAddress;
     @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
-    private String submittedBy;
+    private Long agentId = 0L;
+    private Long bankerId = 0L;
+    private Long submittedBy;
     private Long submittedAt;
     private Boolean isForwardToVerifier = false;
-    private Long bankerToVerifierTime;
+
     //Field filled by Agent
     private CauseOfDeathEnum causeOfDeath;
     private Boolean isMinor;
-
-    private Boolean agentToVerifier;
-
-    private Long agentToVerifierTime;
 
 }

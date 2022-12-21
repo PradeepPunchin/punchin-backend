@@ -13,5 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByUserIdIgnoreCase(String userId);
     User findByIdAndRole(Long agentId, RoleEnum role);
     boolean existsByIdAndRole(Long id, RoleEnum banker);
-    User findByRoleAndStateIgnoreCase(RoleEnum roles, String borrowerState);
+
+    @Query(nativeQuery = true, value = "SELECT u.* FROM users AS u LEFT JOIN claims_data AS cd ON cd.agent_id = u.id WHERE u.role =:roles and LOWER(u.state) =:borrowerState GROUP BY u.id ORDER BY count(cd.agent_id)")
+    User findByAgentAndState(String roles, String borrowerState);
 }

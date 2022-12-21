@@ -28,7 +28,7 @@ public class SessionServiceImpl implements SessionService{
     }
 
     @Override
-    public Session createSession(User user) {
+    public Session createSession(User user, Platform platform) {
         Session session = new Session();
         final long currentTimeMillis = System.currentTimeMillis();
         session.setStartTime(new Date(currentTimeMillis));
@@ -36,7 +36,7 @@ public class SessionServiceImpl implements SessionService{
 
         //Change when it is required.
         session.setMobile(false);
-        session.setPlatform(Platform.WEB);
+        session.setPlatform(platform);
         session.setDeviceId("test");
 
         session.setLastActiveTime(currentTimeMillis);

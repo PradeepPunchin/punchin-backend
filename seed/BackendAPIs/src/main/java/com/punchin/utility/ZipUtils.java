@@ -39,9 +39,7 @@ public class ZipUtils {
                     log.info("FILE read : file {}", sourceFolder + File.separator + file);
                     int len;
                     while ((len = in .read(buffer)) > 0) {
-                        log.info("Creating len {}", len);
                         zos.write(buffer, 0, len);
-                        log.info("Created len {}", len);
                     }
                 } finally {
                     log.info("FileInputStream closing");

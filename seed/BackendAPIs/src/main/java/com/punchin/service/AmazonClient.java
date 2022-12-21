@@ -1,13 +1,13 @@
 package com.punchin.service;
 
-import com.amazonaws.HttpMethod;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
-import java.util.Date;
 
 @Slf4j
 @Service
@@ -58,6 +56,20 @@ public class AmazonClient {
         return file;
     }
 
+    public String uploadFile(String claimId, MultipartFile multipartFile) {
+        try {
+            File file = convertMultiPartToFile(multipartFile);
+            String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+            String fileName = claimId + "-" + System.currentTimeMillis() + extension;
+            uploadFileTos3bucket(fileName, file);
+            deleteLocalFile(file);
+            return endpointUrl + fileName;
+        } catch (IOException e) {
+            log.error("Exception while uploading file from local:: {}", e.getMessage());
+            return null;
+        }
+    }
+
     void uploadFileTos3bucket(String fileName, File file) {
         try {
             this.s3client.putObject(new PutObjectRequest(bucketName, fileName, file).withCannedAcl(CannedAccessControlList.PublicRead));
@@ -76,34 +88,11 @@ public class AmazonClient {
         }
     }
 
-    public String generateTempS3Url(String key) {
-        try {
-            // Set the presigned URL to expire after one hour.
-            Date expiration = new Date();
-            //expiration time set 5 minute
-            int expTimeInMS = 100;
-            long expTimeMillis = expiration.getTime() + expTimeInMS * 60 * 60;
-            expiration.setTime(expTimeMillis);
-
-            // Generate the presigned URL.
-            GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, key.replace("https://pando2.s3.ap-southeast-1.amazonaws.com/", "")).withMethod(HttpMethod.GET).withExpiration(expiration);
-
-            URL url = this.s3client.generatePresignedUrl(generatePresignedUrlRequest);
-            log.info("temperory URL is : url{} and expiration time is time{}", url, expiration);
-
-            return url.toString();
-
-        } catch (Exception e) {
-            log.error("EXCEPTION OCCURRED WHILE GENERATING S3 FILE TEMPORARY URL... e{}", e);
-            return null;
-        }
-    }
-
-    public String uploadFile(String claimId, MultipartFile multipartFile) {
+    public String uploadFile(String claimId, MultipartFile multipartFile, String folderName) {
         try {
             File file = convertMultiPartToFile(multipartFile);
             String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-            String fileName = claimId + "-" + System.currentTimeMillis() + extension;
+            String fileName = folderName + "/" + claimId + "-" + System.currentTimeMillis() + extension;
             uploadFileTos3bucket(fileName, file);
             deleteLocalFile(file);
             return endpointUrl + fileName;

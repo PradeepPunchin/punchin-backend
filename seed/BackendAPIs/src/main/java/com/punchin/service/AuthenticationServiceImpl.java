@@ -3,6 +3,8 @@ package com.punchin.service;
 import com.punchin.dto.LoginRequestDTO;
 import com.punchin.dto.SessionDTO;
 import com.punchin.entity.User;
+import com.punchin.enums.Platform;
+import com.punchin.enums.RoleEnum;
 import com.punchin.repository.UserRepository;
 import com.punchin.utility.ModelMapper;
 import com.punchin.utility.constant.Headers;
@@ -37,13 +39,21 @@ public class AuthenticationServiceImpl implements AuthenticationService{
     @Override
     public Map<String, Object> authenticateUserAccount(LoginRequestDTO credentials) {
         log.info("AuthenticationServiceImpl :: authenticateUserAccount credentials{}", credentials);
-        User user = userRepository.findByUserIdIgnoreCase(credentials.getUserId());
         Map<String, Object> mapResult = new HashMap<>();
-        if(Objects.nonNull(user) && user.getPassword() != null && BCrypt.checkpw(credentials.getPassword(), user.getPassword())){
-            mapResult.put("session", modelMapper.map(sessionService.createSession(user), SessionDTO.class));
-            mapResult.put("message", MessageCode.success);
+        User user = userRepository.findByUserIdIgnoreCase(credentials.getUserId());
+        if(Objects.isNull(user)){
+            mapResult.put("message", MessageCode.INVALID_USERID);
+            return mapResult;
+        }
+        if(user.getPassword() != null && BCrypt.checkpw(credentials.getPassword(), user.getPassword())){
+            if(user.getRole().equals(RoleEnum.AGENT) && credentials.getPlatform().equals(Platform.WEB)){
+                mapResult.put("message", MessageCode.unauthorized);
+            }else {
+                mapResult.put("session", modelMapper.map(sessionService.createSession(user, credentials.getPlatform()), SessionDTO.class));
+                mapResult.put("message", MessageCode.success);
+            }
         }else{
-            mapResult.put("message", MessageCode.invalidCredentials);
+            mapResult.put("message", MessageCode.INVALID_PASSWORD);
         }
         return mapResult;
     }

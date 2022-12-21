@@ -2,14 +2,13 @@ package com.punchin.controllers;
 
 import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
+import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.SearchCaseEnum;
 import com.punchin.service.AmazonClient;
 import com.punchin.service.BankerService;
-import com.punchin.utility.BASE64DecodedMultipartFile;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
@@ -26,8 +25,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @CrossOrigin
 @RestController
@@ -41,7 +41,6 @@ public class BankerController {
     private HttpServletResponse httpServletResponse;
     @Autowired
     private AmazonClient amazonClient;
-    public static final Random random = new Random();
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
@@ -217,13 +216,59 @@ public class BankerController {
         }
     }
 
-    @GetMapping(value = "/downloadMISFile")
-    public ResponseEntity<Object> downloadMISFile(@RequestParam ClaimStatus claimStatus) {
+    @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
+    @DeleteMapping(value = UrlMapping.BANKER_DELETE_DOCUMENT)
+    public ResponseEntity<Object> deleteBankDocument(@PathVariable Long docId) {
         try {
-            log.info("BankerController :: downloadMISFile dataFilter{}", claimStatus);
-            ByteArrayInputStream byteArrayInputStream = bankerService.downloadMISFile(claimStatus);
-            BASE64DecodedMultipartFile base64DecodedMultipartFile = new BASE64DecodedMultipartFile(byteArrayInputStream.readAllBytes(), "Claims-Data" + ".xlsx");
-            return ResponseHandler.response(amazonClient.uploadFile("Claims-Data", base64DecodedMultipartFile), MessageCode.success, true, HttpStatus.OK);
+            log.info("BankerController :: getClaimData docId {}", docId);
+
+            if (!bankerService.isBanker()) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            ClaimDocuments claimDocuments = bankerService.getClaimDocuments(docId);
+            if (Objects.nonNull(claimDocuments)) {
+                String result = bankerService.deleteBankDocument(claimDocuments);
+                if (result.equals(MessageCode.success)) {
+                    return ResponseHandler.response(null, MessageCode.DOCUMENT_DELETED, true, HttpStatus.OK);
+                }
+                return ResponseHandler.response(null, result, false, HttpStatus.BAD_REQUEST);
+            }
+            return ResponseHandler.response(null, MessageCode.INVALID_DOCUMENT_ID, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getClaimData e {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
+    @PostMapping(value = UrlMapping.BANKER_SAVEAS_DRAFT_DOCUMENT)
+    public ResponseEntity<Object> saveASDraftDocument(@PathVariable Long claimId) {
+        try {
+            log.info("BankerController :: getClaimData claimId {}", claimId);
+            ClaimsData claimsData = bankerService.isClaimByBanker(claimId);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            String result = bankerService.saveASDraftDocument(claimsData);
+            if (result.equals(MessageCode.success)) {
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_SAVEAS_DRAFT, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getClaimData e {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Download MIS Report", notes = "This can be used to download MIS in excel sheet")
+    @GetMapping(value = UrlMapping.DOWNLOAD_MIS_REPORT)
+    public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
+        try {
+            log.info("BankerController :: downloadMISReport");
+            if (!bankerService.isBanker()) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            return ResponseHandler.response(bankerService.downloadMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -247,10 +292,10 @@ public class BankerController {
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_BANKER)
     public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
-                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+                                                       @RequestParam ClaimDataFilter claimDataFilter) {
         try {
-            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
-            PageDTO searchedClaimData = bankerService.getBankerClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword);
+            PageDTO searchedClaimData = bankerService.getBankerClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter);
             if (searchedClaimData != null) {
                 log.info("Searched claim data fetched successfully");
                 return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
@@ -262,6 +307,7 @@ public class BankerController {
             return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+}
 
 /*
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
@@ -284,4 +330,3 @@ public class BankerController {
     }
 
 */
-}

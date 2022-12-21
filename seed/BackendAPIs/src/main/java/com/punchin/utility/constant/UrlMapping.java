@@ -2,7 +2,9 @@ package com.punchin.utility.constant;
 
 public class UrlMapping {
 
-    private UrlMapping(){}
+
+    private UrlMapping() {
+    }
 
     public static final String BASEURL = "/api/v1";
     public static final String PUBLIC_URL = "/api/v2";
@@ -16,8 +18,8 @@ public class UrlMapping {
     public static final String GET_CLAIMS_LIST = "/claim";
     public static final String GET_CLAIM_DATA = "/claim/{id}";
     public static final String GET_CLAIM_DOCUMENTS = "/claim/{id}/documents";
-    public static final String DOWNLOAD_DASHBOARD_DATA = "/claim/{id}/download-all-documents";
-
+    public static final String DOWNLOAD_CLAIM_DOCUMENT_DATA = "/claim/{id}/download-all-documents";
+    public static final String DOWNLOAD_MIS_REPORT = "/claim/download-mis-report";
 
 
 
@@ -33,7 +35,10 @@ public class UrlMapping {
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
     public static final String BANKER_STANDARIZED_FORMAT = "/download-excel-format";
     public static final String FORWARD_TO_VERIFIER = "/claim/{id}/forward-to-verifier";
+    public static final String BANKER_DELETE_DOCUMENT = "/claim/document/delete/{docId}";
+    public static final String BANKER_SAVEAS_DRAFT_DOCUMENT = "/claim/{claimId}/documents/save-draft";
     public static final String GET_CLAIM_SEARCHED_DATA_BANKER = "/claim/searchBanker";
+
 
     //Verifier Endpoints
     public static final String VERIFIER_ALLOCATE_CLAIM = "/claim/{id}/allocate/{agentId}";
@@ -47,6 +52,5 @@ public class UrlMapping {
     public static final String AGENT_UPLOAD_DOCUMENT = "/claim/{id}/uploadDocument";
     public static final String GET_CLAIM_SEARCHED_DATA = "/claim/search";
     public static final String AGENT_DISCREPANCY_DOCUMENT_UPLOAD = "/claim/{id}/discrepancy-document-upload/{docType}";
-
 
 }

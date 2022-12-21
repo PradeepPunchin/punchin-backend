@@ -216,7 +216,7 @@ public class AgentController {
             }
             List<DocumentUrls> documentUrlsList = agentService.uploadAgentDocument(id, new MultipartFile[]{multipartFiles}, docType);
             if (!documentUrlsList.isEmpty()) {
-                return ResponseHandler.response(documentUrlsList, MessageCode.success, true, HttpStatus.OK);
+                return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -229,7 +229,7 @@ public class AgentController {
     @DeleteMapping(value = UrlMapping.AGENT_DELETE_DOCUMENT)
     public ResponseEntity<Object> deleteAgentDocument(@RequestParam Long documentId) {
         try {
-            log.info("BankerController :: getClaimData docId {}", documentId);
+            log.info("AgentController :: delete docId {}", documentId);
             String deleteClaimDocument = agentService.deleteClaimDocument(documentId);
             if (deleteClaimDocument.equals(MessageCode.DOCUMENT_DELETED)) {
                 return ResponseHandler.response(null, MessageCode.DOCUMENT_DELETED, true, HttpStatus.OK);

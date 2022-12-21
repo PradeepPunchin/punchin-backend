@@ -969,10 +969,10 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter) {
-     /*   log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword);
-        Long bankerId = 10L;
-        Page<ClaimsData> claimSearchedData = null;
+    public List<ClaimsData> getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter) {
+        log.info("Get Searched data request received for caseType :{} , searchedKeyword :{}  ", searchCaseEnum, searchedKeyword);
+        Long bankerId = GenericUtils.getLoggedInUser().getId();
+        List<ClaimsData> claimSearchedData = null;
         List<String> statusList = new ArrayList<>();
         if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
             claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId);
@@ -1021,7 +1021,6 @@ public class BankerServiceImpl implements BankerService {
             return null;
         }
         log.info("searched claim data fetched successfully");
-     */ //  return commonUtilService.getDetailsPage(claimSearchedData.getContent(), claimSearchedData.getContent().size(), claimSearchedData.getTotalPages(), claimSearchedData.getTotalElements());
-        return null;
+        return claimSearchedData;
     }
 }

@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -295,7 +296,7 @@ public class BankerController {
                                                        @RequestParam ClaimDataFilter claimDataFilter) {
         try {
             log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword);
-            PageDTO searchedClaimData = bankerService.getBankerClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter);
+            List<ClaimsData> searchedClaimData = bankerService.getBankerClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter);
             if (searchedClaimData != null) {
                 log.info("Searched claim data fetched successfully");
                 return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);

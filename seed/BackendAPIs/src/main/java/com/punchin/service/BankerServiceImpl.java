@@ -974,12 +974,26 @@ public class BankerServiceImpl implements BankerService {
         Long bankerId = GenericUtils.getLoggedInUser().getId();
         List<ClaimsData> claimSearchedData = null;
         List<String> statusList = new ArrayList<>();
-        if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
+        if (claimDataFilter.ALL.equals(claimDataFilter)) {
             claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId);
-        } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.ACTION_PENDING.toString());
-            statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
+        } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
@@ -990,15 +1004,10 @@ public class BankerServiceImpl implements BankerService {
             }
         } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.IN_PROGRESS.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
-                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
-                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
-                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
-            }
-        } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
+            statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
+            statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
@@ -1008,6 +1017,16 @@ public class BankerServiceImpl implements BankerService {
             }
         } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.SETTLED.toString());
+            statusList.add(ClaimStatus.SUBMITTED_TO_INSURER.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {

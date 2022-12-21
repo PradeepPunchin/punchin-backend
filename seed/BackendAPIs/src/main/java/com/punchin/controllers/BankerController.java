@@ -304,7 +304,7 @@ public class BankerController {
             log.info("No records found");
             return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE AgentController :: Get searched data :: e {} ", e);
+            log.error("EXCEPTION WHILE BankerController :: Get searched data :: ", e);
             return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -5,8 +5,8 @@ import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
-import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.SearchCaseEnum;
 import com.punchin.service.UserService;
 import com.punchin.service.VerifierService;
 import com.punchin.utility.ResponseHandler;
@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -186,5 +187,25 @@ public class VerifierController {
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
+    @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_VERIFIER)
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+        try {
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+            List<ClaimsData> searchedClaimData = verifierService.getVerifierClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter);
+            if (searchedClaimData != null) {
+                log.info("Searched claim data fetched successfully");
+                return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            log.info("No records found");
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierController :: Get searched data ::  ", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
 

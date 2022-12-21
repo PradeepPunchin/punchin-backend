@@ -33,7 +33,7 @@ public class UrlMapping {
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
     public static final String BANKER_STANDARIZED_FORMAT = "/download-excel-format";
     public static final String FORWARD_TO_VERIFIER = "/claim/{id}/forward-to-verifier";
-
+    public static final String GET_CLAIM_SEARCHED_DATA_BANKER = "/claim/searchBanker";
 
     //Verifier Endpoints
     public static final String VERIFIER_ALLOCATE_CLAIM = "/claim/{id}/allocate/{agentId}";
@@ -45,6 +45,7 @@ public class UrlMapping {
 
     //Agent Endpoints
     public static final String AGENT_UPLOAD_DOCUMENT = "/claim/{id}/uploadDocument";
+    public static final String GET_CLAIM_SEARCHED_DATA = "/claim/search";
     public static final String AGENT_DISCREPANCY_DOCUMENT_UPLOAD = "/claim/{id}/discrepancy-document-upload/{docType}";
 
 

@@ -6,10 +6,7 @@ import com.punchin.enums.AgentDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.SearchCaseEnum;
-import com.punchin.repository.ClaimAllocatedRepository;
-import com.punchin.repository.ClaimDocumentsRepository;
-import com.punchin.repository.ClaimsDataRepository;
-import com.punchin.repository.DocumentUrlsRepository;
+import com.punchin.repository.*;
 import com.punchin.utility.BASE64DecodedMultipartFile;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ZipUtils;
@@ -59,6 +56,9 @@ public class VerifierServiceImpl implements VerifierService {
     private AmazonClient amazonClient;
     @Autowired
     private DocumentUrlsRepository documentUrlsRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize) {
@@ -606,5 +606,30 @@ public class VerifierServiceImpl implements VerifierService {
         log.info("searched claim data fetched successfully");
         return filteredData;
     }
+
+    public List<AgentListResponseDTO> getAllAgentsForVerifier(long id) {
+        User verifier = userRepository.verifierExistsByIdAndRole(id);
+        if (verifier == null) {
+            log.info(MessageCode.INVALID_USERID);
+            return Collections.emptyList();
+        }
+        List<User> allAgents = userRepository.findAllAgentsForVerifier(verifier.getState());
+        if (allAgents.isEmpty()) {
+            log.info(MessageCode.NO_RECORD_FOUND);
+            return Collections.emptyList();
+        }
+        List<AgentListResponseDTO> agentListResponseDTOList = new ArrayList<>();
+        for (User agent : allAgents) {
+            AgentListResponseDTO agentListResponseDTO = new AgentListResponseDTO();
+            agentListResponseDTO.setId(agent.getId());
+            agentListResponseDTO.setUserName(agent.getUserId());
+            agentListResponseDTO.setFirstName(agent.getFirstName());
+            agentListResponseDTO.setLastName(agent.getLastName());
+            agentListResponseDTOList.add(agentListResponseDTO);
+        }
+        log.info(MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS);
+        return agentListResponseDTOList;
+    }
+
 }
 

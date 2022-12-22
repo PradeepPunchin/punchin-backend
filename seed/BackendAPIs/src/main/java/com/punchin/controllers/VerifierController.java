@@ -1,5 +1,6 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.AgentListResponseDTO;
 import com.punchin.dto.ClaimDetailForVerificationDTO;
 import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
@@ -203,9 +204,22 @@ public class VerifierController {
             return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierController :: Get searched data ::  ", e);
-            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @GetMapping(value = UrlMapping.GET_ALL_AGENTS_VERIFIER)
+    public ResponseEntity<Object> getAllAgentsForVerifier(@RequestParam long id) {
+        try {
+            log.info("Request received for verifier's agent list {}", id);
+            List<AgentListResponseDTO> allAgentsList = verifierService.getAllAgentsForVerifier(id);
+            if (!allAgentsList.isEmpty()) {
+                return ResponseHandler.response(allAgentsList, MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error while fetching verifier's agents list", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
-

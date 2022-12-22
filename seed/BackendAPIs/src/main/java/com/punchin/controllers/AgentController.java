@@ -3,12 +3,14 @@ package com.punchin.controllers;
 import com.punchin.dto.AgentUploadDocumentDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
+import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
 import com.punchin.service.AgentService;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -202,5 +206,39 @@ public class AgentController {
         }
     }
 
+    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by banker")
+    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
+    public ResponseEntity<Object> uploadAgentDocument(@RequestParam Long id, @RequestParam AgentDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
+        try {
+            log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
+            if (!agentService.checkAccess(id)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            List<DocumentUrls> documentUrlsList = agentService.uploadAgentDocument(id, new MultipartFile[]{multipartFiles}, docType);
+            if (!documentUrlsList.isEmpty()) {
+                return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: uploadAgentDocument e{}", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_UPLOAD_DOCUMENT, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
+    @DeleteMapping(value = UrlMapping.AGENT_DELETE_DOCUMENT)
+    public ResponseEntity<Object> deleteAgentDocument(@RequestParam Long documentId) {
+        try {
+            log.info("AgentController :: delete docId {}", documentId);
+            String deleteClaimDocument = agentService.deleteClaimDocument(documentId);
+            if (deleteClaimDocument.equals(MessageCode.DOCUMENT_DELETED)) {
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_DELETED, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: deleteClaimDocument e {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }

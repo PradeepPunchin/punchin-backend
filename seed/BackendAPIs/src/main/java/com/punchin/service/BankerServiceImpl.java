@@ -7,7 +7,10 @@ import com.punchin.dto.PageDTO;
 import com.punchin.entity.*;
 import com.punchin.enums.*;
 import com.punchin.repository.*;
-import com.punchin.utility.*;
+import com.punchin.utility.CSVHelper;
+import com.punchin.utility.GenericUtils;
+import com.punchin.utility.ModelMapper;
+import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -74,19 +77,22 @@ public class BankerServiceImpl implements BankerService {
         map.put("status", false);
         try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
+            String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                List<ClaimDraftData> claimDraftData = ExcelHelper.excelToClaimsDraftData(file.getInputStream());
-                if (!claimDraftData.isEmpty()) {
-                    claimDraftData = claimDraftDataRepository.saveAll(claimDraftData);
-                    map.put("data", claimDraftData);
+                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
+                List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
+                if (Objects.nonNull(claimsData)) {
+                    claimsData = claimDraftDataRepository.saveAll(claimsData);
+                    map.put("data", claimsData);
                     map.put("status", true);
                     map.put("message", MessageCode.success);
                     return map;
                 }
+                map.put("message", data.get("message"));
             }
             return map;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData ", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData e{}", e);
             return map;
         }
     }
@@ -383,7 +389,7 @@ public class BankerServiceImpl implements BankerService {
                             p.setBorrowerAlternateContactDetails(cell.getStringCellValue());
                             break;
                         case 10:
-                            cell.setCellType(CellType.STRING);
+                            //  cell.setCellType(CellType.STRING);
                             p.setLoanAccountNumber(cell.getStringCellValue());
                             break;
                         case 11:
@@ -452,8 +458,9 @@ public class BankerServiceImpl implements BankerService {
                             p.setMasterPolNumber(cell.getStringCellValue());
                             break;
                         case 25:
-                            if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                            if (Objects.nonNull(cell.getStringCellValue())) {
+                                Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(cell.getStringCellValue());
+                                p.setPolicyStartDate(date1);
                             }
                             break;
                         case 26:

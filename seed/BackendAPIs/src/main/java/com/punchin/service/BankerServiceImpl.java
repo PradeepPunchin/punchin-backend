@@ -709,12 +709,14 @@ public class BankerServiceImpl implements BankerService {
         try {
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
             log.info("System path : path {}" + System.getProperty("user.dir"));
+            log.info("downloadFolderPath : path {}" + downloadFolderPath);
             //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             String filename =  "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            //downloadFolderPath = System.getProperty("user.dir");
             File file = new File(downloadFolderPath);
             file.mkdirs();
             //File file = new File(filename);
-            log.info("BankerController :: generateMisExcelReport dataFilter{}");
+            log.info("file location path {}", file.getAbsolutePath());
             final String[] HEADERs = {"S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",
                     "Alternate Mobile No.", "Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount", "Loan O/S Amount",
                     "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Local Contact Name", "Lenders Local Contact Mobile No.",

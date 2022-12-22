@@ -382,7 +382,7 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    public   List<AgentSearchDTO> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
+    public List<AgentSearchDTO> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
         log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
         Pageable pageable = PageRequest.of(pageNo, limit);
         Long agentId = GenericUtils.getLoggedInUser().getId();
@@ -441,7 +441,7 @@ public class AgentServiceImpl implements AgentService {
             return null;
         }
         List<AgentSearchDTO> agentSearchDTO1s = ObjectMapperUtils.mapAll(claimSearchedData.toList(), AgentSearchDTO.class);
-        for(AgentSearchDTO agentSearchDTO1:agentSearchDTO1s){
+        for (AgentSearchDTO agentSearchDTO1 : agentSearchDTO1s) {
             agentSearchDTO1.setClaimId(agentSearchDTO1.getPunchinClaimId());
             agentSearchDTO1.setAllocationDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimDate(agentSearchDTO1.getClaimInwardDate());

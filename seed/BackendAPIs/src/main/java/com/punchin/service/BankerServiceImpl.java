@@ -711,7 +711,7 @@ public class BankerServiceImpl implements BankerService {
             log.info("System path : path {}" + System.getProperty("user.dir"));
             log.info("downloadFolderPath : path {}" + downloadFolderPath);
             //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            String filename =  "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            String filename = "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             //downloadFolderPath = System.getProperty("user.dir");
             File file = new File(downloadFolderPath);
             file.mkdirs();
@@ -979,7 +979,13 @@ public class BankerServiceImpl implements BankerService {
         List<ClaimsData> claimSearchedData = null;
         List<String> statusList = new ArrayList<>();
         if (claimDataFilter.ALL.equals(claimDataFilter)) {
-            claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId);
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId2(searchedKeyword, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId3(searchedKeyword, bankerId);
+            }
         } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);

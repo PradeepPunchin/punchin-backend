@@ -451,7 +451,7 @@ public class AgentServiceImpl implements AgentService {
         List<DocumentUrls> documentUrls = new ArrayList<>();
         for (MultipartFile multipartFile : multipartFiles) {
             DocumentUrls urls = new DocumentUrls();
-            urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
+            urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
             if (Objects.isNull(urls.getDocUrl())) {
                 log.info("file not uploaded");
                 return Collections.emptyList();

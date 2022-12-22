@@ -707,10 +707,12 @@ public class BankerServiceImpl implements BankerService {
 
     private File generateMisExcelReport(List<ClaimsData> claimsDataList) {
         try {
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+            log.info("System path : path {}" + System.getProperty("user.dir"));
             //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             String filename = downloadFolderPath + "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            File file = new File(filename);
+            new File(downloadFolderPath).mkdir();
+            //File file = new File(filename);
             log.info("BankerController :: generateMisExcelReport dataFilter{}");
             final String[] HEADERs = {"S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",
                     "Alternate Mobile No.", "Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount", "Loan O/S Amount",
@@ -739,8 +741,6 @@ public class BankerServiceImpl implements BankerService {
                     cell.setCellValue(HEADERs[col]);
                     cell.setCellStyle(headerStyle);
                 }
-                CellStyle style = workbook.createCellStyle();
-                CreationHelper createHelper = workbook.getCreationHelper();
                 int rowIdx = 1;
                 for (ClaimsData claimsData : claimsDataList) {
                     Row row = sheet.createRow(rowIdx++);
@@ -788,7 +788,8 @@ public class BankerServiceImpl implements BankerService {
                     sheet.autoSizeColumn(i);
                 }
                 workbook.write(fileOut);
-                return file;
+                log.info("file exist file {}" + new File(filename).exists());
+                return new File(filename);
             } catch (IOException e) {
                 throw new RuntimeException("fail to export data to Excel file: " + e.getMessage());
             }

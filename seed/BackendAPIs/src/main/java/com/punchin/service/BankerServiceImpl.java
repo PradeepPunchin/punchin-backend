@@ -607,7 +607,14 @@ public class BankerServiceImpl implements BankerService {
     public String forwardToVerifier(ClaimsData claimsData) {
         try {
             log.info("BankerController :: forwardToVerifier");
-            claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(claimsData.getId(), "banker");
+            if(claimDocumentsList.isEmpty()){
+                return MessageCode.UPLOAD_BANKER_DOCUMENT;
+            }
+            for(ClaimDocuments claimDocuments : claimDocumentsList){
+                claimDocuments.setIsActive(true);
+            }
+            claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
             claimsData.setSubmittedAt(System.currentTimeMillis());
             claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getId());
             claimsDataRepository.save(claimsData);
@@ -1045,5 +1052,16 @@ public class BankerServiceImpl implements BankerService {
         }
         log.info("searched claim data fetched successfully");
         return claimSearchedData;
+    }
+
+    @Override
+    public boolean checkDocumentAlreadyExist(Long id, BankerDocType docType) {
+        try {
+            log.info("BankerServiceImpl :: checkDocumentAlreadyExist claimId - {}, docType - {}", id, docType);
+            return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndAgentDocType(id, "banker", docType.getValue());
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: checkDocumentAlreadyExist e - {}" + e);
+            return false;
+        }
     }
 }

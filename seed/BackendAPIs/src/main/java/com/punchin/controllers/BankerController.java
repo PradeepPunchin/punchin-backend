@@ -171,6 +171,9 @@ public class BankerController {
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
+            if(bankerService.checkDocumentAlreadyExist(id, docType)){
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_ALREADY_EXISTS, false, HttpStatus.FORBIDDEN);
+            }
             Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[]{multipartFiles}, docType);
             if (result.get("message").equals(MessageCode.success)) {
                 return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class AgentSearchDTO {
+public class VerifierSearchDTO {
 
     private String claimId;
     private Date claimDate;
@@ -53,7 +53,4 @@ public class AgentSearchDTO {
     private String nomineeContactNumber;
     private String nomineeEmailId;
     private String nomineeAddress;
-
-
 }
-

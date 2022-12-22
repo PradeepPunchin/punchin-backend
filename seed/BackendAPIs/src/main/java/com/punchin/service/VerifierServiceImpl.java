@@ -9,6 +9,7 @@ import com.punchin.enums.SearchCaseEnum;
 import com.punchin.repository.*;
 import com.punchin.utility.BASE64DecodedMultipartFile;
 import com.punchin.utility.GenericUtils;
+import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.ZipUtils;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
@@ -547,62 +548,77 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     @Override
-    public List<ClaimsData> getVerifierClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter) {
+    public List<VerifierSearchDTO> getVerifierClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter) {
         List<ClaimsData> claimSearchedData = null;
         List<String> statusList = new ArrayList<>();
         List<ClaimsData> filteredData = new ArrayList<>();
+        User verifier = GenericUtils.getLoggedInUser();
+        String verifierState = verifier.getState();
         if (claimDataFilter.ALL.equals(claimDataFilter)) {
-            claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId1(searchedKeyword);
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findAllocateClaimSearchedDataByClaimDataId(searchedKeyword,verifierState);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findAllocateClaimSearchedDataByLoanAccountNumber(searchedKeyword,verifierState);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findAllocateSearchedDataBySearchName(searchedKeyword,verifierState);
+            }
         } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.IN_PROGRESS.toString());
             statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
             statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList,verifierState);
                 filteredData = claimSearchedData.stream().filter(fil -> fil.getPunchinClaimId().equals(searchedKeyword)).collect(Collectors.toList());
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList,verifierState);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList,verifierState);
             }
         } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList,verifierState);
                 filteredData = claimSearchedData.stream().filter(fil -> fil.getPunchinClaimId().equals(searchedKeyword)).collect(Collectors.toList());
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList,verifierState);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList,verifierState);
             }
         } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.SETTLED.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList,verifierState);
                 filteredData = claimSearchedData.stream().filter(fil -> fil.getPunchinClaimId().equals(searchedKeyword)).collect(Collectors.toList());
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList,verifierState);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList,verifierState);
             }
         } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList,verifierState);
                 filteredData = claimSearchedData.stream().filter(fil -> fil.getPunchinClaimId().equals(searchedKeyword)).collect(Collectors.toList());
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList,verifierState);
             } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
-                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList);
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList,verifierState);
             }
         }
         if (claimSearchedData == null || claimSearchedData.isEmpty()) {
             log.info("No claims data found");
             return null;
         }
+        List<VerifierSearchDTO> verifierSearchDTOS = ObjectMapperUtils.mapAll(claimSearchedData, VerifierSearchDTO.class);
+        for (VerifierSearchDTO verifierSearchDTO : verifierSearchDTOS) {
+            verifierSearchDTO.setClaimId(verifierSearchDTO.getPunchinClaimId());
+            verifierSearchDTO.setAllocationDate(verifierSearchDTO.getClaimInwardDate());
+            verifierSearchDTO.setClaimDate(verifierSearchDTO.getClaimInwardDate());
+            verifierSearchDTO.setClaimStatus(verifierSearchDTO.getClaimStatus());
+        }
         log.info("searched claim data fetched successfully");
-        return filteredData;
+        return verifierSearchDTOS;
     }
 
     public List<AgentListResponseDTO> getAllAgentsForVerifier(long id) {

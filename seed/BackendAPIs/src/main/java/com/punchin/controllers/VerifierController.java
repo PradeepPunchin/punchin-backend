@@ -1,9 +1,6 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.AgentListResponseDTO;
-import com.punchin.dto.ClaimDetailForVerificationDTO;
-import com.punchin.dto.DocumentApproveRejectPayloadDTO;
-import com.punchin.dto.PageDTO;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
@@ -195,7 +192,7 @@ public class VerifierController {
                                                        @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
         try {
             log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
-            List<ClaimsData> searchedClaimData = verifierService.getVerifierClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter);
+            List<VerifierSearchDTO> searchedClaimData = verifierService.getVerifierClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter);
             if (searchedClaimData != null) {
                 log.info("Searched claim data fetched successfully");
                 return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);

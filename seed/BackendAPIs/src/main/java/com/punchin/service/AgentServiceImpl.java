@@ -266,22 +266,22 @@ public class AgentServiceImpl implements AgentService {
                 });
                 claimDocumentsRepository.saveAll(claimDocumentsList);
             }
-                ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
-                ClaimDocuments claimDocuments = new ClaimDocuments();
-                claimDocuments.setClaimsData(claimsData);
-                claimDocuments.setAgentDocType(AgentDocType.valueOf(docType));
-                claimDocuments.setDocType(oldDocType);
-                claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
-                claimDocuments.setUploadSideBy("agent");
-                List<DocumentUrls> documentUrls = new ArrayList<>();
-                for (MultipartFile multipartFile : multipartFiles) {
-                    DocumentUrls urls = new DocumentUrls();
-                    urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-                    if (Objects.isNull(urls.getDocUrl())) {
-                        map.put("message", MessageCode.fileNotUploaded);
-                        return map;
-                    }
-                    documentUrls.add(urls);
+            ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
+            ClaimDocuments claimDocuments = new ClaimDocuments();
+            claimDocuments.setClaimsData(claimsData);
+            claimDocuments.setAgentDocType(AgentDocType.valueOf(docType));
+            claimDocuments.setDocType(oldDocType);
+            claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments.setUploadSideBy("agent");
+            List<DocumentUrls> documentUrls = new ArrayList<>();
+            for (MultipartFile multipartFile : multipartFiles) {
+                DocumentUrls urls = new DocumentUrls();
+                urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+                if (Objects.isNull(urls.getDocUrl())) {
+                    map.put("message", MessageCode.fileNotUploaded);
+                    return map;
+                }
+                documentUrls.add(urls);
             }
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
@@ -399,4 +399,42 @@ public class AgentServiceImpl implements AgentService {
         return commonUtilService.getDetailsPage(claimSearchedData.getContent(), claimSearchedData.getContent().size(), claimSearchedData.getTotalPages(), claimSearchedData.getTotalElements());
     }
 
+    public List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType) {
+        Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
+        if (!optionalClaimsData.isPresent()) {
+            return Collections.emptyList();
+        }
+        ClaimsData claimsData = optionalClaimsData.get();
+        ClaimDocuments claimDocuments = new ClaimDocuments();
+        claimDocuments.setClaimsData(claimsData);
+        claimDocuments.setAgentDocType(AgentDocType.valueOf(docType.getValue()));
+        claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+        claimDocuments.setUploadSideBy("agent");
+        List<DocumentUrls> documentUrls = new ArrayList<>();
+        for (MultipartFile multipartFile : multipartFiles) {
+            DocumentUrls urls = new DocumentUrls();
+            urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile));
+            if (Objects.isNull(urls.getDocUrl())) {
+                log.info("file not uploaded");
+                return Collections.emptyList();
+            }
+            documentUrls.add(urls);
+        }
+        List<DocumentUrls> documentUrlsList = documentUrlsRepository.saveAll(documentUrls);
+        claimDocuments.setDocumentUrls(documentUrls);
+        claimDocuments.setUploadTime(System.currentTimeMillis());
+        claimDocumentsRepository.save(claimDocuments);
+        return documentUrlsList;
+    }
+
+    public String deleteClaimDocument(Long documentId) {
+        Optional<ClaimDocuments> optionalClaimDocuments = claimDocumentsRepository.findById(documentId);
+        if (!optionalClaimDocuments.isPresent()) {
+            return MessageCode.NO_RECORD_FOUND;
+        }
+        claimDocumentsRepository.delete(optionalClaimDocuments.get());
+        return MessageCode.DOCUMENT_DELETED;
+    }
+
 }
+

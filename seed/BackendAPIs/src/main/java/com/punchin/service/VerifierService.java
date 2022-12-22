@@ -1,9 +1,6 @@
 package com.punchin.service;
 
-import com.punchin.dto.ClaimDetailForVerificationDTO;
-import com.punchin.dto.DocumentApproveRejectPayloadDTO;
-import com.punchin.dto.PageDTO;
-import com.punchin.dto.VerifierClaimDataResponseDTO;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
@@ -31,4 +28,6 @@ public interface VerifierService {
     PageDTO getClaimDataWithDocumentStatus(Integer page, Integer limit);
 
     String downloadAllDocuments(Long claimId);
+
+    List<AgentListResponseDTO> getAllAgentsForVerifier(long userId);
 }

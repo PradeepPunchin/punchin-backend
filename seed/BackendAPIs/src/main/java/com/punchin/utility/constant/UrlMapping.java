@@ -23,7 +23,6 @@ public class UrlMapping {
     public static final String GET_CLAIM_SEARCHED_DATA = "/claim/search";
 
 
-
     //Authentication Endpoints
     public static final String LOGIN = BASEURL + "/auth" + "/login";
     public static final String LOGOUT = BASEURL + "/auth" + "/logout";
@@ -50,4 +49,8 @@ public class UrlMapping {
     public static final String AGENT_UPLOAD_DOCUMENT = "/claim/{id}/uploadDocument";
     public static final String AGENT_DISCREPANCY_DOCUMENT_UPLOAD = "/claim/{id}/discrepancy-document-upload/{docType}";
 
+    public static final String UPLOAD_DOCUMENT_AGENT = "/claim/uploadDocument";
+
+    public static final String AGENT_DELETE_DOCUMENT = "/claim/document/delete";
+    public static final String GET_ALL_AGENTS_VERIFIER = "/verifier/agents";
 }

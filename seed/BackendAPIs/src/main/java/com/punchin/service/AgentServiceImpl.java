@@ -13,6 +13,7 @@ import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.repository.DocumentUrlsRepository;
 import com.punchin.utility.GenericUtils;
+import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -381,14 +382,20 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    public PageDTO getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
+    public   List<AgentSearchDTO> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
         log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
         Pageable pageable = PageRequest.of(pageNo, limit);
         Long agentId = GenericUtils.getLoggedInUser().getId();
         Page<ClaimsData> claimSearchedData = null;
         List<String> statusList = new ArrayList<>();
         if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
-            claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId1(searchedKeyword, pageable, agentId);
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId1(searchedKeyword, pageable, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId2(searchedKeyword, pageable, agentId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId3(searchedKeyword, pageable, agentId);
+            }
         } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.ACTION_PENDING.toString());
             statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
@@ -433,8 +440,16 @@ public class AgentServiceImpl implements AgentService {
             log.info("No claims data found");
             return null;
         }
+        List<AgentSearchDTO> agentSearchDTO1s = ObjectMapperUtils.mapAll(claimSearchedData.toList(), AgentSearchDTO.class);
+        for(AgentSearchDTO agentSearchDTO1:agentSearchDTO1s){
+            agentSearchDTO1.setClaimId(agentSearchDTO1.getPunchinClaimId());
+            agentSearchDTO1.setAllocationDate(agentSearchDTO1.getClaimInwardDate());
+            agentSearchDTO1.setClaimDate(agentSearchDTO1.getClaimInwardDate());
+            agentSearchDTO1.setClaimStatus(agentSearchDTO1.getClaimStatus());
+        }
         log.info("searched claim data fetched successfully");
-        return commonUtilService.getDetailsPage(claimSearchedData.getContent(), claimSearchedData.getContent().size(), claimSearchedData.getTotalPages(), claimSearchedData.getTotalElements());
+        return agentSearchDTO1s;
+
     }
 
     public List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType) {

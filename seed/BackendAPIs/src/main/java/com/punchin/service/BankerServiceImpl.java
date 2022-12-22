@@ -787,9 +787,9 @@ public class BankerServiceImpl implements BankerService {
                     row.createCell(38).setCellValue(format.format(new Date()));
                     row.createCell(39).setCellValue("");
                 }
-                for (int i = 0; i < 40; i++) {
+                /*for (int i = 0; i < 40; i++) {
                     sheet.autoSizeColumn(i);
-                }
+                }*/
                 workbook.write(fileOut);
                 log.info("file exist file {}" + new File(downloadFolderPath + filename).exists());
                 return new File(downloadFolderPath + filename);

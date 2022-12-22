@@ -1,5 +1,6 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.AgentSearchDTO;
 import com.punchin.dto.AgentUploadDocumentDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;

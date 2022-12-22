@@ -7,6 +7,7 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.SearchCaseEnum;
+import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.service.AmazonClient;
 import com.punchin.service.BankerService;
 import com.punchin.utility.GenericUtils;
@@ -42,6 +43,8 @@ public class BankerController {
     private HttpServletResponse httpServletResponse;
     @Autowired
     private AmazonClient amazonClient;
+    @Autowired
+    private ClaimDocumentsRepository claimDocumentsRepository;
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
@@ -168,7 +171,7 @@ public class BankerController {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
-            if (Objects.isNull(claimsData)) {
+            if (Objects.isNull(claimsData)){
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             if(bankerService.checkDocumentAlreadyExist(id, docType)){
@@ -180,7 +183,7 @@ public class BankerController {
             }
             return ResponseHandler.response(null, result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerController :: getAllClaimsData e{}", e);
+            log.error("EXCEPTION WHILE BankerController :: getAllClaimsData ", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -281,7 +284,9 @@ public class BankerController {
 
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.BANKER_CSV_UPLOAD_CLAIM)
-    public ResponseEntity<Object> uploadCSVFileClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
+    public ResponseEntity<Object> uploadCSVFileClaimData
+            (@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile
+                     multipartFile) {
         try {
             return bankerService.saveUploadCSVData(multipartFile);
         } catch (
@@ -295,7 +300,8 @@ public class BankerController {
 
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_BANKER)
-    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum
+                                                               searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
                                                        @RequestParam ClaimDataFilter claimDataFilter) {
         try {
             log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword);

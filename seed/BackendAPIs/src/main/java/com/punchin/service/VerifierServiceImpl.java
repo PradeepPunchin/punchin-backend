@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -539,7 +538,6 @@ public class VerifierServiceImpl implements VerifierService {
             workbook.write(out);
             workbook.write(fileOut);
             out.writeTo(fileOut);
-
             BASE64DecodedMultipartFile base64DecodedMultipartFile = null;//new BASE64DecodedMultipartFile(new ByteArrayInputStream(out.toByteArray()).readAllBytes(), "Claims-VerifierData" + ".xlsx");
             return amazonClient.uploadFile("Claims-VerifierData", base64DecodedMultipartFile);
         } catch (Exception e) {

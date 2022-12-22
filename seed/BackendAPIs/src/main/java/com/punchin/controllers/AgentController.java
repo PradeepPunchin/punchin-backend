@@ -1,5 +1,6 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.AgentSearchDTO;
 import com.punchin.dto.AgentUploadDocumentDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
@@ -197,7 +198,7 @@ public class AgentController {
                                                        @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
         try {
             log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
-            PageDTO searchedClaimData = agentService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
+            List<AgentSearchDTO> searchedClaimData = agentService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
             if (searchedClaimData != null) {
                 log.info("Searched claim data fetched successfully");
                 return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);

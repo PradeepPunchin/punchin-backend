@@ -540,7 +540,7 @@ public class VerifierServiceImpl implements VerifierService {
             workbook.write(fileOut);
             out.writeTo(fileOut);
 
-            BASE64DecodedMultipartFile base64DecodedMultipartFile = new BASE64DecodedMultipartFile(new ByteArrayInputStream(out.toByteArray()).readAllBytes(), "Claims-VerifierData" + ".xlsx");
+            BASE64DecodedMultipartFile base64DecodedMultipartFile = null;//new BASE64DecodedMultipartFile(new ByteArrayInputStream(out.toByteArray()).readAllBytes(), "Claims-VerifierData" + ".xlsx");
             return amazonClient.uploadFile("Claims-VerifierData", base64DecodedMultipartFile);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getAllClaimsData ", e);

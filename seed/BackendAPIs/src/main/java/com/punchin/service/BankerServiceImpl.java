@@ -92,7 +92,7 @@ public class BankerServiceImpl implements BankerService {
             }
             return map;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData e{}", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData ", e);
             return map;
         }
     }

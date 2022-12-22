@@ -710,8 +710,9 @@ public class BankerServiceImpl implements BankerService {
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
             log.info("System path : path {}" + System.getProperty("user.dir"));
             //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            String filename = downloadFolderPath + "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            new File(downloadFolderPath).mkdir();
+            String filename =  "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            File file = new File(downloadFolderPath);
+            file.mkdirs();
             //File file = new File(filename);
             log.info("BankerController :: generateMisExcelReport dataFilter{}");
             final String[] HEADERs = {"S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",
@@ -719,7 +720,7 @@ public class BankerServiceImpl implements BankerService {
                     "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Local Contact Name", "Lenders Local Contact Mobile No.",
                     "Insurer Name", "Borrower Policy Number", "Master Policy Number", "Policy Start Date", "Policy Tenure", "Policy Sum Assured", "Nominee Name", "Nominee Relationship",
                     "Nominee Contact Number", "Nominee Email id", "Nominee Address", "Claim Action", "Claim Status", "Claim Status Date", "Documents Pending"};
-            try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(filename)) {
+            try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(file.getAbsolutePath() + filename, true)) {
                 Sheet sheet = workbook.createSheet("Sheet1");
                 // Header
                 Row headerRow = sheet.createRow(0);
@@ -788,8 +789,8 @@ public class BankerServiceImpl implements BankerService {
                     sheet.autoSizeColumn(i);
                 }
                 workbook.write(fileOut);
-                log.info("file exist file {}" + new File(filename).exists());
-                return new File(filename);
+                log.info("file exist file {}" + new File(downloadFolderPath + filename).exists());
+                return new File(downloadFolderPath + filename);
             } catch (IOException e) {
                 throw new RuntimeException("fail to export data to Excel file: " + e.getMessage());
             }

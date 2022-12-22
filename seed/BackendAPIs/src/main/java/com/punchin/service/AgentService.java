@@ -1,5 +1,6 @@
 package com.punchin.service;
 
+import com.punchin.dto.AgentSearchDTO1;
 import com.punchin.dto.AgentUploadDocumentDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
@@ -33,7 +34,7 @@ public interface AgentService {
 
     String forwardToVerifier(Long id);
 
-    PageDTO getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter);
+    List<AgentSearchDTO1> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter);
 
     List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType);
 

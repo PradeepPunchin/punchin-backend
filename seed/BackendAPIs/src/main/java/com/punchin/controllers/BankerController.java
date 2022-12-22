@@ -5,11 +5,10 @@ import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
-import com.punchin.enums.ClaimStatus;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.SearchCaseEnum;
 import com.punchin.service.AmazonClient;
 import com.punchin.service.BankerService;
-import com.punchin.service.MISExport;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
@@ -18,10 +17,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +40,15 @@ public class BankerController {
     private BankerService bankerService;
     @Autowired
     private HttpServletResponse httpServletResponse;
+    @Autowired
+    private AmazonClient amazonClient;
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
         try {
             log.info("BankerController :: getDashboardData");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Long> map = bankerService.getDashboardData();
@@ -71,7 +63,7 @@ public class BankerController {
     @PostMapping(value = UrlMapping.BANKER_UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             MultipartFile[] files = {multipartFile};
@@ -100,7 +92,7 @@ public class BankerController {
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             //page = page > 0 ? page - 1 : page;
@@ -118,7 +110,7 @@ public class BankerController {
         try {
             log.info("BankerController :: getClaimData claimId {}", id);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
-            if(Objects.isNull(claimsData)){
+            if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             BankerClaimDocumentationDTO bankerClaimDocumentationDTO = bankerService.getClaimDataForBankerAction(id);
@@ -137,7 +129,7 @@ public class BankerController {
     public ResponseEntity<Object> submitClaims() {
         try {
             log.info("BankerController :: submitClaims");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.submitClaims();
@@ -156,7 +148,7 @@ public class BankerController {
     public ResponseEntity<Object> discardClaims() {
         try {
             log.info("BankerController :: discardClaims");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.discardClaims();
@@ -179,7 +171,7 @@ public class BankerController {
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[] {multipartFiles}, docType);
+            Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[]{multipartFiles}, docType);
             if (result.get("message").equals(MessageCode.success)) {
                 return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
             }
@@ -215,7 +207,7 @@ public class BankerController {
     public ResponseEntity<Object> downloadStandardFormat() {
         try {
             log.info("BankerController :: discardClaims");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             return ResponseHandler.response("https://punchin-dev.s3.amazonaws.com/Claim_Data_Format.xlsx", MessageCode.success, true, HttpStatus.OK);
@@ -231,13 +223,13 @@ public class BankerController {
         try {
             log.info("BankerController :: getClaimData docId {}", docId);
 
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             ClaimDocuments claimDocuments = bankerService.getClaimDocuments(docId);
-            if(Objects.nonNull(claimDocuments)){
+            if (Objects.nonNull(claimDocuments)) {
                 String result = bankerService.deleteBankDocument(claimDocuments);
-                if(result.equals(MessageCode.success)){
+                if (result.equals(MessageCode.success)) {
                     return ResponseHandler.response(null, MessageCode.DOCUMENT_DELETED, true, HttpStatus.OK);
                 }
                 return ResponseHandler.response(null, result, false, HttpStatus.BAD_REQUEST);
@@ -255,11 +247,11 @@ public class BankerController {
         try {
             log.info("BankerController :: getClaimData claimId {}", claimId);
             ClaimsData claimsData = bankerService.isClaimByBanker(claimId);
-            if(Objects.isNull(claimsData)){
+            if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.saveASDraftDocument(claimsData);
-            if(result.equals(MessageCode.success)){
+            if (result.equals(MessageCode.success)) {
                 return ResponseHandler.response(null, MessageCode.DOCUMENT_SAVEAS_DRAFT, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
@@ -274,7 +266,7 @@ public class BankerController {
     public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
         try {
             log.info("BankerController :: downloadMISReport");
-            if(!bankerService.isBanker()){
+            if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             return ResponseHandler.response(bankerService.downloadMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
@@ -284,4 +276,58 @@ public class BankerController {
         }
     }
 
+    @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
+    @PostMapping(value = UrlMapping.BANKER_CSV_UPLOAD_CLAIM)
+    public ResponseEntity<Object> uploadCSVFileClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
+        try {
+            return bankerService.saveUploadCSVData(multipartFile);
+        } catch (
+                Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: uploadClaimData ", e);
+            return ResponseHandler.response(null, e.getMessage(), false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+
+    @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
+    @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_BANKER)
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                       @RequestParam ClaimDataFilter claimDataFilter) {
+        try {
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword);
+            List<ClaimsData> searchedClaimData = bankerService.getBankerClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter);
+            if (searchedClaimData != null) {
+                log.info("Searched claim data fetched successfully");
+                return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            log.info("No records found");
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: Get searched data :: ", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
+
+/*
+    @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
+    @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA)
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+        try {
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+            PageDTO searchedClaimData = agentService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
+            if (searchedClaimData != null) {
+                log.info("Searched claim data fetched successfully");
+                return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            log.info("No records found");
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: Get searched data :: e {} ", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+*/

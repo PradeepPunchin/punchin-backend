@@ -3,8 +3,7 @@ package com.punchin.utility.constant;
 public class MessageCode {
 
 
-
-    private MessageCode(){
+    private MessageCode() {
 
     }
 
@@ -28,7 +27,6 @@ public class MessageCode {
     public static final String DOCUMENT_SAVEAS_DRAFT = "Document save as draft successfully";
 
 
-
     //Claim Messages
     public static final String invalidClaimId = "Invalid claim id";
     public static final String fileNotUploaded = "File not uploaded";
@@ -42,5 +40,7 @@ public class MessageCode {
     public static final String ERROR_UPLOAD_DOCUMENT = "Error while uploading document";
     public static final String DOCUMENT_UPLOADED_SUCCESS = "Document uploaded successfully";
     public static final String ALL_AGENTS_LIST_FETCHED_SUCCESS = "All agents list fetched successfully";
+
+    public static final String invalidCredentials = "Invalid credentials";
 
 }

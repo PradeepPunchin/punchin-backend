@@ -5,7 +5,6 @@ import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
-import com.punchin.enums.ClaimDataFilter;
 import com.punchin.service.AgentService;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
@@ -190,10 +189,11 @@ public class AgentController {
 
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA)
-    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "caseType") String caseType, @RequestParam(value = "searchedKeyword") String searchedKeyword, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
         try {
-            log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", caseType, searchedKeyword, pageNo, limit);
-            PageDTO searchedClaimData = agentService.getClaimSearchedData(caseType, searchedKeyword, pageNo, limit);
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+            PageDTO searchedClaimData = agentService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
             if (searchedClaimData != null) {
                 log.info("Searched claim data fetched successfully");
                 return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);

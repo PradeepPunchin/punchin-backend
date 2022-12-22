@@ -7,7 +7,8 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
-import org.springframework.data.domain.Page;
+import com.punchin.enums.SearchCaseEnum;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -32,7 +33,7 @@ public interface BankerService {
 
     Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType);
 
-    ByteArrayInputStream downloadMISFile();
+    ByteArrayInputStream downloadMISFile(ClaimStatus claimStatus);
 
     String forwardToVerifier(ClaimsData claimsData);
 
@@ -47,4 +48,11 @@ public interface BankerService {
     String saveASDraftDocument(ClaimsData claimsData);
 
     String downloadMISReport(ClaimDataFilter claimDataFilter);
+
+
+    ResponseEntity<Object> saveUploadCSVData(MultipartFile file);
+
+    List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter);
+
+    List<ClaimsData> getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter);
 }

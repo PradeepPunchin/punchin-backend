@@ -5,8 +5,8 @@ import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.AgentDocType;
-import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.SearchCaseEnum;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public interface AgentService {
 
     String forwardToVerifier(Long id);
 
-    PageDTO getClaimSearchedData(String caseType, String searchedKeyword, Integer pageNo, Integer limit);
+    PageDTO getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter);
 
     List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType);
 

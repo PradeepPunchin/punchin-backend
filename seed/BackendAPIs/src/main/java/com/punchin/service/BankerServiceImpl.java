@@ -7,8 +7,7 @@ import com.punchin.dto.PageDTO;
 import com.punchin.entity.*;
 import com.punchin.enums.*;
 import com.punchin.repository.*;
-import com.punchin.utility.GenericUtils;
-import com.punchin.utility.ModelMapper;
+import com.punchin.utility.*;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -22,16 +21,17 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
@@ -63,6 +63,10 @@ public class BankerServiceImpl implements BankerService {
     private AmazonClient amazonClient;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private EntityManager entityManager;
+    @Autowired
+    private CommonUtilService commonUtilService;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -70,22 +74,19 @@ public class BankerServiceImpl implements BankerService {
         map.put("status", false);
         try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
-            String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
-                List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
-                if (Objects.nonNull(claimsData)) {
-                    claimsData = claimDraftDataRepository.saveAll(claimsData);
-                    map.put("data", claimsData);
+                List<ClaimDraftData> claimDraftData = ExcelHelper.excelToClaimsDraftData(file.getInputStream());
+                if (!claimDraftData.isEmpty()) {
+                    claimDraftData = claimDraftDataRepository.saveAll(claimDraftData);
+                    map.put("data", claimDraftData);
                     map.put("status", true);
                     map.put("message", MessageCode.success);
                     return map;
                 }
-                map.put("message", data.get("message"));
             }
             return map;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData e{}", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData ", e);
             return map;
         }
     }
@@ -104,7 +105,7 @@ public class BankerServiceImpl implements BankerService {
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
-            }  else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
+            } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
@@ -116,7 +117,7 @@ public class BankerServiceImpl implements BankerService {
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus,GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
@@ -174,7 +175,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());
                 User agent = userRepository.findByAgentAndState(RoleEnum.AGENT.name(), claimsData.getBorrowerState().toLowerCase());
-                if(Objects.nonNull(agent)){
+                if (Objects.nonNull(agent)) {
                     claimsData.setAgentId(agent.getId());
                 }
                 claimsDataList.add(claimsData);
@@ -205,7 +206,7 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerController :: getClaimData claimId {}", claimId);
             ClaimsData claimsData = claimsDataRepository.findByIdAndPunchinBankerId(claimId, GenericUtils.getLoggedInUser().getUserId());
-            if(Objects.nonNull(claimsData)){
+            if (Objects.nonNull(claimsData)) {
                 BankerClaimDocumentationDTO dto = new BankerClaimDocumentationDTO();
                 dto.setId(claimsData.getId());
                 dto.setPunchinClaimId(claimsData.getPunchinClaimId());
@@ -281,7 +282,7 @@ public class BankerServiceImpl implements BankerService {
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
                 urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "banker"));
-                if(Objects.isNull(urls.getDocUrl())){
+                if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
                 }
@@ -390,11 +391,11 @@ public class BankerServiceImpl implements BankerService {
                             p.setLoanType(cell.getStringCellValue());
                             break;
                         case 12:
-                            if(cell.getCellType().equals(CellType.NUMERIC)) {
+                            if (cell.getCellType().equals(CellType.NUMERIC)) {
                                 if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
                                     p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
                                 }
-                            }else if(cell.getCellType().equals(CellType.STRING)) {
+                            } else if (cell.getCellType().equals(CellType.STRING)) {
                                 p.setLoanDisbursalDate(new Date(cell.getStringCellValue()));
                             }
                             break;
@@ -513,16 +514,16 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public ByteArrayInputStream downloadMISFile() {
+    public ByteArrayInputStream downloadMISFile(ClaimStatus claimStatus) {
         try {
-            String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/logs/Claim_Data_Format.xlsx";
+            String filename = "/home/prince/D/Claim_Data_Format.xlsx";
             log.info("BankerController :: getAllClaimsData dataFilter{}");
-            List<ClaimsData> claimsDataList =  claimsDataRepository.findAll();
-            final String[] HEADERs = { "S.No", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pincode", "Borrower State", "Borrower Contact Number", "Borrower Email id",
+            List<ClaimsData> claimsDataList = claimsDataRepository.findByClaimStatus(claimStatus);
+            final String[] HEADERs = {"S.No", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pincode", "Borrower State", "Borrower Contact Number", "Borrower EmailId",
                     "Borrower Alternate Contact Number", "Borrower Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount",
-            "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Contact Name", "Lender Contact Number",
-            "Insurer Name", "Borrower Policy Number", "Master Policy Number", "Policy Start Date", "Policy Tenure", "Policy Sum Assured", "Nominee Name", "Nominee Relationship",
-            "Nominee Contact Number", "Nominee Email id", "Nominee Address"};
+                    "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Contact Name", "Lender Contact Number",
+                    "Insurer Name", "Borrower Policy Number", "Master Policy Number", "Policy StartDate", "Policy Tenure", "Policy SumAssured", "Nominee Name", "Nominee Relationship",
+                    "Nominee Contact Number", "Nominee EmailId", "Nominee Address"};
             try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
                 Sheet sheet = workbook.createSheet("Sheet1");
                 FileOutputStream fileOut = new FileOutputStream(filename);
@@ -617,6 +618,7 @@ public class BankerServiceImpl implements BankerService {
         }
     }
 
+
     @Override
     public boolean isBanker() {
         return userRepository.existsByIdAndRole(GenericUtils.getLoggedInUser().getId(), RoleEnum.BANKER);
@@ -624,7 +626,7 @@ public class BankerServiceImpl implements BankerService {
 
     @Override
     public ClaimsData isClaimByBanker(Long claimId) {
-        return claimsDataRepository.findByIdAndPunchinBankerId(claimId,GenericUtils.getLoggedInUser().getUserId());
+        return claimsDataRepository.findByIdAndPunchinBankerId(claimId, GenericUtils.getLoggedInUser().getUserId());
     }
 
     @Override
@@ -656,7 +658,9 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerController :: saveASDraftDocument claimsData {}", claimsData);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataId(claimsData.getId());
-            claimDocumentsList.forEach(claimDocuments -> {claimDocuments.setIsActive(true);});
+            claimDocumentsList.forEach(claimDocuments -> {
+                claimDocuments.setIsActive(true);
+            });
             claimDocumentsRepository.saveAll(claimDocumentsList);
             return MessageCode.success;
         } catch (Exception e) {
@@ -676,7 +680,7 @@ public class BankerServiceImpl implements BankerService {
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
-            }  else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
+            } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
@@ -688,7 +692,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus,GenericUtils.getLoggedInUser().getUserId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
@@ -701,15 +705,15 @@ public class BankerServiceImpl implements BankerService {
         }
     }
 
-    private File generateMisExcelReport(List<ClaimsData> claimsDataList){
+    private File generateMisExcelReport(List<ClaimsData> claimsDataList) {
         try {
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
             //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             String filename = downloadFolderPath + "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             File file = new File(filename);
             log.info("BankerController :: generateMisExcelReport dataFilter{}");
-            final String[] HEADERs = { "S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",
-                    "Alternate Mobile No.", "Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount","Loan O/S Amount",
+            final String[] HEADERs = {"S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",
+                    "Alternate Mobile No.", "Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount", "Loan O/S Amount",
                     "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Local Contact Name", "Lenders Local Contact Mobile No.",
                     "Insurer Name", "Borrower Policy Number", "Master Policy Number", "Policy Start Date", "Policy Tenure", "Policy Sum Assured", "Nominee Name", "Nominee Relationship",
                     "Nominee Contact Number", "Nominee Email id", "Nominee Address", "Claim Action", "Claim Status", "Claim Status Date", "Documents Pending"};
@@ -780,7 +784,7 @@ public class BankerServiceImpl implements BankerService {
                     row.createCell(38).setCellValue(format.format(new Date()));
                     row.createCell(39).setCellValue("");
                 }
-                for(int i = 0; i < 40; i++) {
+                for (int i = 0; i < 40; i++) {
                     sheet.autoSizeColumn(i);
                 }
                 workbook.write(fileOut);
@@ -792,5 +796,250 @@ public class BankerServiceImpl implements BankerService {
             log.error("EXCEPTION WHILE BankerServiceImpl :: generateMisExcelReport ", e);
             return null;
         }
+    }
+
+    public boolean save(MultipartFile file) {
+        try {
+            List<ClaimsData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream());
+            if (!claimsDataList.isEmpty()) {
+                claimsDataRepository.saveAll(claimsDataList);
+                return true;
+            }
+        } catch (IOException e) {
+            log.error("fail to store csv data: " + e.getMessage());
+        }
+        return false;
+    }
+
+    @Override
+    public ResponseEntity<Object> saveUploadCSVData(MultipartFile file) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("status", false);
+        try {
+            String message = "";
+            if (CSVHelper.hasCSVFormat(file)) {
+                try {
+                    boolean save = save(file);
+                    if (save) {
+                        message = "Uploaded the file successfully: " + file.getOriginalFilename();
+                        return ResponseHandler.response(message, MessageCode.success, true, HttpStatus.CREATED);
+                    }
+                    return ResponseHandler.response(message, MessageCode.success, true, HttpStatus.BAD_REQUEST);
+
+                } catch (Exception e) {
+                    message = "Could not upload the file: " + file.getOriginalFilename() + "!";
+                    return ResponseHandler.response(message, MessageCode.success, true, HttpStatus.EXPECTATION_FAILED);
+                }
+            }
+            message = "Please upload a csv file!";
+            return ResponseHandler.response(message, MessageCode.backText, true, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadCSVData ", e);
+        }
+        return ResponseHandler.response("", MessageCode.backText, true, HttpStatus.BAD_REQUEST);
+
+    }
+
+    @Override
+    public List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
+        log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+        String queryCondition = "";
+        if (Objects.isNull(searchedKeyword))
+            searchedKeyword = "";
+        List<String> statusList = new ArrayList<>();
+        if (claimDataFilter.ALLOCATED.equals(claimDataFilter) || Objects.isNull(claimDataFilter)) {
+            ClaimStatus claimStatuses[] = ClaimStatus.values();
+            for (ClaimStatus claimStatus : claimStatuses)
+                statusList.add(claimStatus.toString());
+        } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.ACTION_PENDING.toString());
+            statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
+            statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
+        } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.IN_PROGRESS.toString());
+        } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
+        } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
+        }
+        if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            queryCondition = getPunchInClaimId(searchedKeyword);
+        } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            queryCondition = getLoanAccountNo(searchedKeyword);
+        } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            queryCondition = getBorrowerName(searchedKeyword);
+        }
+        return getClaimDataFilter(searchedKeyword, statusList, pageNo, limit, queryCondition);
+    }
+
+    private String getPunchInClaimId(String search) {
+        if (!search.equals(""))
+            return "and cd.punchin_claim_id Ilike %:search%) ";
+        return "";
+    }
+
+    private String getLoanAccountNo(String search) {
+        if (!search.equals(""))
+            return "and cd.loan_account_number Ilike %:search%) ";
+        return "";
+    }
+
+    private String getBorrowerName(String search) {
+        if (!search.equals(""))
+            return "and (cd.borrower_name Ilike %:search%) ";
+        return "";
+    }
+
+    private List<Map<String, Object>> getClaimDataFilter(String search, List<String> claimStatus, Integer pageNo, Integer pageSize, String queryCondition) {
+        String query = "select distinct cd.id as id,cd.punchin_claim_id as punchinClaimId,cd.insurer_claim_id as insurerClaimId, " +
+                " cd.punchin_banker_id as punchinBankerId,cd.claim_inward_date as claimInwardDate,cd.borrower_name as borrowerName, " +
+                " cd.borrower_contact_number as borrowerContactNumber,cd.borrower_city as borrowerCity,cd.borrower_state as borrowerState, " +
+                " cd.borrower_pin_code as borrowerPinCode, cd.borrower_email_id as borrowerEmailId,cd.borrower_alternate_contact_number as borrowerAlternateContactNumber, " +
+                " cd.borrower_alternate_contact_details as borrowerAlternateContactDetails,cd.borrower_dob as borrowerDob, cd.loan_account_number as loanAccountNumber, " +
+                " cd.borrower_address as borrowerAddress,cd.loan_type as loanType ,cd.loan_disbursal_date as loanDisbursalDate, " +
+                " cd.loan_outstanding_amount as loanOutstandingAmount,cd.loan_amount as loanAmount, " +
+                " cd.loan_amount_paid_by_borrower as loanAmountPaidByBorrower,cd.loan_amount_balance as loanAmountBalance, " +
+                " cd.branch_code as branchCode,cd.branch_name as branchName,cd.branch_address as branchAddress,cd.branch_pin_code as branchPinCode, " +
+                " cd.branch_city as branchCity,cd.branch_state as branchState,cd.loan_account_manager_name as loanAccountManagerName, " +
+                " cd.account_manager_contact_number as accountManagerContactNumber,cd.insurer_name as insurerName,cd.master_pol_number as masterPolNumber " +
+                " cd.policy_number as policyNumber,cd.policy_start_date as policyStartDate,cd.policy_coverage_duration as policyCoverageDuration, " +
+                " cd.policy_sum_assured as policySumAssured,cd.nominee_name as nomineeName,cd.nominee_relation_ship as nomineeRelationShip, " +
+                " cd.nominee_contact_number as nomineeContactNumber,cd.nominee_email_id as nomineeEmailId,cd.nominee_address as nomineeAddress," +
+                " cd.claim_status as claimStatus from claims_data cd where cd.claim_status in (:claimStatus) " + queryCondition;
+        Query q = entityManager.createNativeQuery(query);
+        Query q1 = entityManager.createNativeQuery(query);
+        q.setParameter("claimStatus", claimStatus);
+        q.setParameter("search", search);
+        q1.setParameter("claimStatus", claimStatus);
+        q1.setParameter("search", search);
+        q.setMaxResults(pageSize);
+        q.setFirstResult(pageNo * pageSize);
+        List<Object[]> list = q.getResultList();
+        List<Object[]> list1 = q1.getResultList();
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        for (Object[] row : list) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", row[0]);
+            map.put("punchinClaimId", row[1]);
+            map.put("insurerClaimId", row[2]);
+            map.put("punchinBankerId", row[3]);
+            map.put("claimInwardDate", row[4]);
+            map.put("borrowerName", row[5]);
+            map.put("borrowerContactNumber", row[6]);
+            map.put("borrowerCity", row[7]);
+            map.put("borrowerState", row[8]);
+            map.put("borrowerPinCode", row[9]);
+            map.put("borrowerEmailId", row[10]);
+            map.put("borrowerAlternateContactNumber", row[11]);
+            map.put("borrowerAlternateContactDetails", row[12]);
+            map.put("borrowerDob", row[13]);
+            map.put("loanAccountNumber", row[14]);
+            map.put("borrowerAddress", row[15]);
+            map.put("loanType", row[16]);
+            map.put("loanDisbursalDate", row[17]);
+            map.put("loanOutstandingAmount", row[18]);
+            map.put("loanAmount", row[19]);
+            map.put("loanAmountPaidByBorrower", row[20]);
+            map.put("loanAmountBalance", row[21]);
+            map.put("branchCode", row[22]);
+            map.put("branchName", row[23]);
+            map.put("branchAddress", row[24]);
+            map.put("branchPinCode", row[25]);
+            map.put("branchCity", row[26]);
+            map.put("branchState", row[27]);
+            map.put("loanAccountManagerName", row[28]);
+            map.put("accountManagerContactNumber", row[29]);
+            map.put("insurerName", row[30]);
+            map.put("masterPolNumber", row[31]);
+            map.put("policyNumber", row[32]);
+            map.put("policyStartDate", row[33]);
+            map.put("policyCoverageDuration", row[34]);
+            map.put("policySumAssured", row[35]);
+            map.put("nomineeName", row[36]);
+            map.put("nomineeRelationShip", row[37]);
+            map.put("nomineeContactNumber", row[38]);
+            map.put("nomineeEmailId", row[39]);
+            map.put("nomineeAddress", row[40]);
+            map.put("claimStatus", row[41]);
+            map.put("count", list1.stream().count());
+            mapList.add(map);
+        }
+        return mapList;
+    }
+
+    @Override
+    public List<ClaimsData> getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter) {
+        log.info("Get Searched data request received for caseType :{} , searchedKeyword :{}  ", searchCaseEnum, searchedKeyword);
+        Long bankerId = GenericUtils.getLoggedInUser().getId();
+        List<ClaimsData> claimSearchedData = null;
+        List<String> statusList = new ArrayList<>();
+        if (claimDataFilter.ALL.equals(claimDataFilter)) {
+            claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId);
+        } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.IN_PROGRESS.toString());
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
+            statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
+            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
+            statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.SETTLED.toString());
+            statusList.add(ClaimStatus.SUBMITTED_TO_INSURER.toString());
+            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId);
+            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId);
+            }
+        }
+        if (claimSearchedData == null || claimSearchedData.isEmpty()) {
+            log.info("No claims data found");
+            return null;
+        }
+        log.info("searched claim data fetched successfully");
+        return claimSearchedData;
     }
 }

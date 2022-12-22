@@ -707,17 +707,22 @@ public class BankerServiceImpl implements BankerService {
 
     private File generateMisExcelReport(List<ClaimsData> claimsDataList) {
         try {
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+            log.info("System path : path {}" + System.getProperty("user.dir"));
+            log.info("downloadFolderPath : path {}" + downloadFolderPath);
             //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            String filename = downloadFolderPath + "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            File file = new File(filename);
-            log.info("BankerController :: generateMisExcelReport dataFilter{}");
+            String filename =  "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            //downloadFolderPath = System.getProperty("user.dir");
+            File file = new File(downloadFolderPath);
+            file.mkdirs();
+            //File file = new File(filename);
+            log.info("file location path {}", file.getAbsolutePath());
             final String[] HEADERs = {"S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",
                     "Alternate Mobile No.", "Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount", "Loan O/S Amount",
                     "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Local Contact Name", "Lenders Local Contact Mobile No.",
                     "Insurer Name", "Borrower Policy Number", "Master Policy Number", "Policy Start Date", "Policy Tenure", "Policy Sum Assured", "Nominee Name", "Nominee Relationship",
                     "Nominee Contact Number", "Nominee Email id", "Nominee Address", "Claim Action", "Claim Status", "Claim Status Date", "Documents Pending"};
-            try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(filename)) {
+            try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(file.getAbsolutePath() + filename, true)) {
                 Sheet sheet = workbook.createSheet("Sheet1");
                 // Header
                 Row headerRow = sheet.createRow(0);
@@ -739,8 +744,6 @@ public class BankerServiceImpl implements BankerService {
                     cell.setCellValue(HEADERs[col]);
                     cell.setCellStyle(headerStyle);
                 }
-                CellStyle style = workbook.createCellStyle();
-                CreationHelper createHelper = workbook.getCreationHelper();
                 int rowIdx = 1;
                 for (ClaimsData claimsData : claimsDataList) {
                     Row row = sheet.createRow(rowIdx++);
@@ -784,11 +787,12 @@ public class BankerServiceImpl implements BankerService {
                     row.createCell(38).setCellValue(format.format(new Date()));
                     row.createCell(39).setCellValue("");
                 }
-                for (int i = 0; i < 40; i++) {
+                /*for (int i = 0; i < 40; i++) {
                     sheet.autoSizeColumn(i);
-                }
+                }*/
                 workbook.write(fileOut);
-                return file;
+                log.info("file exist file {}" + new File(downloadFolderPath + filename).exists());
+                return new File(downloadFolderPath + filename);
             } catch (IOException e) {
                 throw new RuntimeException("fail to export data to Excel file: " + e.getMessage());
             }

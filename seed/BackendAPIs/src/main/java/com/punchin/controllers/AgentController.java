@@ -5,6 +5,7 @@ import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
+import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.service.AgentService;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
@@ -32,6 +33,9 @@ public class AgentController {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private ClaimDocumentsRepository claimDocumentsRepository;
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
@@ -206,13 +210,17 @@ public class AgentController {
         }
     }
 
-    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by banker")
+    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
     @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
     public ResponseEntity<Object> uploadAgentDocument(@RequestParam Long id, @RequestParam AgentDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            boolean documentExists = claimDocumentsRepository.findExistingDocument(id, docType.toString());
+            if (documentExists) {
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_ALREADY_EXISTS, true, HttpStatus.OK);
             }
             List<DocumentUrls> documentUrlsList = agentService.uploadAgentDocument(id, new MultipartFile[]{multipartFiles}, docType);
             if (!documentUrlsList.isEmpty()) {

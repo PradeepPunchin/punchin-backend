@@ -41,4 +41,7 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
     List<ClaimDocuments> findByClaimsDataId(Long id);
 
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActive(Long id, String banker, boolean b);
+
+    @Query(nativeQuery = true, value = "select exists (select * from claim_documents cd where cd.claims_data_id =:claimId and cd.agent_doc_type =:agentDoc)")
+    boolean findExistingDocument(@Param("claimId") Long id, String agentDoc);
 }

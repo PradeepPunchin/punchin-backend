@@ -42,5 +42,6 @@ public class MessageCode {
     public static final String ALL_AGENTS_LIST_FETCHED_SUCCESS = "All agents list fetched successfully";
 
     public static final String invalidCredentials = "Invalid credentials";
+    public static final String DOCUMENT_ALREADY_EXISTS = "Document already exists";
 
 }

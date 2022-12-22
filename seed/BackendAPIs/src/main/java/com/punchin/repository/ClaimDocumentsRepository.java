@@ -41,4 +41,7 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
     List<ClaimDocuments> findByClaimsDataId(Long id);
 
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActive(Long id, String banker, boolean b);
+
+    @Query(nativeQuery = true, value = " select * from claim_documents cd where cd.upload_by='agent' and cd.claims_data_id:claimDataId and cd.doc_type:docType ")
+    ClaimDocuments findClaimDocumentsByClaimDataIdAndDocType(Long claimDataId, String docType);
 }

@@ -14,10 +14,11 @@ import com.punchin.utility.ZipUtils;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.hssf.usermodel.HSSFPalette;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -542,7 +544,7 @@ public class VerifierServiceImpl implements VerifierService {
             BASE64DecodedMultipartFile base64DecodedMultipartFile = null;//new BASE64DecodedMultipartFile(new ByteArrayInputStream(out.toByteArray()).readAllBytes(), "Claims-VerifierData" + ".xlsx");
             return amazonClient.uploadFile("Claims-VerifierData", base64DecodedMultipartFile);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: getAllClaimsData ", e);
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: getAllClaimsData ", e);
             return null;
         }
     }
@@ -631,6 +633,138 @@ public class VerifierServiceImpl implements VerifierService {
         }
         log.info(MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS);
         return agentListResponseDTOList;
+    }
+
+    @Override
+    public String downloadMISReport(ClaimDataFilter claimDataFilter) {
+        try {
+            log.info("VerifierServiceImpl :: downloadMISReport claimDataFilter {}", claimDataFilter);
+            List<ClaimsData> claimsDataList = new ArrayList<>();
+            List<ClaimStatus> claimsStatus = new ArrayList<>();
+            if (claimDataFilter.ALL.equals(claimDataFilter)) {
+                claimsDataList = claimsDataRepository.findByBorrowerStateOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getState());
+            } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.IN_PROGRESS);
+                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
+            } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
+            } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.SETTLED);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
+            } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
+            }
+            return amazonClient.uploadFile(generateMisExcelReport(claimsDataList));
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: downloadMISReport ", e);
+            return null;
+        }
+    }
+
+    private File generateMisExcelReport(List<ClaimsData> claimsDataList) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+            log.info("System path : path {}" + System.getProperty("user.dir"));
+            log.info("downloadFolderPath : path {}" + downloadFolderUrl);
+            //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            String filename =  "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            //downloadFolderPath = System.getProperty("user.dir");
+            File file = new File(downloadFolderUrl);
+            file.mkdirs();
+            //File file = new File(filename);
+            log.info("file location path {}", file.getAbsolutePath());
+            final String[] HEADERs = {"S.No", "PunchIn Ref Id", "Case Inward date ", "Borrower Name", "Borrower Address", "Borrower City", "Borrower Pin Code", "Borrower State", "Borrower Contact Number", "Borrower Email id",
+                    "Alternate Mobile No.", "Alternate Contact Details", "Loan Account Number", "Loan Category/Type", "Loan Disbursal Date", "Loan Disbursal Amount", "Loan O/S Amount",
+                    "Lender Branch Code", "Lender Branch Address", "Lender Branch City", "Lender Branch Pin code", "Lender Branch State", "Lenders Local Contact Name", "Lenders Local Contact Mobile No.",
+                    "Insurer Name", "Borrower Policy Number", "Master Policy Number", "Policy Start Date", "Policy Tenure", "Policy Sum Assured", "Nominee Name", "Nominee Relationship",
+                    "Nominee Contact Number", "Nominee Email id", "Nominee Address", "Claim Action", "Claim Status", "Claim Status Date", "Documents Pending"};
+            try (Workbook workbook = new XSSFWorkbook(); FileOutputStream fileOut = new FileOutputStream(file.getAbsolutePath() + filename, true)) {
+                Sheet sheet = workbook.createSheet("Sheet1");
+                // Header
+                Row headerRow = sheet.createRow(0);
+                HSSFWorkbook hwb = new HSSFWorkbook();
+                HSSFPalette palette = hwb.getCustomPalette();
+                HSSFColor headerBackgroundColor = palette.findSimilarColor(222, 234, 246);
+
+                CellStyle headerStyle = workbook.createCellStyle();
+                headerStyle.setFillForegroundColor(headerBackgroundColor.getIndex());
+                headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                XSSFFont font = ((XSSFWorkbook) workbook).createFont();
+                font.setFontName("Calibri");
+                font.setFontHeightInPoints((short) 12);
+                font.setBold(true);
+                headerStyle.setFont(font);
+
+                for (int col = 0; col < HEADERs.length; col++) {
+                    Cell cell = headerRow.createCell(col);
+                    cell.setCellValue(HEADERs[col]);
+                    cell.setCellStyle(headerStyle);
+                }
+                int rowIdx = 1;
+                for (ClaimsData claimsData : claimsDataList) {
+                    Row row = sheet.createRow(rowIdx++);
+                    row.createCell(0).setCellValue(rowIdx);
+                    row.createCell(1).setCellValue(claimsData.getPunchinBankerId());
+                    row.createCell(2).setCellValue(format.format(claimsData.getClaimInwardDate()).toString());
+                    row.createCell(3).setCellValue(claimsData.getBorrowerName());
+                    row.createCell(4).setCellValue(claimsData.getBorrowerAddress());
+                    row.createCell(5).setCellValue(claimsData.getBorrowerCity());
+                    row.createCell(6).setCellValue(claimsData.getBorrowerPinCode());
+                    row.createCell(7).setCellValue(claimsData.getBorrowerState());
+                    row.createCell(8).setCellValue(claimsData.getBorrowerContactNumber());
+                    row.createCell(9).setCellValue(claimsData.getBorrowerEmailId());
+                    row.createCell(10).setCellValue(claimsData.getBorrowerAlternateContactNumber());
+                    row.createCell(11).setCellValue(claimsData.getBorrowerAlternateContactDetails());
+                    row.createCell(12).setCellValue(claimsData.getLoanAccountNumber());
+                    row.createCell(13).setCellValue(claimsData.getLoanType());
+                    row.createCell(14).setCellValue(format.format(claimsData.getLoanDisbursalDate()));
+                    row.createCell(15).setCellValue(claimsData.getLoanAmount());
+                    row.createCell(16).setCellValue(claimsData.getLoanOutstandingAmount());
+                    row.createCell(17).setCellValue(claimsData.getBranchCode());
+                    row.createCell(18).setCellValue(claimsData.getBranchAddress());
+                    row.createCell(19).setCellValue(claimsData.getBranchCity());
+                    row.createCell(20).setCellValue(claimsData.getBranchPinCode());
+                    row.createCell(21).setCellValue(claimsData.getBranchState());
+                    row.createCell(22).setCellValue(claimsData.getLoanAccountManagerName());
+                    row.createCell(23).setCellValue(claimsData.getAccountManagerContactNumber());
+                    row.createCell(24).setCellValue(claimsData.getInsurerName());
+                    row.createCell(25).setCellValue(claimsData.getPolicyNumber());
+                    row.createCell(26).setCellValue(claimsData.getMasterPolNumber());
+                    row.createCell(27).setCellValue(format.format(claimsData.getPolicyStartDate()));
+                    row.createCell(28).setCellValue(claimsData.getPolicyCoverageDuration());
+                    row.createCell(29).setCellValue(claimsData.getPolicySumAssured());
+                    row.createCell(30).setCellValue(claimsData.getNomineeName());
+                    row.createCell(32).setCellValue(claimsData.getNomineeRelationShip());
+                    row.createCell(33).setCellValue(claimsData.getNomineeContactNumber());
+                    row.createCell(34).setCellValue(claimsData.getNomineeEmailId());
+                    row.createCell(35).setCellValue(claimsData.getNomineeAddress());
+                    row.createCell(36).setCellValue("OPEN");
+                    row.createCell(37).setCellValue(claimsData.getClaimStatus().name());
+                    row.createCell(38).setCellValue(format.format(new Date()));
+                    row.createCell(39).setCellValue("");
+                }
+                /*for (int i = 0; i < 40; i++) {
+                    sheet.autoSizeColumn(i);
+                }*/
+                workbook.write(fileOut);
+                log.info("file exist file {}" + new File(downloadFolderUrl + filename).exists());
+                return new File(downloadFolderUrl + filename);
+            } catch (IOException e) {
+                throw new RuntimeException("fail to export data to Excel file: " + e.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: generateMisExcelReport ", e);
+            return null;
+        }
     }
 
 }

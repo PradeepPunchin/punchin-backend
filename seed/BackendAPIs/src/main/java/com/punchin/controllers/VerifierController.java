@@ -219,4 +219,16 @@ public class VerifierController {
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @ApiOperation(value = "Download MIS Report", notes = "This can be used to download MIS in excel sheet")
+    @GetMapping(value = UrlMapping.DOWNLOAD_MIS_REPORT)
+    public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
+        try {
+            log.info("BankerController :: downloadMISReport");
+            return ResponseHandler.response(verifierService.downloadMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while fetching in pagination data");
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

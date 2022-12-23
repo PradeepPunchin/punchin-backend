@@ -35,4 +35,6 @@ public interface VerifierService {
     PageDTO getVerifierClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer limit);
 
     List<AgentListResponseDTO> getAllAgentsForVerifier(long userId);
+
+    String downloadMISReport(ClaimDataFilter claimDataFilter);
 }

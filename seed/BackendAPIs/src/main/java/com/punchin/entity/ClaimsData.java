@@ -63,6 +63,8 @@ public class ClaimsData extends BasicEntity {
     private String nomineeAddress;
     @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
+    @Enumerated(EnumType.STRING)
+    private ClaimStatus claimBankerStatus;
     private Long agentId = 0L;
     private Long bankerId = 0L;
     private Long submittedBy;

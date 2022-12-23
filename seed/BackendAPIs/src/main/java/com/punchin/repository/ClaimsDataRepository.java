@@ -89,6 +89,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Long countByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state);
 
     Page<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state, Pageable pageable);
+    List<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state);
 
     @Query(nativeQuery = true, value = "SELECT punchin_claim_id FROM claims_data WHERE id=:claimId")
     String findPunchinClaimIdById(Long claimId);
@@ -107,6 +108,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Long countByBorrowerState(String state);
 
     Page<ClaimsData> findByBorrowerStateOrderByCreatedAtDesc(String state, Pageable pageable);
+    List<ClaimsData> findByBorrowerStateOrderByCreatedAtDesc(String state);
 
     Page<ClaimsData> findByAgentIdOrderByCreatedAtDesc(Long id, Pageable pageable);
 

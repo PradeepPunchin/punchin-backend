@@ -74,21 +74,25 @@ public class BankerServiceImpl implements BankerService {
         map.put("status", false);
         try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
+            String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                List<ClaimDraftData> claimDraftData = ExcelHelper.excelToClaimsDraftData(file.getInputStream());
-                if (!claimDraftData.isEmpty()) {
-                    claimDraftData = claimDraftDataRepository.saveAll(claimDraftData);
-                    map.put("data", claimDraftData);
+                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
+                List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
+                if (Objects.nonNull(claimsData)) {
+                    claimsData = claimDraftDataRepository.saveAll(claimsData);
+                    map.put("data", claimsData);
                     map.put("status", true);
                     map.put("message", MessageCode.success);
                     return map;
                 }
+                map.put("message", data.get("message"));
             }
             return map;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData ", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData e{}", e);
             return map;
         }
+
     }
 
     @Override
@@ -607,7 +611,14 @@ public class BankerServiceImpl implements BankerService {
     public String forwardToVerifier(ClaimsData claimsData) {
         try {
             log.info("BankerController :: forwardToVerifier");
-            claimsData.setClaimStatus(ClaimStatus.CLAIM_SUBMITTED);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(claimsData.getId(), "banker");
+            if(claimDocumentsList.isEmpty()){
+                return MessageCode.UPLOAD_BANKER_DOCUMENT;
+            }
+            for(ClaimDocuments claimDocuments : claimDocumentsList){
+                claimDocuments.setIsActive(true);
+            }
+            claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
             claimsData.setSubmittedAt(System.currentTimeMillis());
             claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getId());
             claimsDataRepository.save(claimsData);
@@ -1045,5 +1056,16 @@ public class BankerServiceImpl implements BankerService {
         }
         log.info("searched claim data fetched successfully");
         return claimSearchedData;
+    }
+
+    @Override
+    public boolean checkDocumentAlreadyExist(Long id, BankerDocType docType) {
+        try {
+            log.info("BankerServiceImpl :: checkDocumentAlreadyExist claimId - {}, docType - {}", id, docType);
+            return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndAgentDocType(id, "banker", docType.getValue());
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: checkDocumentAlreadyExist e - {}" + e);
+            return false;
+        }
     }
 }

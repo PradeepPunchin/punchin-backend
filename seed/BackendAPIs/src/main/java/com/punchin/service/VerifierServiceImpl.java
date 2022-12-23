@@ -89,7 +89,8 @@ public class VerifierServiceImpl implements VerifierService {
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
-                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
+                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
+                page1 = claimsDataRepository.findByClaimStatusInOrClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
@@ -236,6 +237,10 @@ public class VerifierServiceImpl implements VerifierService {
                     if (!claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(claimsData.getId(), "agent", true, false)) {
                         claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
                     }
+                }
+            }else if (claimDocuments.getUploadSideBy().equalsIgnoreCase("banker")) {
+                if (!approveRejectPayloadDTO.isApproved()) {
+                    claimsData.setClaimBankerStatus(ClaimStatus.BANKER_DISCREPANCY);
                 }
             }
             claimsDataRepository.save(claimsData);

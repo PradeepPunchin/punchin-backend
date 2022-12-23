@@ -38,16 +38,13 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page<ClaimsData> findClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, Pageable pageable, List<String> claimStatus, Long agentId);
 
 
-    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
-            "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.punchin_claim_id Ilike %:searchedKeyword% and cd.banker_id=:bankerId ")
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.punchin_claim_id Ilike %:searchedKeyword% and cd.banker_id=:bankerId ORDER BY cd.punchin_claim_id")
     Page<ClaimsData> findBankerClaimSearchedDataByClaimDataId1(@Param("searchedKeyword") String searchedKeyword, Long bankerId, Pageable pageable);
 
-    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
-            "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.loan_account_number Ilike %:searchedKeyword% and cd.banker_id=:bankerId ")
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.loan_account_number Ilike %:searchedKeyword% and cd.banker_id=:bankerId ORDER BY cd.loan_account_number ")
     Page<ClaimsData> findAllBankerClaimSearchedDataByClaimDataId2(@Param("searchedKeyword") String searchedKeyword, Long bankerId, Pageable pageable);
 
-    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
-            "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and (cd.borrower_name Ilike %:searchedKeyword%) and cd.banker_id=:bankerId ")
+    @Query(nativeQuery = true, value = "select * from claims_data cd where (cd.borrower_name Ilike %:searchedKeyword%) and cd.banker_id=:bankerId ORDER BY cd.borrower_name ")
     Page<ClaimsData> findAllBankerClaimSearchedDataByClaimDataId3(@Param("searchedKeyword") String searchedKeyword, Long bankerId, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.punchin_claim_id Ilike %:searchedKeyword% and cd.banker_id=:bankerId ")
@@ -59,8 +56,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and (cd.borrower_name Ilike %:searchedKeyword%) and cd.banker_id=:bankerId ")
     Page<ClaimsData> findBankerClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, Long bankerId, Pageable pageable);
 
-    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
-            "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.punchin_claim_id Ilike %:searchedKeyword% ")
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.punchin_claim_id Ilike %:searchedKeyword% ")
     List<ClaimsData> findVerifierClaimSearchedDataByClaimDataId1(@Param("searchedKeyword") String searchedKeyword);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.borrower_state=:state and cd.punchin_claim_id Ilike %:searchedKeyword%  ")

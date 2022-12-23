@@ -105,16 +105,15 @@ public class BankerServiceImpl implements BankerService {
             Pageable pageable = PageRequest.of(page, limit);
             Long bankerId = GenericUtils.getLoggedInUser().getId();
             Page page1 = Page.empty();
-            Page<ClaimsData> claimSearchedData = null;
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
                 if (Objects.nonNull(searchCaseEnum) && Objects.nonNull(searchedKeyword)) {
-                    if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
-                        claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId, pageable);
-                    } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
-                        claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId2(searchedKeyword, bankerId, pageable);
-                    } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
-                        claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId3(searchedKeyword, bankerId, pageable);
+                    if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
+                        page1 = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId, pageable);
+                    } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId2(searchedKeyword, bankerId, pageable);
+                    } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId3(searchedKeyword, bankerId, pageable);
                     }
                 } else
                     page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);

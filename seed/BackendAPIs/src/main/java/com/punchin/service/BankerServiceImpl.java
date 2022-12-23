@@ -107,7 +107,7 @@ public class BankerServiceImpl implements BankerService {
             Page<ClaimsData> claimSearchedData = null;
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
-                if (Objects.nonNull(searchCaseEnum)) {
+                if (Objects.nonNull(searchCaseEnum) && Objects.nonNull(searchedKeyword)) {
                     if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
                         claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId, pageable);
                     } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {

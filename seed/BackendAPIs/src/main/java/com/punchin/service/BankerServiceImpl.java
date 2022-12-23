@@ -116,7 +116,6 @@ public class BankerServiceImpl implements BankerService {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
@@ -125,6 +124,10 @@ public class BankerServiceImpl implements BankerService {
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
+                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+            } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             }
             return commonService.convertPageToDTO(page1.getContent(), page1);

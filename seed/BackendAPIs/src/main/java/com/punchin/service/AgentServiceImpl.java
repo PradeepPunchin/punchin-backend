@@ -382,7 +382,7 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    public List<AgentSearchDTO> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
+    public PageDTO getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
         log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
         Pageable pageable = PageRequest.of(pageNo, limit);
         Long agentId = GenericUtils.getLoggedInUser().getId();
@@ -448,8 +448,7 @@ public class AgentServiceImpl implements AgentService {
             agentSearchDTO1.setClaimStatus(agentSearchDTO1.getClaimStatus());
         }
         log.info("searched claim data fetched successfully");
-        return agentSearchDTO1s;
-
+        return commonService.convertPageToDTO(agentSearchDTO1s, claimSearchedData);
     }
 
     public List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType) {

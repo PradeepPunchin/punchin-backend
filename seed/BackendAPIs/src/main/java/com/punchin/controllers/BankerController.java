@@ -171,11 +171,12 @@ public class BankerController {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
-            if (Objects.isNull(claimsData))
+            if (Objects.isNull(claimsData)){
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
-            ClaimDocuments documentExists = claimDocumentsRepository.findClaimDocumentsByClaimDataIdAndDocType(id, docType.toString());
-            if (Objects.nonNull(documentExists))
-                return ResponseHandler.response(null, MessageCode.DOCUMENT_ALREADY_EXISTS, true, HttpStatus.OK);
+            }
+            if(bankerService.checkDocumentAlreadyExist(id, docType)){
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_ALREADY_EXISTS, false, HttpStatus.FORBIDDEN);
+            }
             Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[]{multipartFiles}, docType);
             if (result.get("message").equals(MessageCode.success)) {
                 return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);

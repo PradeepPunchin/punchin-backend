@@ -64,13 +64,13 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     List<ClaimsData> findVerifierClaimSearchedDataByClaimDataId1(@Param("searchedKeyword") String searchedKeyword);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.borrower_state=:state and cd.punchin_claim_id Ilike %:searchedKeyword%  ")
-    List<ClaimsData> findVerifierClaimSearchedDataByClaimDataId(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, String state);
+    Page<ClaimsData> findVerifierClaimSearchedDataByClaimDataId(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, String state, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.borrower_state=:state and cd.loan_account_number Ilike %:searchedKeyword%  ")
-    List<ClaimsData> findVerifierClaimSearchedDataByLoanAccountNumber(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, String state);
+    Page<ClaimsData> findVerifierClaimSearchedDataByLoanAccountNumber(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, String state, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in (:claimStatus) and cd.borrower_state=:state and (cd.borrower_name Ilike %:searchedKeyword%)  ")
-    List<ClaimsData> findVerifierClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, String state);
+    Page<ClaimsData> findVerifierClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, List<String> claimStatus, String state, Pageable pageable);
 
 
     @Query(nativeQuery = true, value = "SELECT cd.* FROM claims_data AS cd INNER JOIN claim_allocated AS ca ON cd.id = ca.claims_data_id WHERE cd.is_deleted = false AND ca.user_id =:userId AND ca.is_active = true")
@@ -142,13 +142,13 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
             " 'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.borrower_state=:state and cd.punchin_claim_id Ilike %:searchedKeyword% ")
-    List<ClaimsData> findAllocateClaimSearchedDataByClaimDataId(String searchedKeyword, String state);
+    Page<ClaimsData> findAllocateClaimSearchedDataByClaimDataId(String searchedKeyword, String state, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
             " 'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.borrower_state=:state and cd.loan_account_number Ilike %:searchedKeyword% ")
-    List<ClaimsData> findAllocateClaimSearchedDataByLoanAccountNumber(String searchedKeyword, String state);
+    Page<ClaimsData> findAllocateClaimSearchedDataByLoanAccountNumber(String searchedKeyword, String state, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
             " 'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and cd.borrower_state=:state and (cd.borrower_name Ilike %:searchedKeyword%) ")
-    List<ClaimsData> findAllocateSearchedDataBySearchName(String searchedKeyword, String state);
+    Page<ClaimsData> findAllocateSearchedDataBySearchName(String searchedKeyword, String state, Pageable pageable);
 }

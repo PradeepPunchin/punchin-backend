@@ -192,7 +192,7 @@ public class VerifierController {
                                                        @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
         try {
             log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
-            List<VerifierSearchDTO> searchedClaimData = verifierService.getVerifierClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter);
+            PageDTO searchedClaimData = verifierService.getVerifierClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter, pageNo, limit);
             if (searchedClaimData != null) {
                 log.info("Searched claim data fetched successfully");
                 return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);

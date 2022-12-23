@@ -32,7 +32,7 @@ public interface VerifierService {
 
     String downloadClaimDataWithDocumentStatus(Integer page, Integer limit);
 
-    List<VerifierSearchDTO> getVerifierClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter);
+    PageDTO getVerifierClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer limit);
 
     List<AgentListResponseDTO> getAllAgentsForVerifier(long userId);
 }

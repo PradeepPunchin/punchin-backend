@@ -615,10 +615,10 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerController :: forwardToVerifier");
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideBy(claimsData.getId(), "banker");
-            if(claimDocumentsList.isEmpty()){
+            if (claimDocumentsList.isEmpty()) {
                 return MessageCode.UPLOAD_BANKER_DOCUMENT;
             }
-            for(ClaimDocuments claimDocuments : claimDocumentsList){
+            for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 claimDocuments.setIsActive(true);
             }
             claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
@@ -992,11 +992,11 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public List<ClaimsData> getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize) {
+    public PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize) {
         log.info("Get Searched data request received for caseType :{} , searchedKeyword :{}  ", searchCaseEnum, searchedKeyword);
         Long bankerId = GenericUtils.getLoggedInUser().getId();
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        List<ClaimsData> claimSearchedData = null;
+        Page<ClaimsData> claimSearchedData = null;
         List<String> statusList = new ArrayList<>();
         if (claimDataFilter.ALL.equals(claimDataFilter)) {
             if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
@@ -1070,7 +1070,8 @@ public class BankerServiceImpl implements BankerService {
             return null;
         }
         log.info("searched claim data fetched successfully");
-        return claimSearchedData;
+        log.info("searched claim data fetched successfully");
+        return commonService.convertPageToDTO(claimSearchedData);
     }
 
     @Override

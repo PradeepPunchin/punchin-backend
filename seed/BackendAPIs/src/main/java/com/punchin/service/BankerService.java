@@ -19,7 +19,7 @@ public interface BankerService {
 
     Map<String, Object> saveUploadExcelData(MultipartFile[] files);
 
-    PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit);
+    PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit, String searchedKeyword, SearchCaseEnum searchCaseEnum);
 
     Map<String, Long> getDashboardData();
 
@@ -54,7 +54,7 @@ public interface BankerService {
 
     List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter);
 
-    List<ClaimsData> getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize);
+    PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize);
 
     boolean checkDocumentAlreadyExist(Long id, BankerDocType docType);
 }

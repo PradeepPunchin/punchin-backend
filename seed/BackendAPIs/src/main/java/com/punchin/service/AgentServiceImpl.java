@@ -4,14 +4,8 @@ import com.punchin.dto.*;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
-import com.punchin.enums.AgentDocType;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.SearchCaseEnum;
-import com.punchin.repository.ClaimAllocatedRepository;
-import com.punchin.repository.ClaimDocumentsRepository;
-import com.punchin.repository.ClaimsDataRepository;
-import com.punchin.repository.DocumentUrlsRepository;
+import com.punchin.enums.*;
+import com.punchin.repository.*;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.constant.MessageCode;
@@ -51,6 +45,9 @@ public class AgentServiceImpl implements AgentService {
     private AmazonClient amazonClient;
     @Autowired
     private CommonUtilService commonUtilService;
+
+    @Autowired
+    MinorAdditionalDocsRepository minorAdditionalDocsRepository;
 
     @Override
     public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
@@ -446,6 +443,7 @@ public class AgentServiceImpl implements AgentService {
             agentSearchDTO1.setAllocationDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimStatus(agentSearchDTO1.getClaimStatus());
+            agentSearchDTO1s.add(agentSearchDTO1);
         }
         log.info("searched claim data fetched successfully");
         return commonService.convertPageToDTO(agentSearchDTO1s, claimSearchedData);
@@ -486,6 +484,123 @@ public class AgentServiceImpl implements AgentService {
         }
         claimDocumentsRepository.delete(optionalClaimDocuments.get());
         return MessageCode.DOCUMENT_DELETED;
+    }
+
+    public List<UploadResponseUrl> uploadAgentNewDocument(Long id, CauseOfDeathEnum causeOfDeath, AgentDocType deathCertificate, MultipartFile deathCertificateMultipart, String nomineeStatus, AgentDocType signedClaim, MultipartFile signedClaimMultipart, AgentDocType relation_shipProof, MultipartFile relation_shipProofMultipart, AgentDocType gUARDIAN_ID_PROOF, MultipartFile gUARDIAN_ID_PROOFMultipart, AgentDocType gUARDIAN_ADD_PROOF, MultipartFile gUARDIAN_ADD_PROOFMultipart, AgentDocType borowerProof, MultipartFile borowerProofMultipart) {
+        Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
+        if (!optionalClaimsData.isPresent()) {
+            return null;
+        }
+        List<UploadResponseUrl> urlResponseList = new ArrayList<>();
+        ClaimsData claimsData = optionalClaimsData.get();
+        claimsData.setCauseOfDeath(causeOfDeath);
+        ClaimDocuments claimDocuments = new ClaimDocuments();
+        claimDocuments.setAgentDocType(deathCertificate);
+        claimDocuments.setClaimsData(claimsData);
+        claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+        claimDocuments.setUploadSideBy("agent");
+        List<DocumentUrls> documentUrls = new ArrayList<>();
+        DocumentUrls urls = new DocumentUrls();
+        urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), deathCertificateMultipart, "agent"));
+        UploadResponseUrl uploadResponseUrl = new UploadResponseUrl();
+        uploadResponseUrl.setUrl(urls.getDocUrl());
+        uploadResponseUrl.setDocType(deathCertificate.name());
+        documentUrls.add(urls);
+        documentUrlsRepository.saveAll(documentUrls);
+        claimDocuments.setDocumentUrls(documentUrls);
+        claimDocuments.setUploadTime(System.currentTimeMillis());
+        urlResponseList.add(uploadResponseUrl);
+
+        ClaimDocuments claimDocuments0 = new ClaimDocuments();
+        claimDocuments0.setAgentDocType(borowerProof);
+        claimDocuments0.setClaimsData(claimsData);
+        claimDocuments0.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+        claimDocuments0.setUploadSideBy("agent");
+        List<DocumentUrls> documentUrls0 = new ArrayList<>();
+        DocumentUrls urls0 = new DocumentUrls();
+        urls0.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), borowerProofMultipart, "agent"));
+        UploadResponseUrl uploadResponseUrl0 = new UploadResponseUrl();
+        uploadResponseUrl0.setUrl(urls0.getDocUrl());
+        uploadResponseUrl0.setDocType(borowerProof.name());
+        documentUrls0.add(urls0);
+        documentUrlsRepository.saveAll(documentUrls0);
+        claimDocuments0.setDocumentUrls(documentUrls0);
+        claimDocuments0.setUploadTime(System.currentTimeMillis());
+        urlResponseList.add(uploadResponseUrl0);
+
+
+        ClaimDocuments claimDocuments1 = new ClaimDocuments();
+        claimDocuments1.setAgentDocType(signedClaim);
+        claimDocuments1.setClaimsData(claimsData);
+        claimDocuments1.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+        claimDocuments1.setUploadSideBy("agent");
+        List<DocumentUrls> documentUrls1 = new ArrayList<>();
+        DocumentUrls urls1 = new DocumentUrls();
+        urls1.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), signedClaimMultipart, "agent"));
+        UploadResponseUrl uploadResponseUrl1 = new UploadResponseUrl();
+        uploadResponseUrl1.setUrl(urls1.getDocUrl());
+        uploadResponseUrl1.setDocType(signedClaim.name());
+        documentUrls1.add(urls1);
+        documentUrlsRepository.saveAll(documentUrls1);
+        claimDocuments1.setDocumentUrls(documentUrls1);
+        claimDocuments1.setUploadTime(System.currentTimeMillis());
+        urlResponseList.add(uploadResponseUrl1);
+
+        if (nomineeStatus.equalsIgnoreCase("Minor")) {
+            ClaimDocuments claimDocuments2 = new ClaimDocuments();
+            claimDocuments2.setAgentDocType(relation_shipProof);
+            claimDocuments2.setClaimsData(claimsData);
+            claimDocuments2.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments2.setUploadSideBy("agent");
+            List<DocumentUrls> documentUrls2 = new ArrayList<>();
+            DocumentUrls urls2 = new DocumentUrls();
+            urls2.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), relation_shipProofMultipart, "agent"));
+            UploadResponseUrl uploadResponseUrl2 = new UploadResponseUrl();
+            uploadResponseUrl2.setUrl(urls2.getDocUrl());
+            uploadResponseUrl2.setDocType(relation_shipProof.name());
+            documentUrls2.add(urls2);
+            documentUrlsRepository.saveAll(documentUrls2);
+            claimDocuments2.setDocumentUrls(documentUrls2);
+            claimDocuments2.setUploadTime(System.currentTimeMillis());
+            urlResponseList.add(uploadResponseUrl2);
+
+            ClaimDocuments claimDocuments3 = new ClaimDocuments();
+            claimDocuments3.setAgentDocType(gUARDIAN_ID_PROOF);
+            claimDocuments3.setClaimsData(claimsData);
+            claimDocuments3.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments3.setUploadSideBy("agent");
+            List<DocumentUrls> documentUrls3 = new ArrayList<>();
+            DocumentUrls urls3 = new DocumentUrls();
+            urls3.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), gUARDIAN_ID_PROOFMultipart, "agent"));
+            UploadResponseUrl uploadResponseUrl3 = new UploadResponseUrl();
+            uploadResponseUrl3.setUrl(urls3.getDocUrl());
+            uploadResponseUrl3.setDocType(gUARDIAN_ID_PROOF.name());
+            documentUrls3.add(urls3);
+            documentUrlsRepository.saveAll(documentUrls3);
+            claimDocuments3.setDocumentUrls(documentUrls3);
+            claimDocuments3.setUploadTime(System.currentTimeMillis());
+            urlResponseList.add(uploadResponseUrl3);
+
+
+            ClaimDocuments claimDocuments4 = new ClaimDocuments();
+            claimDocuments4.setAgentDocType(gUARDIAN_ADD_PROOF);
+            claimDocuments4.setClaimsData(claimsData);
+            claimDocuments4.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments4.setUploadSideBy("agent");
+            List<DocumentUrls> documentUrls4 = new ArrayList<>();
+            DocumentUrls urls4 = new DocumentUrls();
+            urls4.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), gUARDIAN_ADD_PROOFMultipart, "agent"));
+            UploadResponseUrl uploadResponseUrl4 = new UploadResponseUrl();
+            uploadResponseUrl4.setUrl(urls4.getDocUrl());
+            uploadResponseUrl4.setDocType(gUARDIAN_ID_PROOF.name());
+            documentUrls3.add(urls4);
+            urlResponseList.add(uploadResponseUrl4);
+            documentUrlsRepository.saveAll(documentUrls4);
+            claimDocuments4.setDocumentUrls(documentUrls4);
+            claimDocuments4.setUploadTime(System.currentTimeMillis());
+        }
+        return urlResponseList;
+
     }
 
 }

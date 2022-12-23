@@ -8,6 +8,7 @@ import java.util.Date;
 @Data
 public class AgentSearchDTO {
 
+    private Long id;
     private String claimId;
     private Date claimDate;
     private Date allocationDate;

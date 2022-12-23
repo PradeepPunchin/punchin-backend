@@ -4,6 +4,7 @@ public enum ClaimStatus {
 
     ALL(0, "ALL"),//All
     CLAIM_INTIMATED(11, "CLAIM_INTIMATED"),//When Banker upload claim data
+    BANKER_DISCREPANCY(12, "BANKER_DISCREPANCY"),//When Banker upload claim data
     CLAIM_SUBMITTED(1, "CLAIM_SUBMITTED"),//When Banker upload claim document and submit
     AGENT_ALLOCATED(2, "AGENT_ALLOCATED"),//When claim is allocated to Agent
     IN_PROGRESS(3, "IN_PROGRESS"),//When Agent to some changes to claim

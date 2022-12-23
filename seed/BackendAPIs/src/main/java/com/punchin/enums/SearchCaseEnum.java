@@ -1,7 +1,9 @@
 package com.punchin.enums;
 
 public enum SearchCaseEnum {
-    CLAIM_DATA_ID(1, "Claim Id"), LOAN_ACCOUNT_NUMBER(2, "Loan Account Number"), NAME(3, "Name");
+    CLAIM_DATA_ID(1, "Claim Id"),
+    LOAN_ACCOUNT_NUMBER(2, "Loan Account Number"),
+    NAME(3, "Name");
     private String value;
     private int key;
 

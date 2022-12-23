@@ -158,10 +158,7 @@ public class ExcelHelper {
                     }
                 }
                 claimDraftDatas.add(claimDraftData);
-                if (!exit) {
-                    claimDraftDatas.add(claimDraftData);
-                }
-            }
+             }
             workbook.close();
             return claimDraftDatas;
         } catch (Exception e) {

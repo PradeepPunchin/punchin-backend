@@ -19,7 +19,7 @@ public interface BankerService {
 
     Map<String, Object> saveUploadExcelData(MultipartFile[] files);
 
-    PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit);
+    PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit, String searchedKeyword, SearchCaseEnum searchCaseEnum);
 
     Map<String, Long> getDashboardData();
 

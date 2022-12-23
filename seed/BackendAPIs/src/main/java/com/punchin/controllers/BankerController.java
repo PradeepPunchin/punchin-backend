@@ -92,14 +92,14 @@ public class BankerController {
 
     @ApiOperation(value = "Claim List", notes = "This can be used to get not submitted claims list")
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
-    public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
+    public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit, @RequestParam(value = "searchCaseEnum", required = false) SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword", required = false) String searchedKeyword) {
         try {
             log.info("BankerController :: getClaimsList dataFilter {}, page {}, limit {}", claimDataFilter, page, limit);
             if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             //page = page > 0 ? page - 1 : page;
-            PageDTO pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit);
+            PageDTO pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit, searchedKeyword, searchCaseEnum);
             return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getClaimsList e{}", e);
@@ -171,10 +171,10 @@ public class BankerController {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
-            if (Objects.isNull(claimsData)){
+            if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            if(bankerService.checkDocumentAlreadyExist(id, docType)){
+            if (bankerService.checkDocumentAlreadyExist(id, docType)) {
                 return ResponseHandler.response(null, MessageCode.DOCUMENT_ALREADY_EXISTS, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[]{multipartFiles}, docType);
@@ -317,19 +317,17 @@ public class BankerController {
             return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-}
 
-/*
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
-    @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA)
-    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
-                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+    @GetMapping(value = "/test")
+    public ResponseEntity<Object> getClaimSearchedData1(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                        @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
         try {
             log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
-            PageDTO searchedClaimData = agentService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
-            if (searchedClaimData != null) {
-                log.info("Searched claim data fetched successfully");
-                return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            List<Map<String, Object>> claimSearchedData = bankerService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
+            log.info("Searched claim data fetched successfully");
+            if (Objects.nonNull(claimSearchedData)) {
+                return ResponseHandler.response(claimSearchedData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
             }
             log.info("No records found");
             return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
@@ -339,4 +337,5 @@ public class BankerController {
         }
     }
 
-*/
+
+}

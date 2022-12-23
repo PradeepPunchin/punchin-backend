@@ -74,21 +74,25 @@ public class BankerServiceImpl implements BankerService {
         map.put("status", false);
         try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
+            String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                List<ClaimDraftData> claimDraftData = ExcelHelper.excelToClaimsDraftData(file.getInputStream());
-                if (!claimDraftData.isEmpty()) {
-                    claimDraftData = claimDraftDataRepository.saveAll(claimDraftData);
-                    map.put("data", claimDraftData);
+                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
+                List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
+                if (Objects.nonNull(claimsData)) {
+                    claimsData = claimDraftDataRepository.saveAll(claimsData);
+                    map.put("data", claimsData);
                     map.put("status", true);
                     map.put("message", MessageCode.success);
                     return map;
                 }
+                map.put("message", data.get("message"));
             }
             return map;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData ", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: saveUploadExcelData e{}", e);
             return map;
         }
+
     }
 
     @Override

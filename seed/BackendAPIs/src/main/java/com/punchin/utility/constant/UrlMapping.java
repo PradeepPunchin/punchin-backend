@@ -56,4 +56,7 @@ public class UrlMapping {
 
     public static final String AGENT_DELETE_DOCUMENT = "/claim/document/delete";
     public static final String GET_ALL_AGENTS_VERIFIER = "/verifier/agents";
+
+    public static final String UPLOAD_DOCUMENT_NEW_AGENT = "/claim/uploadDocumentNew1";
+    public static final String UPLOAD_DOCUMENT_NEW_AGENT2 = "/claim/uploadDocumentNew2";
 }

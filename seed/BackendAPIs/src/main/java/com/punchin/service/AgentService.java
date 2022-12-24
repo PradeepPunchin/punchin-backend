@@ -5,10 +5,7 @@ import com.punchin.dto.PageDTO;
 import com.punchin.dto.UploadResponseUrl;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
-import com.punchin.enums.AgentDocType;
-import com.punchin.enums.CauseOfDeathEnum;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.SearchCaseEnum;
+import com.punchin.enums.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -50,4 +47,6 @@ public interface AgentService {
                                                     AgentDocType gUARDIAN_ID_PROOF, MultipartFile gUARDIAN_ID_PROOFMultipart,
                                                     AgentDocType gUARDIAN_ADD_PROOF, MultipartFile gUARDIAN_ADD_PROOFMultipart,
                                                     AgentDocType borowerProof, MultipartFile borowerProofMultipart);
+
+    List<UploadResponseUrl> uploadAgentNewDocument2(Long id, KycOrAddressDocType nomineeProof, MultipartFile nomineeMultiparts, AgentDocType bankerProof, MultipartFile bankerPROOFMultipart, AgentDocType additionalDocs, MultipartFile additionalMultipart);
 }

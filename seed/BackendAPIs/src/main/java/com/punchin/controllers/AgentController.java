@@ -71,7 +71,7 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            ClaimsData claimsData = agentService.getClaimData(id);
+            Map<String, Object> claimsData = agentService.getClaimData(id);
             if (Objects.nonNull(claimsData)) {
                 return ResponseHandler.response(claimsData, MessageCode.success, true, HttpStatus.OK);
             }
@@ -161,7 +161,7 @@ public class AgentController {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             AgentUploadDocumentDTO documentDTO = new AgentUploadDocumentDTO();
-            documentDTO.setClaimsData(agentService.getClaimData(id));
+            //documentDTO.setClaimsData(agentService.getClaimData(id));
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
             documentDTO.setSignedForm(signedForm);

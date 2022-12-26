@@ -1,6 +1,8 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.*;
+import com.punchin.dto.AgentUploadDocumentDTO;
+import com.punchin.dto.PageDTO;
+import com.punchin.dto.UploadResponseUrl;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
@@ -101,7 +103,7 @@ public class AgentController {
     }
 
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
-    @PostMapping(value = UrlMapping.AGENT_DISCREPANCY_DOCUMENT_UPLOAD)
+    @PostMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
     public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {
         try {
             log.info("BankerController :: discrepancyDocumentUpload claimId {}, multipartFile {}, docType {}", id, multipartFile, docType);

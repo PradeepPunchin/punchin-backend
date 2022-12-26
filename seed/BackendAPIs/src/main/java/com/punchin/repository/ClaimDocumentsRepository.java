@@ -32,6 +32,8 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =:id AND upload_side_by ='agent' AND is_active = true ORDER BY agent_doc_type")
     List<ClaimDocuments> getClaimDocumentWithDiscrepancyStatus(Long id);
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =:id AND upload_side_by ='banker' AND is_active = true ORDER BY agent_doc_type")
+    List<ClaimDocuments> getClaimDocumentWithDiscrepancyStatusAndBanker(Long id);
 
     List<ClaimDocuments> findByClaimsDataIdAndAgentDocType(Long claimId, AgentDocType valueOf);
 

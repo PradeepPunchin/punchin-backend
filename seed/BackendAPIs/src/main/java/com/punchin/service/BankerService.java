@@ -57,4 +57,10 @@ public interface BankerService {
     PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize);
 
     boolean checkDocumentAlreadyExist(Long id, BankerDocType docType);
+
+    Map<String, Object> getClaimBankerDocuments(Long id);
+
+    boolean checkDocumentIsInDiscrepancy(Long id, String docType);
+
+    Map<String, Object> discrepancyDocumentUpload(Long id, MultipartFile[] files, String docType);
 }

@@ -1,6 +1,9 @@
 package com.punchin.service;
 
-import com.punchin.dto.*;
+import com.punchin.dto.AgentListResponseDTO;
+import com.punchin.dto.ClaimDetailForVerificationDTO;
+import com.punchin.dto.DocumentApproveRejectPayloadDTO;
+import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
@@ -12,7 +15,7 @@ import java.util.Map;
 
 public interface VerifierService {
 
-    PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize);
+    PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize, SearchCaseEnum searchCaseEnum, String searchedKeyword);
 
     Map<String, Long> getDashboardData();
 

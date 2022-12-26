@@ -512,8 +512,6 @@ public class AgentServiceImpl implements AgentService {
         uploadResponseUrl.setUrls(urlList);
         uploadResponseUrl.setDocType(deathCertificate.name());
         urlResponseList.add(uploadResponseUrl);
-
-
         documentUrlsRepository.saveAll(documentUrls);
         claimDocuments.setDocumentUrls(documentUrls);
         claimDocuments.setUploadTime(System.currentTimeMillis());
@@ -532,7 +530,6 @@ public class AgentServiceImpl implements AgentService {
             String url = urls0.getDocUrl();
             urlList0.add(url);
             documentUrls0.add(urls0);
-
         }
         UploadResponseUrl uploadResponseUrl0 = new UploadResponseUrl();
         uploadResponseUrl0.setUrls(urlList0);
@@ -568,7 +565,6 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments1.setUploadTime(System.currentTimeMillis());
         claimDocumentsRepository.save(claimDocuments1);
 
-
         if (nomineeStatus.equalsIgnoreCase("Minor")) {
             ClaimDocuments claimDocuments2 = new ClaimDocuments();
             claimDocuments2.setAgentDocType(relation_shipProof);
@@ -587,14 +583,11 @@ public class AgentServiceImpl implements AgentService {
             UploadResponseUrl uploadResponseUrl2 = new UploadResponseUrl();
             uploadResponseUrl2.setUrls(urlList2);
             uploadResponseUrl2.setDocType(relation_shipProof.name());
-
             urlResponseList.add(uploadResponseUrl2);
-
             documentUrlsRepository.saveAll(documentUrls2);
             claimDocuments2.setDocumentUrls(documentUrls2);
             claimDocuments2.setUploadTime(System.currentTimeMillis());
             claimDocumentsRepository.save(claimDocuments2);
-
 
             ClaimDocuments claimDocuments3 = new ClaimDocuments();
             claimDocuments3.setAgentDocType(gUARDIAN_ID_PROOF);
@@ -609,14 +602,12 @@ public class AgentServiceImpl implements AgentService {
                 String url = urls3.getDocUrl();
                 urlList3.add(url);
                 documentUrls3.add(urls3);
-
             }
             UploadResponseUrl uploadResponseUrl3 = new UploadResponseUrl();
             uploadResponseUrl3.setUrls(urlList3);
             uploadResponseUrl3.setDocType(gUARDIAN_ID_PROOF.name());
             documentUrls3.add(urls3);
             urlResponseList.add(uploadResponseUrl3);
-
             documentUrlsRepository.saveAll(documentUrls3);
             claimDocuments3.setDocumentUrls(documentUrls3);
             claimDocuments3.setUploadTime(System.currentTimeMillis());
@@ -639,7 +630,6 @@ public class AgentServiceImpl implements AgentService {
             UploadResponseUrl uploadResponseUrl4 = new UploadResponseUrl();
             uploadResponseUrl4.setUrls(urlList4);
             uploadResponseUrl4.setDocType(gUARDIAN_ID_PROOF.name());
-
             urlResponseList.add(uploadResponseUrl4);
             documentUrlsRepository.saveAll(documentUrls4);
             claimDocuments4.setDocumentUrls(documentUrls4);
@@ -656,7 +646,6 @@ public class AgentServiceImpl implements AgentService {
             return Collections.emptyList();
         }
         List<UploadResponseUrl> urlResponseList = new ArrayList<>();
-
         ClaimsData claimsData = optionalClaimsData.get();
         ClaimDocuments claimDocuments = new ClaimDocuments();
         claimDocuments.setDocType(nomineeProof.toString());
@@ -671,7 +660,6 @@ public class AgentServiceImpl implements AgentService {
             String url = urls.getDocUrl();
             documentUrls.add(urls);
             urlList.add(url);
-
         }
         UploadResponseUrl uploadResponseUrl = new UploadResponseUrl();
         uploadResponseUrl.setDocType(nomineeProof.toString());
@@ -698,7 +686,6 @@ public class AgentServiceImpl implements AgentService {
             String url = urls.getDocUrl();
             urlList1.add(url);
         }
-
         UploadResponseUrl uploadResponseUrl1 = new UploadResponseUrl();
         uploadResponseUrl1.setDocType(bankerProof.toString());
         uploadResponseUrl1.setUrls(urlList1);
@@ -721,7 +708,6 @@ public class AgentServiceImpl implements AgentService {
             documentUrls2.add(urls2);
             String url = urls2.getDocUrl();
             urlList2.add(url);
-
         }
         UploadResponseUrl uploadResponseUrl2 = new UploadResponseUrl();
         uploadResponseUrl2.setDocType(additionalDocs.toString());
@@ -731,7 +717,6 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments2.setDocumentUrls(documentUrls2);
         claimDocuments2.setUploadTime(System.currentTimeMillis());
         claimDocumentsRepository.save(claimDocuments2);
-
         claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
         return urlResponseList;
     }

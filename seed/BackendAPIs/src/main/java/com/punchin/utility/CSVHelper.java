@@ -1,5 +1,6 @@
 package com.punchin.utility;
 
+import com.punchin.entity.ClaimDraftData;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class CSVHelper {
         return true;
     }
 
-    public static List<ClaimsData> csvToClaimsData(InputStream is) {
+    public static List<ClaimDraftData> csvToClaimsData(InputStream is) {
         CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("Borrower Name", " Borrower Address", "Borrower City", " Borrower Pincode", " Borrower State", "Borrower Contact Number",
                 "Borrower EmailId", " Borrower Alternate Contact Number", " Borrower Alternate Contact Details", " Loan Account Number", "Loan Category/Type", " Loan Disbursal Date", "Loan Disbursal Amount",
                 "Branch Code", "Branch Address", "Branch City", " Lender Branch Pin code", " Lender Branch State", " Lenders Contact Name",  "Insurer Name",
@@ -35,10 +36,10 @@ public class CSVHelper {
         try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 
              CSVParser csvParser = new CSVParser(fileReader, csvFormat.withFirstRecordAsHeader().withTrim())) {
-            List<ClaimsData> claims = new ArrayList<>();
+            List<ClaimDraftData> claims = new ArrayList<>();
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
             for (CSVRecord csvRecord : csvRecords) {
-                ClaimsData claimsData = new ClaimsData();
+                ClaimDraftData claimsData = new ClaimDraftData();
                 String disbursalDate = csvRecord.get("Loan Disbursal Date");
                 Date date1 = new SimpleDateFormat("yyyy-MM-dd").parse(disbursalDate);
                 String policyStartDate = csvRecord.get("Policy StartDate");

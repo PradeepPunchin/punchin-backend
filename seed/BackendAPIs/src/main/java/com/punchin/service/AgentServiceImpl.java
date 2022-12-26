@@ -48,6 +48,7 @@ public class AgentServiceImpl implements AgentService {
     private AmazonClient amazonClient;
     @Autowired
     private CommonUtilService commonUtilService;
+
     @Override
     public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
         try {
@@ -485,7 +486,7 @@ public class AgentServiceImpl implements AgentService {
         return MessageCode.DOCUMENT_DELETED;
     }
 
-    public List<UploadResponseUrl> uploadAgentNewDocument(Long id, CauseOfDeathEnum causeOfDeath, AgentDocType deathCertificate,  MultipartFile[] deathCertificateMultipart, String nomineeStatus, AgentDocType signedClaim,  MultipartFile[] signedClaimMultipart, AgentDocType relation_shipProof,  MultipartFile[] relation_shipProofMultipart, AgentDocType gUARDIAN_ID_PROOF,  MultipartFile[] gUARDIAN_ID_PROOFMultipart, AgentDocType gUARDIAN_ADD_PROOF,  MultipartFile[] gUARDIAN_ADD_PROOFMultipart, AgentDocType borowerProof,  MultipartFile[] borowerProofMultipart) {
+    public List<UploadResponseUrl> uploadAgentNewDocument(Long id, CauseOfDeathEnum causeOfDeath, AgentDocType deathCertificate, MultipartFile[] deathCertificateMultipart, String nomineeStatus, AgentDocType signedClaim, MultipartFile[] signedClaimMultipart, AgentDocType relation_shipProof, MultipartFile[] relation_shipProofMultipart, AgentDocType gUARDIAN_ID_PROOF, MultipartFile[] gUARDIAN_ID_PROOFMultipart, AgentDocType gUARDIAN_ADD_PROOF, MultipartFile[] gUARDIAN_ADD_PROOFMultipart, AgentDocType borowerProof, MultipartFile[] borowerProofMultipart) {
         Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
         if (!optionalClaimsData.isPresent()) {
             return Collections.emptyList();
@@ -500,14 +501,17 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments.setUploadSideBy("agent");
         List<DocumentUrls> documentUrls = new ArrayList<>();
         DocumentUrls urls = new DocumentUrls();
-        for (MultipartFile multipartFile :deathCertificateMultipart) {
+        List<String> urlList = new ArrayList<>();
+        for (MultipartFile multipartFile : deathCertificateMultipart) {
             urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-            UploadResponseUrl uploadResponseUrl = new UploadResponseUrl();
-            uploadResponseUrl.setUrl(urls.getDocUrl());
-            uploadResponseUrl.setDocType(deathCertificate.name());
-            urlResponseList.add(uploadResponseUrl);
+            String url = urls.getDocUrl();
+            urlList.add(url);
             documentUrls.add(urls);
         }
+        UploadResponseUrl uploadResponseUrl = new UploadResponseUrl();
+        uploadResponseUrl.setUrls(urlList);
+        uploadResponseUrl.setDocType(deathCertificate.name());
+        urlResponseList.add(uploadResponseUrl);
 
 
         documentUrlsRepository.saveAll(documentUrls);
@@ -522,15 +526,18 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments0.setUploadSideBy("agent");
         List<DocumentUrls> documentUrls0 = new ArrayList<>();
         DocumentUrls urls0 = new DocumentUrls();
-        for (MultipartFile multipartFile:borowerProofMultipart             ) {
+        List<String> urlList0 = new ArrayList<>();
+        for (MultipartFile multipartFile : borowerProofMultipart) {
             urls0.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-            UploadResponseUrl uploadResponseUrl0 = new UploadResponseUrl();
-            uploadResponseUrl0.setUrl(urls0.getDocUrl());
-            uploadResponseUrl0.setDocType(borowerProof.name());
+            String url = urls0.getDocUrl();
+            urlList0.add(url);
             documentUrls0.add(urls0);
-            urlResponseList.add(uploadResponseUrl0);
-        }
 
+        }
+        UploadResponseUrl uploadResponseUrl0 = new UploadResponseUrl();
+        uploadResponseUrl0.setUrls(urlList0);
+        uploadResponseUrl0.setDocType(borowerProof.name());
+        urlResponseList.add(uploadResponseUrl0);
         documentUrlsRepository.saveAll(documentUrls0);
         claimDocuments0.setDocumentUrls(documentUrls0);
         claimDocuments0.setUploadTime(System.currentTimeMillis());
@@ -543,15 +550,19 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments1.setUploadSideBy("agent");
         List<DocumentUrls> documentUrls1 = new ArrayList<>();
         DocumentUrls urls1 = new DocumentUrls();
-        for (MultipartFile multipartFile: signedClaimMultipart){
+        List<String> urlList1 = new ArrayList<>();
+        for (MultipartFile multipartFile : signedClaimMultipart) {
             urls1.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-            UploadResponseUrl uploadResponseUrl1 = new UploadResponseUrl();
-            uploadResponseUrl1.setUrl(urls1.getDocUrl());
-            uploadResponseUrl1.setDocType(signedClaim.name());
+            String url = urls1.getDocUrl();
             documentUrls1.add(urls1);
-            urlResponseList.add(uploadResponseUrl1);
-        }
+            urlList1.add(url);
 
+        }
+        UploadResponseUrl uploadResponseUrl1 = new UploadResponseUrl();
+        uploadResponseUrl1.setUrls(urlList1);
+        uploadResponseUrl1.setDocType(signedClaim.name());
+        documentUrls1.add(urls1);
+        urlResponseList.add(uploadResponseUrl1);
         documentUrlsRepository.saveAll(documentUrls1);
         claimDocuments1.setDocumentUrls(documentUrls1);
         claimDocuments1.setUploadTime(System.currentTimeMillis());
@@ -565,15 +576,19 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments2.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments2.setUploadSideBy("agent");
             List<DocumentUrls> documentUrls2 = new ArrayList<>();
+            List<String> urlList2 = new ArrayList<>();
             DocumentUrls urls2 = new DocumentUrls();
-            for (MultipartFile multipartFile:relation_shipProofMultipart) {
+            for (MultipartFile multipartFile : relation_shipProofMultipart) {
                 urls2.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-                UploadResponseUrl uploadResponseUrl2 = new UploadResponseUrl();
-                uploadResponseUrl2.setUrl(urls2.getDocUrl());
-                uploadResponseUrl2.setDocType(relation_shipProof.name());
+                String url = urls2.getDocUrl();
+                urlList2.add(url);
                 documentUrls2.add(urls2);
-                urlResponseList.add(uploadResponseUrl2);
             }
+            UploadResponseUrl uploadResponseUrl2 = new UploadResponseUrl();
+            uploadResponseUrl2.setUrls(urlList2);
+            uploadResponseUrl2.setDocType(relation_shipProof.name());
+
+            urlResponseList.add(uploadResponseUrl2);
 
             documentUrlsRepository.saveAll(documentUrls2);
             claimDocuments2.setDocumentUrls(documentUrls2);
@@ -587,15 +602,20 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments3.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments3.setUploadSideBy("agent");
             List<DocumentUrls> documentUrls3 = new ArrayList<>();
+            List<String> urlList3 = new ArrayList<>();
             DocumentUrls urls3 = new DocumentUrls();
-            for (MultipartFile multipartFile:gUARDIAN_ID_PROOFMultipart) {
+            for (MultipartFile multipartFile : gUARDIAN_ID_PROOFMultipart) {
                 urls3.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-                UploadResponseUrl uploadResponseUrl3 = new UploadResponseUrl();
-                uploadResponseUrl3.setUrl(urls3.getDocUrl());
-                uploadResponseUrl3.setDocType(gUARDIAN_ID_PROOF.name());
+                String url = urls3.getDocUrl();
+                urlList3.add(url);
                 documentUrls3.add(urls3);
-                urlResponseList.add(uploadResponseUrl3);
+
             }
+            UploadResponseUrl uploadResponseUrl3 = new UploadResponseUrl();
+            uploadResponseUrl3.setUrls(urlList3);
+            uploadResponseUrl3.setDocType(gUARDIAN_ID_PROOF.name());
+            documentUrls3.add(urls3);
+            urlResponseList.add(uploadResponseUrl3);
 
             documentUrlsRepository.saveAll(documentUrls3);
             claimDocuments3.setDocumentUrls(documentUrls3);
@@ -608,17 +628,19 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments4.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments4.setUploadSideBy("agent");
             List<DocumentUrls> documentUrls4 = new ArrayList<>();
+            List<String> urlList4 = new ArrayList<>();
             DocumentUrls urls4 = new DocumentUrls();
-            for (MultipartFile multipartFile:gUARDIAN_ADD_PROOFMultipart) {
+            for (MultipartFile multipartFile : gUARDIAN_ADD_PROOFMultipart) {
                 urls4.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-                UploadResponseUrl uploadResponseUrl4 = new UploadResponseUrl();
-                uploadResponseUrl4.setUrl(urls4.getDocUrl());
-                uploadResponseUrl4.setDocType(gUARDIAN_ID_PROOF.name());
                 documentUrls4.add(urls4);
-                urlResponseList.add(uploadResponseUrl4);
+                String url = urls4.getDocUrl();
+                urlList4.add(url);
             }
+            UploadResponseUrl uploadResponseUrl4 = new UploadResponseUrl();
+            uploadResponseUrl4.setUrls(urlList4);
+            uploadResponseUrl4.setDocType(gUARDIAN_ID_PROOF.name());
 
-
+            urlResponseList.add(uploadResponseUrl4);
             documentUrlsRepository.saveAll(documentUrls4);
             claimDocuments4.setDocumentUrls(documentUrls4);
             claimDocuments4.setUploadTime(System.currentTimeMillis());
@@ -628,7 +650,7 @@ public class AgentServiceImpl implements AgentService {
         return urlResponseList;
     }
 
-   public List<UploadResponseUrl> uploadAgentNewDocument2(Long id, KycOrAddressDocType nomineeProof,  MultipartFile[]  nomineeMultiparts, AgentDocType bankerProof,  MultipartFile[]  bankerPROOFMultipart, AgentDocType additionalDocs,  MultipartFile[] additionalMultipart){
+    public List<UploadResponseUrl> uploadAgentNewDocument2(Long id, KycOrAddressDocType nomineeProof, MultipartFile[] nomineeMultiparts, AgentDocType bankerProof, MultipartFile[] bankerPROOFMultipart, AgentDocType additionalDocs, MultipartFile[] additionalMultipart) {
         Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
         if (!optionalClaimsData.isPresent()) {
             return Collections.emptyList();
@@ -642,15 +664,19 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments.setUploadSideBy("agent");
         List<DocumentUrls> documentUrls = new ArrayList<>();
+        List<String> urlList = new ArrayList<>();
         DocumentUrls urls = new DocumentUrls();
-       for (MultipartFile multipartFile:nomineeMultiparts) {
-           urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-           documentUrls.add(urls);
-           UploadResponseUrl uploadResponseUrl = new UploadResponseUrl();
-           uploadResponseUrl.setDocType(nomineeProof.toString());
-           uploadResponseUrl.setUrl(urls.getDocUrl());
-           urlResponseList.add(uploadResponseUrl);
-       }
+        for (MultipartFile multipartFile : nomineeMultiparts) {
+            urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            String url = urls.getDocUrl();
+            documentUrls.add(urls);
+            urlList.add(url);
+
+        }
+        UploadResponseUrl uploadResponseUrl = new UploadResponseUrl();
+        uploadResponseUrl.setDocType(nomineeProof.toString());
+        uploadResponseUrl.setUrls(urlList);
+        urlResponseList.add(uploadResponseUrl);
 
         documentUrlsRepository.saveAll(documentUrls);
         claimDocuments.setDocumentUrls(documentUrls);
@@ -663,17 +689,20 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments1.setClaimsData(claimsData);
         claimDocuments1.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments1.setUploadSideBy("agent");
+        List<String> urlList1 = new ArrayList<>();
         List<DocumentUrls> documentUrls1 = new ArrayList<>();
         DocumentUrls urls1 = new DocumentUrls();
-       for (MultipartFile multipartFile:bankerPROOFMultipart) {
-           urls1.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-           documentUrls1.add(urls1);
-           UploadResponseUrl uploadResponseUrl1 = new UploadResponseUrl();
-           uploadResponseUrl1.setDocType(bankerProof.toString());
-           uploadResponseUrl1.setUrl(urls1.getDocUrl());
-           urlResponseList.add(uploadResponseUrl1);
-       }
+        for (MultipartFile multipartFile : bankerPROOFMultipart) {
+            urls1.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            documentUrls1.add(urls1);
+            String url = urls.getDocUrl();
+            urlList1.add(url);
+        }
 
+        UploadResponseUrl uploadResponseUrl1 = new UploadResponseUrl();
+        uploadResponseUrl1.setDocType(bankerProof.toString());
+        uploadResponseUrl1.setUrls(urlList1);
+        urlResponseList.add(uploadResponseUrl1);
         documentUrlsRepository.saveAll(documentUrls1);
         claimDocuments1.setDocumentUrls(documentUrls1);
         claimDocuments1.setUploadTime(System.currentTimeMillis());
@@ -684,17 +713,20 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments2.setClaimsData(claimsData);
         claimDocuments2.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments2.setUploadSideBy("agent");
+        List<String> urlList2 = new ArrayList<>();
         List<DocumentUrls> documentUrls2 = new ArrayList<>();
         DocumentUrls urls2 = new DocumentUrls();
-       for (MultipartFile multipartFile:additionalMultipart) {
-           urls2.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
-           documentUrls2.add(urls2);
-           UploadResponseUrl uploadResponseUrl2 = new UploadResponseUrl();
-           uploadResponseUrl2.setDocType(additionalDocs.toString());
-           uploadResponseUrl2.setUrl(urls2.getDocUrl());
-           urlResponseList.add(uploadResponseUrl2);
-       }
+        for (MultipartFile multipartFile : additionalMultipart) {
+            urls2.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            documentUrls2.add(urls2);
+            String url = urls2.getDocUrl();
+            urlList2.add(url);
 
+        }
+        UploadResponseUrl uploadResponseUrl2 = new UploadResponseUrl();
+        uploadResponseUrl2.setDocType(additionalDocs.toString());
+        uploadResponseUrl2.setUrls(urlList2);
+        urlResponseList.add(uploadResponseUrl2);
         documentUrlsRepository.saveAll(documentUrls2);
         claimDocuments2.setDocumentUrls(documentUrls2);
         claimDocuments2.setUploadTime(System.currentTimeMillis());

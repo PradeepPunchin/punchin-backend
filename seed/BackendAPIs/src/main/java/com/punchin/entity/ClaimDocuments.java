@@ -34,4 +34,5 @@ public class ClaimDocuments extends BasicEntity {
     @Column(columnDefinition = "Text")
     private String rejectRemark;
 
+
 }

@@ -1,8 +1,6 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.AgentUploadDocumentDTO;
-import com.punchin.dto.PageDTO;
-import com.punchin.dto.UploadResponseUrl;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
@@ -73,7 +71,7 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            ClaimsData claimsData = agentService.getClaimData(id);
+            Map<String, Object> claimsData = agentService.getClaimData(id);
             if (Objects.nonNull(claimsData)) {
                 return ResponseHandler.response(claimsData, MessageCode.success, true, HttpStatus.OK);
             }
@@ -163,7 +161,7 @@ public class AgentController {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             AgentUploadDocumentDTO documentDTO = new AgentUploadDocumentDTO();
-            documentDTO.setClaimsData(agentService.getClaimData(id));
+            //documentDTO.setClaimsData(agentService.getClaimData(id));
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
             documentDTO.setSignedForm(signedForm);
@@ -212,7 +210,7 @@ public class AgentController {
     }
 
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
-    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
+    //@PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
     public ResponseEntity<Object> uploadAgentDocument(@RequestParam Long id, @RequestParam AgentDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
@@ -257,9 +255,9 @@ public class AgentController {
                                                          @RequestParam AgentDocType deathCertificate, @RequestBody(required = false) MultipartFile deathCertificateMultipart,
                                                          @RequestParam String nomineeStatus,
                                                          @RequestParam AgentDocType signedClaim, @RequestBody(required = false) MultipartFile signedClaimMultipart,
-                                                         @RequestParam AgentDocType relation_shipProof, @RequestBody(required = false) MultipartFile relation_shipProofMultipart,
-                                                         @RequestParam AgentDocType gUARDIAN_ID_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ID_PROOFMultipart,
-                                                         @RequestParam AgentDocType gUARDIAN_ADD_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ADD_PROOFMultipart,
+                                                         @RequestParam(required = false) AgentDocType relation_shipProof, @RequestBody(required = false) MultipartFile relation_shipProofMultipart,
+                                                         @RequestParam(required = false) AgentDocType gUARDIAN_ID_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ID_PROOFMultipart,
+                                                         @RequestParam(required = false) AgentDocType gUARDIAN_ADD_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ADD_PROOFMultipart,
                                                          @RequestParam AgentDocType borowerProof, @RequestBody(required = false) MultipartFile borowerProofMultipart) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, causeOfDeath, deathCertificate, deathCertificateMultipart, nomineeStatus, signedClaim, signedClaimMultipart, relation_shipProof, relation_shipProofMultipart,
@@ -267,8 +265,11 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument(id, causeOfDeath, deathCertificate, new MultipartFile[]{deathCertificateMultipart}, nomineeStatus, signedClaim, new MultipartFile[] {signedClaimMultipart}, relation_shipProof, new MultipartFile[] {relation_shipProofMultipart},
-                    gUARDIAN_ID_PROOF, new MultipartFile[] {gUARDIAN_ID_PROOFMultipart}, gUARDIAN_ADD_PROOF, new MultipartFile[]{gUARDIAN_ADD_PROOFMultipart}, borowerProof, new MultipartFile[]{borowerProofMultipart});
+            if (nomineeStatus.equalsIgnoreCase("Minor") && gUARDIAN_ID_PROOFMultipart == null && gUARDIAN_ADD_PROOFMultipart == null && relation_shipProof == null) {
+                return ResponseHandler.response(null, MessageCode.MINOR_UPLOAD_ALL_DOCUMENTS, false, HttpStatus.BAD_REQUEST);
+            }
+            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument(id, causeOfDeath, deathCertificate, new MultipartFile[]{deathCertificateMultipart}, nomineeStatus, signedClaim, new MultipartFile[]{signedClaimMultipart}, relation_shipProof, new MultipartFile[]{relation_shipProofMultipart},
+                    gUARDIAN_ID_PROOF, new MultipartFile[]{gUARDIAN_ID_PROOFMultipart}, gUARDIAN_ADD_PROOF, new MultipartFile[]{gUARDIAN_ADD_PROOFMultipart}, borowerProof, new MultipartFile[]{borowerProofMultipart});
             if (documentUrlsList != null) {
                 return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
             }
@@ -282,16 +283,15 @@ public class AgentController {
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
     @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_NEW_AGENT2)
     public ResponseEntity<Object> uploadAgentNewDocument2(@RequestParam Long id,
-
-                                                         @RequestParam KycOrAddressDocType nomineeProof, @RequestBody(required = false) MultipartFile nomineeMultiparts,
-                                                         @RequestParam AgentDocType bankerProof, @RequestBody(required = false) MultipartFile bankerPROOFMultipart,
-                                                         @RequestParam AgentDocType additionalDocs, @RequestBody(required = false) MultipartFile additionalMultipart) {
+                                                          @RequestParam KycOrAddressDocType nomineeProof, @RequestBody(required = false) MultipartFile nomineeMultiparts,
+                                                          @RequestParam AgentDocType bankerProof, @RequestBody(required = false) MultipartFile bankerPROOFMultipart,
+                                                          @RequestParam(required = false) AgentDocType additionalDocs, @RequestBody(required = false) MultipartFile additionalMultipart) {
         try {
-            log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id,nomineeProof,nomineeMultiparts,bankerProof, bankerPROOFMultipart,additionalDocs,additionalMultipart);
+            log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, nomineeProof, nomineeMultiparts, bankerProof, bankerPROOFMultipart, additionalDocs, additionalMultipart);
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument2(id,nomineeProof, new MultipartFile[] {nomineeMultiparts},bankerProof, new MultipartFile[] {bankerPROOFMultipart},additionalDocs, new MultipartFile[] {additionalMultipart});
+            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument2(id, nomineeProof, new MultipartFile[]{nomineeMultiparts}, bankerProof, new MultipartFile[]{bankerPROOFMultipart}, additionalDocs, new MultipartFile[]{additionalMultipart});
             if (documentUrlsList != null) {
                 return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
             }

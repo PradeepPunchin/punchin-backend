@@ -44,4 +44,5 @@ public class MessageCode {
     public static final String DOCUMENT_ALREADY_EXISTS = "Document already exists";
 
     public static final String invalidCredentials = "Invalid credentials";
+    public static final String MINOR_UPLOAD_ALL_DOCUMENTS = "Minor should upload all Documents";
 }

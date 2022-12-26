@@ -400,7 +400,7 @@ public class BankerServiceImpl implements BankerService {
                             p.setBorrowerAlternateContactDetails(cell.getStringCellValue());
                             break;
                         case 10:
-                            //  cell.setCellType(CellType.STRING);
+                            cell.setCellType(CellType.STRING);
                             p.setLoanAccountNumber(cell.getStringCellValue());
                             break;
                         case 11:
@@ -469,10 +469,17 @@ public class BankerServiceImpl implements BankerService {
                             p.setMasterPolNumber(cell.getStringCellValue());
                             break;
                         case 25:
-                            if (Objects.nonNull(cell.getStringCellValue())) {
+                            if (cell.getCellType().equals(CellType.NUMERIC)) {
+                                if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                                    p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                                }
+                            } else if (cell.getCellType().equals(CellType.STRING)) {
+                                p.setPolicyStartDate(new Date(cell.getStringCellValue()));
+                            }
+                            /*if (Objects.nonNull(cell.getStringCellValue())) {
                                 Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(cell.getStringCellValue());
                                 p.setPolicyStartDate(date1);
-                            }
+                            }*/
                             break;
                         case 26:
                             cell.setCellType(CellType.NUMERIC);

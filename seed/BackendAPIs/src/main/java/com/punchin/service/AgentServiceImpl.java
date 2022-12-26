@@ -496,6 +496,7 @@ public class AgentServiceImpl implements AgentService {
         claimsData.setCauseOfDeath(causeOfDeath);
         ClaimDocuments claimDocuments = new ClaimDocuments();
         claimDocuments.setAgentDocType(deathCertificate);
+        claimDocuments.setDocType(deathCertificate.name());
         claimDocuments.setClaimsData(claimsData);
         claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments.setUploadSideBy("agent");
@@ -519,6 +520,7 @@ public class AgentServiceImpl implements AgentService {
 
         ClaimDocuments claimDocuments0 = new ClaimDocuments();
         claimDocuments0.setAgentDocType(borowerProof);
+        claimDocuments0.setDocType(borowerProof.name());
         claimDocuments0.setClaimsData(claimsData);
         claimDocuments0.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments0.setUploadSideBy("agent");
@@ -542,6 +544,7 @@ public class AgentServiceImpl implements AgentService {
 
         ClaimDocuments claimDocuments1 = new ClaimDocuments();
         claimDocuments1.setAgentDocType(signedClaim);
+        claimDocuments1.setDocType(signedClaim.name());
         claimDocuments1.setClaimsData(claimsData);
         claimDocuments1.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments1.setUploadSideBy("agent");
@@ -568,6 +571,7 @@ public class AgentServiceImpl implements AgentService {
         if (nomineeStatus.equalsIgnoreCase("Minor")) {
             ClaimDocuments claimDocuments2 = new ClaimDocuments();
             claimDocuments2.setAgentDocType(relation_shipProof);
+            claimDocuments2.setDocType(relation_shipProof.name());
             claimDocuments2.setClaimsData(claimsData);
             claimDocuments2.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments2.setUploadSideBy("agent");
@@ -591,6 +595,7 @@ public class AgentServiceImpl implements AgentService {
 
             ClaimDocuments claimDocuments3 = new ClaimDocuments();
             claimDocuments3.setAgentDocType(gUARDIAN_ID_PROOF);
+            claimDocuments3.setDocType(gUARDIAN_ID_PROOF.name());
             claimDocuments3.setClaimsData(claimsData);
             claimDocuments3.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments3.setUploadSideBy("agent");
@@ -615,6 +620,7 @@ public class AgentServiceImpl implements AgentService {
 
             ClaimDocuments claimDocuments4 = new ClaimDocuments();
             claimDocuments4.setAgentDocType(gUARDIAN_ADD_PROOF);
+            claimDocuments4.setDocType(gUARDIAN_ADD_PROOF.name());
             claimDocuments4.setClaimsData(claimsData);
             claimDocuments4.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments4.setUploadSideBy("agent");
@@ -813,6 +819,30 @@ public class AgentServiceImpl implements AgentService {
                             dto.setAdditionalDoc("APPROVED");
                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
                             dto.setAdditionalDoc("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.RELATIONSHIP_PROOF)) {
+                        dto.setRelationshipDoc("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setRelationshipDoc("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setRelationshipDoc("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.GUARDIAN_ID_PROOF)) {
+                        dto.setGuardianIdProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setGuardianIdProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setGuardianIdProof("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.GUARDIAN_ADD_PROOF)) {
+                        dto.setGuardianAddressProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setGuardianAddressProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setGuardianAddressProof("REJECTED");
                         }
                     }
                 }

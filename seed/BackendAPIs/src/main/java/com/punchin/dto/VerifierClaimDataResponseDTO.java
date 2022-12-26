@@ -26,6 +26,9 @@ public class VerifierClaimDataResponseDTO {
     private String bankAccountProof = "NOT_UPLOADED";
     private String firPostmortemReport = "NOT_UPLOADED";
     private String additionalDoc = "NOT_UPLOADED";
+    private String relationshipDoc = "NOT_UPLOADED";
+    private String guardianIdProof = "NOT_UPLOADED";
+    private String guardianAddressProof = "NOT_UPLOADED";
 }
 
 

@@ -1,8 +1,6 @@
 package com.punchin.service;
 
-import com.punchin.dto.AgentUploadDocumentDTO;
-import com.punchin.dto.PageDTO;
-import com.punchin.dto.UploadResponseUrl;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
@@ -39,14 +37,14 @@ public interface AgentService {
     List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType);
 
     List<UploadResponseUrl> uploadAgentNewDocument(Long id,
-                                                    CauseOfDeathEnum causeOfDeath,
-                                                    AgentDocType deathCertificate,  MultipartFile[] deathCertificateMultipart,
-                                                    String nomineeStatus,
-                                                    AgentDocType signedClaim,  MultipartFile[] signedClaimMultipart,
-                                                    AgentDocType relation_shipProof,  MultipartFile[] relation_shipProofMultipart,
-                                                    AgentDocType gUARDIAN_ID_PROOF,  MultipartFile[] gUARDIAN_ID_PROOFMultipart,
-                                                    AgentDocType gUARDIAN_ADD_PROOF,  MultipartFile[] gUARDIAN_ADD_PROOFMultipart,
-                                                    AgentDocType borowerProof,  MultipartFile[] borowerProofMultipart);
+                                                   CauseOfDeathEnum causeOfDeath,
+                                                   AgentDocType deathCertificate, MultipartFile[] deathCertificateMultipart,
+                                                   String nomineeStatus,
+                                                   AgentDocType signedClaim, MultipartFile[] signedClaimMultipart,
+                                                   AgentDocType relation_shipProof, MultipartFile[] relation_shipProofMultipart,
+                                                   AgentDocType gUARDIAN_ID_PROOF, MultipartFile[] gUARDIAN_ID_PROOFMultipart,
+                                                   AgentDocType gUARDIAN_ADD_PROOF, MultipartFile[] gUARDIAN_ADD_PROOFMultipart,
+                                                   AgentDocType borowerProof, MultipartFile[] borowerProofMultipart);
 
-    List<UploadResponseUrl> uploadAgentNewDocument2(Long id, KycOrAddressDocType nomineeProof,  MultipartFile[] nomineeMultiparts, AgentDocType bankerProof,  MultipartFile[] bankerPROOFMultipart, AgentDocType additionalDocs,  MultipartFile[] additionalMultipart);
+    List<UploadResponseUrl> uploadAgentNewDocument2(Long id, KycOrAddressDocType nomineeProof, MultipartFile[] nomineeMultiparts, AgentDocType bankerProof, MultipartFile[] bankerPROOFMultipart, AgentDocType additionalDocs, MultipartFile[] additionalMultipart);
 }

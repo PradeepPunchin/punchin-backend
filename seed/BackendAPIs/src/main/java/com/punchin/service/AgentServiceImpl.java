@@ -649,6 +649,7 @@ public class AgentServiceImpl implements AgentService {
         ClaimsData claimsData = optionalClaimsData.get();
         ClaimDocuments claimDocuments = new ClaimDocuments();
         claimDocuments.setDocType(nomineeProof.toString());
+        claimDocuments.setAgentDocType(AgentDocType.NOMINEE_ID_PROOF);
         claimDocuments.setClaimsData(claimsData);
         claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments.setUploadSideBy("agent");
@@ -665,15 +666,14 @@ public class AgentServiceImpl implements AgentService {
         uploadResponseUrl.setDocType(nomineeProof.toString());
         uploadResponseUrl.setUrls(urlList);
         urlResponseList.add(uploadResponseUrl);
-
         documentUrlsRepository.saveAll(documentUrls);
         claimDocuments.setDocumentUrls(documentUrls);
         claimDocuments.setUploadTime(System.currentTimeMillis());
         claimDocumentsRepository.save(claimDocuments);
 
-
         ClaimDocuments claimDocuments1 = new ClaimDocuments();
-        claimDocuments1.setDocType(bankerProof.toString());
+        claimDocuments1.setDocType(bankerProof.name());
+        claimDocuments1.setAgentDocType(bankerProof);
         claimDocuments1.setClaimsData(claimsData);
         claimDocuments1.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments1.setUploadSideBy("agent");

@@ -1,9 +1,6 @@
 package com.punchin.service;
 
-import com.punchin.dto.BankerClaimDocumentationDTO;
-import com.punchin.dto.ClaimDocumentsDTO;
-import com.punchin.dto.DocumentUrlDTO;
-import com.punchin.dto.PageDTO;
+import com.punchin.dto.*;
 import com.punchin.entity.*;
 import com.punchin.enums.*;
 import com.punchin.repository.*;
@@ -1092,6 +1089,217 @@ public class BankerServiceImpl implements BankerService {
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: checkDocumentAlreadyExist e - {}" + e);
             return false;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getClaimBankerDocuments(Long id) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            log.info("BankerServiceImpl :: getClaimBankerDocuments claimId {}", id);
+            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
+            return optionalClaimsData.isPresent() ? convertInDocumentStatusDTO(optionalClaimsData.get()) : null;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimBankerDocuments e {}", e);
+            map.put("claimDocuments", null);
+            map.put("rejectedDocList", null);
+            map.put("message", e.getMessage());
+            return map;
+        }
+    }
+
+    @Override
+    public boolean checkDocumentIsInDiscrepancy(Long id, String docType) {
+        try {
+            log.info("BankerServiceImpl :: checkDocumentIsInDiscrepancy");
+            ClaimDocuments claimDocuments = claimDocumentsRepository.findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByAndIsVerifiedAndIsApprovedOrderByIdDesc(id, AgentDocType.valueOf(docType), "banker", true, false);
+            return Objects.nonNull(claimDocuments) ? true : false;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: checkDocumentIsInDiscrepancy e{}", e);
+            return false;
+        }
+    }
+
+    @Override
+    public Map<String, Object> discrepancyDocumentUpload(Long claimId, MultipartFile[] multipartFiles, String docType) {
+        log.info("BankerServiceImpl :: discrepancyDocumentUpload claimsData {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
+        Map<String, Object> map = new HashMap<>();
+        try {
+            String oldDocType = docType;
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndAgentDocType(claimId, AgentDocType.valueOf(docType));
+            if (!claimDocumentsList.isEmpty()) {
+                for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                    claimDocuments.setIsActive(false);
+                    oldDocType = claimDocuments.getDocType();
+                }
+                claimDocumentsRepository.saveAll(claimDocumentsList);
+            }
+            ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
+            ClaimDocuments claimDocuments = new ClaimDocuments();
+            claimDocuments.setClaimsData(claimsData);
+            claimDocuments.setAgentDocType(AgentDocType.valueOf(docType));
+            claimDocuments.setDocType(oldDocType);
+            claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            claimDocuments.setUploadSideBy("banker");
+            List<DocumentUrls> documentUrls = new ArrayList<>();
+            for (MultipartFile multipartFile : multipartFiles) {
+                DocumentUrls urls = new DocumentUrls();
+                urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "banker"));
+                if (Objects.isNull(urls.getDocUrl())) {
+                    map.put("message", MessageCode.fileNotUploaded);
+                    return map;
+                }
+                documentUrls.add(urls);
+            }
+            documentUrlsRepository.saveAll(documentUrls);
+            claimDocuments.setDocumentUrls(documentUrls);
+            claimDocuments.setUploadTime(System.currentTimeMillis());
+            claimDocumentsRepository.save(claimDocuments);
+            //inactive old rejected doc
+
+            //claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
+            //claimsDataRepository.save(claimsData);
+            ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+            claimDocumentsDTO.setId(claimDocuments.getId());
+            claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+            claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+            claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+            claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+            List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+            for (DocumentUrls documentUrl : documentUrls) {
+                DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                documentUrlListDTO.setDocUrl(documentUrl.getDocUrl());
+                documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrl.getDocUrl()));
+                documentUrlDTOS.add(documentUrlListDTO);
+            }
+            claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+            map.put("message", MessageCode.success);
+            map.put("claimDocuments", claimDocumentsDTO);
+            return map;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: discrepancyDocumentUpload e {} ", e);
+            map.put("message", e.getMessage());
+            map.put("claimDocuments", null);
+            return map;
+        }
+    }
+
+    private Map<String, Object> convertInDocumentStatusDTO(ClaimsData page) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            log.info("Verifier Controller :: convertInDocumentStatusDTO page {}, limit {}", page);
+            List<ClaimsData> claimsData = new ArrayList<>();
+            claimsData.add(page);
+            List<VerifierClaimDataResponseDTO> dtos = new ArrayList<>();
+            List<String> rejectedDocList = new ArrayList<>();
+            for (ClaimsData claimData : claimsData) {
+                VerifierClaimDataResponseDTO dto = new VerifierClaimDataResponseDTO();
+                dto.setId(claimData.getId());
+                dto.setPunchinClaimId(claimData.getPunchinClaimId());
+                dto.setClaimDate(claimData.getClaimInwardDate());
+                dto.setBorrowerName(claimData.getBorrowerName());
+                dto.setBorrowerAddress(claimData.getBorrowerAddress());
+                dto.setNomineeAddress(claimData.getNomineeAddress());
+                dto.setNomineeName(claimData.getNomineeName());
+                dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
+                dto.setClaimStatus(claimData.getClaimStatus());
+                List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "banker");
+                for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
+                        dto.setSingnedClaimDocument("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setSingnedClaimDocument("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setSingnedClaimDocument("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.DEATH_CERTIFICATE)) {
+                        dto.setDeathCertificate("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setDeathCertificate("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setDeathCertificate("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ID_PROOF)) {
+                        dto.setBorrowerIdProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setBorrowerIdProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBorrowerIdProof("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ADDRESS_PROOF)) {
+                        dto.setBorrowerAddressProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setBorrowerAddressProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBorrowerAddressProof("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ID_PROOF)) {
+                        dto.setNomineeIdProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setNomineeIdProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setNomineeIdProof("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ADDRESS_PROOF)) {
+                        dto.setNomineeAddressProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setNomineeAddressProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setNomineeAddressProof("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
+                        dto.setBankAccountProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setBankAccountProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBankAccountProof("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.FIR_POSTMORTEM_REPORT)) {
+                        dto.setFirPostmortemReport("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setFirPostmortemReport("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setFirPostmortemReport("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.ADDITIONAL)) {
+                        dto.setAdditionalDoc("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setAdditionalDoc("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setAdditionalDoc("REJECTED");
+                            rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                        }
+                    }
+                }
+                dtos.add(dto);
+            }
+            rejectedDocList.add(AgentDocType.OTHER.name());
+            map.put("claimDocuments", dtos);
+            map.put("rejectedDocList", rejectedDocList);
+            map.put("message", MessageCode.success);
+            return map;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimBankerDocuments e {}", e);
+            map.put("claimDocuments", null);
+            map.put("rejectedDocList", null);
+            map.put("message", e.getMessage());
+            return map;
         }
     }
 }

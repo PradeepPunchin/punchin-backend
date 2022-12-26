@@ -210,7 +210,7 @@ public class AgentController {
     }
 
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
-    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
+    //@PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
     public ResponseEntity<Object> uploadAgentDocument(@RequestParam Long id, @RequestParam AgentDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);

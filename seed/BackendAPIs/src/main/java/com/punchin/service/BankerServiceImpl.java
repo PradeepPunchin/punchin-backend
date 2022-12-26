@@ -1096,11 +1096,39 @@ public class BankerServiceImpl implements BankerService {
     public Map<String, Object> getClaimBankerDocuments(Long id) {
         Map<String, Object> map = new HashMap<>();
         try {
-            log.info("BankerServiceImpl :: getClaimBankerDocuments claimId {}", id);
-            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
-            return optionalClaimsData.isPresent() ? convertInDocumentStatusDTO(optionalClaimsData.get()) : null;
+            log.info("AgentServiceImpl :: getClaimDocuments claimId {}", id);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.getClaimDocumentWithDiscrepancyStatusAndBanker(id);
+            List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
+            List<String> rejectedDocList = new ArrayList<>();
+            for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                claimDocumentsDTO.setId(claimDocuments.getId());
+                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                claimDocumentsDTO.setReason(claimDocuments.getReason());
+                if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                    rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                }
+                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                for (DocumentUrls documentUrls : documentUrlsList) {
+                    DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                    documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
+                    documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
+                    documentUrlDTOS.add(documentUrlListDTO);
+                }
+                claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                claimDocumentsDTOS.add(claimDocumentsDTO);
+            }
+            rejectedDocList.add(AgentDocType.OTHER.name());
+            map.put("claimDocuments", claimDocumentsDTOS);
+            map.put("rejectedDocList", rejectedDocList);
+            map.put("message", MessageCode.success);
+            return map;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimBankerDocuments e {}", e);
+            log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimDocuments e {}", e);
             map.put("claimDocuments", null);
             map.put("rejectedDocList", null);
             map.put("message", e.getMessage());

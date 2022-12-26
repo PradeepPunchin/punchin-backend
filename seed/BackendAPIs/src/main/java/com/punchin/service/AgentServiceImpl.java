@@ -558,7 +558,7 @@ public class AgentServiceImpl implements AgentService {
         UploadResponseUrl uploadResponseUrl1 = new UploadResponseUrl();
         uploadResponseUrl1.setUrls(urlList1);
         uploadResponseUrl1.setDocType(signedClaim.name());
-        documentUrls1.add(urls1);
+        //documentUrls1.add(urls1);
         urlResponseList.add(uploadResponseUrl1);
         documentUrlsRepository.saveAll(documentUrls1);
         claimDocuments1.setDocumentUrls(documentUrls1);
@@ -606,7 +606,7 @@ public class AgentServiceImpl implements AgentService {
             UploadResponseUrl uploadResponseUrl3 = new UploadResponseUrl();
             uploadResponseUrl3.setUrls(urlList3);
             uploadResponseUrl3.setDocType(gUARDIAN_ID_PROOF.name());
-            documentUrls3.add(urls3);
+            //documentUrls3.add(urls3);
             urlResponseList.add(uploadResponseUrl3);
             documentUrlsRepository.saveAll(documentUrls3);
             claimDocuments3.setDocumentUrls(documentUrls3);

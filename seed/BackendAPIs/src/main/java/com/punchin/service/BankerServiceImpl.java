@@ -1175,6 +1175,8 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setDocType(oldDocType);
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments.setUploadSideBy("banker");
+            claimDocuments.setIsActive(true);
+            claimDocuments.setIsDeleted(false);
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();

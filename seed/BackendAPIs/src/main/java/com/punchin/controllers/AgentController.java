@@ -265,8 +265,8 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument(id, causeOfDeath, deathCertificate, deathCertificateMultipart, nomineeStatus, signedClaim, signedClaimMultipart, relation_shipProof, relation_shipProofMultipart,
-                    gUARDIAN_ID_PROOF, gUARDIAN_ID_PROOFMultipart, gUARDIAN_ADD_PROOF, gUARDIAN_ADD_PROOFMultipart, borowerProof, borowerProofMultipart);
+            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument(id, causeOfDeath, deathCertificate, new MultipartFile[]{deathCertificateMultipart}, nomineeStatus, signedClaim, new MultipartFile[] {signedClaimMultipart}, relation_shipProof, new MultipartFile[] {relation_shipProofMultipart},
+                    gUARDIAN_ID_PROOF, new MultipartFile[] {gUARDIAN_ID_PROOFMultipart}, gUARDIAN_ADD_PROOF, new MultipartFile[]{gUARDIAN_ADD_PROOFMultipart}, borowerProof, new MultipartFile[]{borowerProofMultipart});
             if (documentUrlsList != null) {
                 return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
             }
@@ -289,7 +289,7 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument2(id,nomineeProof,nomineeMultiparts,bankerProof, bankerPROOFMultipart,additionalDocs,additionalMultipart);
+            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument2(id,nomineeProof, new MultipartFile[] {nomineeMultiparts},bankerProof, new MultipartFile[] {bankerPROOFMultipart},additionalDocs, new MultipartFile[] {additionalMultipart});
             if (documentUrlsList != null) {
                 return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
             }

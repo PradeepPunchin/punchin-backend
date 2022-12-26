@@ -1,8 +1,6 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.AgentSearchDTO;
-import com.punchin.dto.AgentUploadDocumentDTO;
-import com.punchin.dto.PageDTO;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
@@ -247,6 +245,58 @@ public class AgentController {
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentController :: deleteClaimDocument e {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
+    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_NEW_AGENT)
+    public ResponseEntity<Object> uploadAgentNewDocument(@RequestParam Long id,
+                                                         @RequestParam CauseOfDeathEnum causeOfDeath,
+                                                         @RequestParam AgentDocType deathCertificate, @RequestBody(required = false) MultipartFile deathCertificateMultipart,
+                                                         @RequestParam String nomineeStatus,
+                                                         @RequestParam AgentDocType signedClaim, @RequestBody(required = false) MultipartFile signedClaimMultipart,
+                                                         @RequestParam AgentDocType relation_shipProof, @RequestBody(required = false) MultipartFile relation_shipProofMultipart,
+                                                         @RequestParam AgentDocType gUARDIAN_ID_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ID_PROOFMultipart,
+                                                         @RequestParam AgentDocType gUARDIAN_ADD_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ADD_PROOFMultipart,
+                                                         @RequestParam AgentDocType borowerProof, @RequestBody(required = false) MultipartFile borowerProofMultipart) {
+        try {
+            log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, causeOfDeath, deathCertificate, deathCertificateMultipart, nomineeStatus, signedClaim, signedClaimMultipart, relation_shipProof, relation_shipProofMultipart,
+                    gUARDIAN_ID_PROOF, gUARDIAN_ID_PROOFMultipart, gUARDIAN_ADD_PROOF, gUARDIAN_ADD_PROOFMultipart, borowerProof, borowerProofMultipart);
+            if (!agentService.checkAccess(id)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument(id, causeOfDeath, deathCertificate, deathCertificateMultipart, nomineeStatus, signedClaim, signedClaimMultipart, relation_shipProof, relation_shipProofMultipart,
+                    gUARDIAN_ID_PROOF, gUARDIAN_ID_PROOFMultipart, gUARDIAN_ADD_PROOF, gUARDIAN_ADD_PROOFMultipart, borowerProof, borowerProofMultipart);
+            if (documentUrlsList != null) {
+                return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: uploadAgentDocument e{}", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_UPLOAD_DOCUMENT, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
+    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_NEW_AGENT2)
+    public ResponseEntity<Object> uploadAgentNewDocument2(@RequestParam Long id,
+
+                                                         @RequestParam KycOrAddressDocType nomineeProof, @RequestBody(required = false) MultipartFile nomineeMultiparts,
+                                                         @RequestParam AgentDocType bankerProof, @RequestBody(required = false) MultipartFile bankerPROOFMultipart,
+                                                         @RequestParam AgentDocType additionalDocs, @RequestBody(required = false) MultipartFile additionalMultipart) {
+        try {
+            log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id,nomineeProof,nomineeMultiparts,bankerProof, bankerPROOFMultipart,additionalDocs,additionalMultipart);
+            if (!agentService.checkAccess(id)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument2(id,nomineeProof,nomineeMultiparts,bankerProof, bankerPROOFMultipart,additionalDocs,additionalMultipart);
+            if (documentUrlsList != null) {
+                return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: uploadAgentDocument e{}", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_UPLOAD_DOCUMENT, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

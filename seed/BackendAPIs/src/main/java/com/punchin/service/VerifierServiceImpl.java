@@ -9,7 +9,6 @@ import com.punchin.enums.SearchCaseEnum;
 import com.punchin.repository.*;
 import com.punchin.utility.BASE64DecodedMultipartFile;
 import com.punchin.utility.GenericUtils;
-import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.ZipUtils;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +35,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -63,14 +61,25 @@ public class VerifierServiceImpl implements VerifierService {
     private UserRepository userRepository;
 
     @Override
-    public PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize) {
+    public PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize, SearchCaseEnum searchCaseEnum, String searchedKeyword) {
         Page<ClaimsData> page1 = Page.empty();
         try {
             log.info("BankerController :: getAllClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, pageNo, pageSize);
             Pageable pageable = PageRequest.of(pageNo, pageSize);
             List<ClaimStatus> claimsStatus = new ArrayList<>();
+            User verifier = GenericUtils.getLoggedInUser();
+            String verifierState = verifier.getState();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByBorrowerStateOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getState(), pageable);
+                if (Objects.nonNull(searchCaseEnum) && Objects.nonNull(searchedKeyword)) {
+                    if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
+                        page1 = claimsDataRepository.findAllVerifierClaimSearchedDataByClaimDataId(searchedKeyword, verifierState, pageable);
+                    } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
+                        page1 = claimsDataRepository.findAllVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, verifierState, pageable);
+                    } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
+                        page1 = claimsDataRepository.findAllVerifierClaimDataBySearchName(searchedKeyword, verifierState, pageable);
+                    }
+                } else
+                    page1 = claimsDataRepository.findByBorrowerStateOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
@@ -238,7 +247,7 @@ public class VerifierServiceImpl implements VerifierService {
                         claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
                     }
                 }
-            }else if (claimDocuments.getUploadSideBy().equalsIgnoreCase("banker")) {
+            } else if (claimDocuments.getUploadSideBy().equalsIgnoreCase("banker")) {
                 if (!approveRejectPayloadDTO.isApproved()) {
                     claimsData.setClaimBankerStatus(ClaimStatus.BANKER_DISCREPANCY);
                 }
@@ -562,50 +571,50 @@ public class VerifierServiceImpl implements VerifierService {
         User verifier = GenericUtils.getLoggedInUser();
         String verifierState = verifier.getState();
         if (claimDataFilter.ALL.equals(claimDataFilter)) {
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
-                claimSearchedData = claimsDataRepository.findAllocateClaimSearchedDataByClaimDataId(searchedKeyword, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
-                claimSearchedData = claimsDataRepository.findAllocateClaimSearchedDataByLoanAccountNumber(searchedKeyword, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
-                claimSearchedData = claimsDataRepository.findAllocateSearchedDataBySearchName(searchedKeyword, verifierState, pageable);
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
+                claimSearchedData = claimsDataRepository.findAllVerifierClaimSearchedDataByClaimDataId(searchedKeyword, verifierState, pageable);
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
+                claimSearchedData = claimsDataRepository.findAllVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, verifierState, pageable);
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
+                claimSearchedData = claimsDataRepository.findAllVerifierClaimDataBySearchName(searchedKeyword, verifierState, pageable);
             }
         } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.IN_PROGRESS.toString());
             statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
             statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList, verifierState, pageable);
             }
         } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList, verifierState, pageable);
             }
         } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.SETTLED.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList, verifierState, pageable);
             }
         } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, verifierState, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList, verifierState, pageable);
             }
         }
@@ -681,7 +690,7 @@ public class VerifierServiceImpl implements VerifierService {
             log.info("System path : path {}" + System.getProperty("user.dir"));
             log.info("downloadFolderPath : path {}" + downloadFolderUrl);
             //String filename = "/home/tarun/Documents/Projects/Punchin/punchin-backend/seed/BackendAPIs/downloads/Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            String filename =  "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
+            String filename = "/Claim_MIS_" + format.format(new Date()) + ".xlsx";
             //downloadFolderPath = System.getProperty("user.dir");
             File file = new File(downloadFolderUrl);
             file.mkdirs();

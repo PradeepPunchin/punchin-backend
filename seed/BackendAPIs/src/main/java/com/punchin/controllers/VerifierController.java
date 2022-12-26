@@ -1,6 +1,9 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.*;
+import com.punchin.dto.AgentListResponseDTO;
+import com.punchin.dto.ClaimDetailForVerificationDTO;
+import com.punchin.dto.DocumentApproveRejectPayloadDTO;
+import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
@@ -34,11 +37,11 @@ public class VerifierController {
     private VerifierService verifierService;
 
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
-    public ResponseEntity<Object> getClaimsData(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
+    public ResponseEntity<Object> getClaimsData(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit, @RequestParam(value = "searchCaseEnum", required = false) SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword", required = false) String searchedKeyword) {
         try {
             log.info("VerifierController :: getAllVerifierClaimsData dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             //page = page > 0 ? page - 1 : page;
-            PageDTO allClaimsData = verifierService.getAllClaimsData(claimDataFilter, page, limit);
+            PageDTO allClaimsData = verifierService.getAllClaimsData(claimDataFilter, page, limit, searchCaseEnum, searchedKeyword);
             return ResponseHandler.response(allClaimsData, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");

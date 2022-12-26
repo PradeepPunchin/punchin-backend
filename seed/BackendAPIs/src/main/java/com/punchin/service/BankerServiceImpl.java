@@ -106,11 +106,11 @@ public class BankerServiceImpl implements BankerService {
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
                 if (Objects.nonNull(searchCaseEnum) && Objects.nonNull(searchedKeyword)) {
                     if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
-                        page1 = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId(searchedKeyword, bankerId, pageable);
                     } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
-                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId2(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, bankerId, pageable);
                     } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
-                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId3(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerId, pageable);
                     }
                 } else
                     page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
@@ -138,7 +138,7 @@ public class BankerServiceImpl implements BankerService {
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
-                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus,claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             }
             return commonService.convertPageToDTO(page1.getContent(), page1);
         } catch (Exception e) {
@@ -1006,37 +1006,37 @@ public class BankerServiceImpl implements BankerService {
         Page<ClaimsData> claimSearchedData = null;
         List<String> statusList = new ArrayList<>();
         if (claimDataFilter.ALL.equals(claimDataFilter)) {
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
-                claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId1(searchedKeyword, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
-                claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId2(searchedKeyword, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
-                claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId3(searchedKeyword, bankerId, pageable);
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
+                claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId(searchedKeyword, bankerId, pageable);
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
+                claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, bankerId, pageable);
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
+                claimSearchedData = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerId, pageable);
             }
         } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId, pageable);
             }
         } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId, pageable);
             }
         } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId, pageable);
             }
         } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
@@ -1045,30 +1045,30 @@ public class BankerServiceImpl implements BankerService {
             statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
             statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId, pageable);
             }
         } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId, pageable);
             }
         } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.SETTLED.toString());
             statusList.add(ClaimStatus.SUBMITTED_TO_INSURER.toString());
-            if (searchCaseEnum.getValue().equalsIgnoreCase("Claim Id")) {
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Loan Account Number")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, bankerId, pageable);
-            } else if (searchCaseEnum.getValue().equalsIgnoreCase("Name")) {
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataBySearchName(searchedKeyword, statusList, bankerId, pageable);
             }
         }
@@ -1076,7 +1076,6 @@ public class BankerServiceImpl implements BankerService {
             log.info("No claims data found");
             return null;
         }
-        log.info("searched claim data fetched successfully");
         log.info("searched claim data fetched successfully");
         return commonService.convertPageToDTO(claimSearchedData);
     }

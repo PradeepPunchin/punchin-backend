@@ -21,6 +21,8 @@ public class UrlMapping {
     public static final String DOWNLOAD_CLAIM_DOCUMENT_DATA = "/claim/{id}/download-all-documents";
     public static final String GET_CLAIM_SEARCHED_DATA_VERIFIER = "/claim/searchVerifier";
     public static final String DOWNLOAD_MIS_REPORT = "/claim/download-mis-report";
+    public static final String DELETE_CLAIM_DOCUMENT = "/claim/document/delete/{docId}";
+
 
     //Authentication Endpoints
     public static final String LOGIN = BASEURL + "/auth" + "/login";
@@ -34,9 +36,9 @@ public class UrlMapping {
     public static final String BANKER_DISCARD_CLAIMS = "/claim/discard";
     public static final String BANKER_STANDARIZED_FORMAT = "/download-excel-format";
     public static final String FORWARD_TO_VERIFIER = "/claim/{id}/forward-to-verifier";
-    public static final String BANKER_DELETE_DOCUMENT = "/claim/document/delete/{docId}";
     public static final String BANKER_SAVEAS_DRAFT_DOCUMENT = "/claim/{claimId}/documents/save-draft";
     public static final String GET_CLAIM_SEARCHED_DATA_BANKER = "/claim/searchBanker";
+    public static final String DISCREPANCY_DOCUMENT_UPLOAD = "/claim/{id}/discrepancy-document-upload/{docType}";
 
 
     //Verifier Endpoints
@@ -50,7 +52,6 @@ public class UrlMapping {
     //Agent Endpoints
     public static final String AGENT_UPLOAD_DOCUMENT = "/claim/{id}/uploadDocument";
     public static final String GET_CLAIM_SEARCHED_DATA = "/claim/search";
-    public static final String AGENT_DISCREPANCY_DOCUMENT_UPLOAD = "/claim/{id}/discrepancy-document-upload/{docType}";
 
     public static final String UPLOAD_DOCUMENT_AGENT = "/claim/uploadDocument";
 

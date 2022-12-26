@@ -40,13 +40,13 @@ public interface AgentService {
 
     List<UploadResponseUrl> uploadAgentNewDocument(Long id,
                                                     CauseOfDeathEnum causeOfDeath,
-                                                    AgentDocType deathCertificate, MultipartFile deathCertificateMultipart,
+                                                    AgentDocType deathCertificate,  MultipartFile[] deathCertificateMultipart,
                                                     String nomineeStatus,
-                                                    AgentDocType signedClaim, MultipartFile signedClaimMultipart,
-                                                    AgentDocType relation_shipProof, MultipartFile relation_shipProofMultipart,
-                                                    AgentDocType gUARDIAN_ID_PROOF, MultipartFile gUARDIAN_ID_PROOFMultipart,
-                                                    AgentDocType gUARDIAN_ADD_PROOF, MultipartFile gUARDIAN_ADD_PROOFMultipart,
-                                                    AgentDocType borowerProof, MultipartFile borowerProofMultipart);
+                                                    AgentDocType signedClaim,  MultipartFile[] signedClaimMultipart,
+                                                    AgentDocType relation_shipProof,  MultipartFile[] relation_shipProofMultipart,
+                                                    AgentDocType gUARDIAN_ID_PROOF,  MultipartFile[] gUARDIAN_ID_PROOFMultipart,
+                                                    AgentDocType gUARDIAN_ADD_PROOF,  MultipartFile[] gUARDIAN_ADD_PROOFMultipart,
+                                                    AgentDocType borowerProof,  MultipartFile[] borowerProofMultipart);
 
-    List<UploadResponseUrl> uploadAgentNewDocument2(Long id, KycOrAddressDocType nomineeProof, MultipartFile nomineeMultiparts, AgentDocType bankerProof, MultipartFile bankerPROOFMultipart, AgentDocType additionalDocs, MultipartFile additionalMultipart);
+    List<UploadResponseUrl> uploadAgentNewDocument2(Long id, KycOrAddressDocType nomineeProof,  MultipartFile[] nomineeMultiparts, AgentDocType bankerProof,  MultipartFile[] bankerPROOFMultipart, AgentDocType additionalDocs,  MultipartFile[] additionalMultipart);
 }

@@ -4,6 +4,7 @@ import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
+import com.punchin.enums.AgentDocType;
 import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.SearchCaseEnum;
@@ -27,7 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -224,11 +224,10 @@ public class BankerController {
     }
 
     @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
-    @DeleteMapping(value = UrlMapping.BANKER_DELETE_DOCUMENT)
-    public ResponseEntity<Object> deleteBankDocument(@PathVariable Long docId) {
+    @DeleteMapping(value = UrlMapping.DELETE_CLAIM_DOCUMENT)
+    public ResponseEntity<Object> deleteBankerClaimDocument(@PathVariable Long docId) {
         try {
-            log.info("BankerController :: getClaimData docId {}", docId);
-
+            log.info("BankerController :: deleteBankerClaimDocument docId {}", docId);
             if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
@@ -242,7 +241,7 @@ public class BankerController {
             }
             return ResponseHandler.response(null, MessageCode.INVALID_DOCUMENT_ID, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerController :: getClaimData e {}", e);
+            log.error("EXCEPTION WHILE BankerController :: deleteBankerClaimDocument e {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -284,9 +283,7 @@ public class BankerController {
 
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.BANKER_CSV_UPLOAD_CLAIM)
-    public ResponseEntity<Object> uploadCSVFileClaimData
-            (@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile
-                     multipartFile) {
+    public ResponseEntity<Object> uploadCSVFileClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
         try {
             return bankerService.saveUploadCSVData(multipartFile);
         } catch (
@@ -297,45 +294,37 @@ public class BankerController {
 
     }
 
-
-    @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
-    @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_BANKER)
-    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum
-                                                               searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
-                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer pageSize) {
+    @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
+    public ResponseEntity<Object> getClaimBankerDocuments(@PathVariable Long id) {
         try {
-            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, pageSize);
-            PageDTO searchedClaimData = bankerService.getBankerClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter, pageNo, pageSize);
-            if (searchedClaimData != null) {
-                log.info("Searched claim data fetched successfully");
-                return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            log.info("BankerController :: getClaimDocuments claimId {}", id);
+            Map<String, Object> claimDocumentsMAP = bankerService.getClaimBankerDocuments(id);
+            if (claimDocumentsMAP.get("message").equals(MessageCode.success)) {
+                return ResponseHandler.response(claimDocumentsMAP, MessageCode.success, true, HttpStatus.OK);
             }
-            log.info("No records found");
-            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+            return ResponseHandler.response(null, claimDocumentsMAP.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerController :: Get searched data :: ", e);
-            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("EXCEPTION WHILE BankerController :: getDocumentDetails :: e {} ", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
-    @GetMapping(value = "/test")
-    public ResponseEntity<Object> getClaimSearchedData1(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
-                                                        @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+    @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
+    @PutMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
+    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {
         try {
-            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
-            List<Map<String, Object>> claimSearchedData = bankerService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
-            log.info("Searched claim data fetched successfully");
-            if (Objects.nonNull(claimSearchedData)) {
-                return ResponseHandler.response(claimSearchedData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            log.info("BankerController :: discrepancyDocumentUpload claimId {}, multipartFile {}, docType {}", id, multipartFile, docType);
+            if (!bankerService.checkDocumentIsInDiscrepancy(id, docType) && !docType.equals(AgentDocType.OTHER.name())) {
+                return ResponseHandler.response(null, MessageCode.documentInUnderVerification, false, HttpStatus.BAD_REQUEST);
             }
-            log.info("No records found");
-            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+            Map<String, Object> result = bankerService.discrepancyDocumentUpload(id, new MultipartFile[]{multipartFile}, docType);
+            if (result.get("message").equals(MessageCode.success)) {
+                return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE AgentController :: Get searched data :: e {} ", e);
-            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("EXCEPTION WHILE BankerController :: discrepancyDocumentUpload e{}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }

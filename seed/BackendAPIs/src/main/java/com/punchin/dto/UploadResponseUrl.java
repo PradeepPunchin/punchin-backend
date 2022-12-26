@@ -2,9 +2,11 @@ package com.punchin.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class UploadResponseUrl {
 
     private String docType;
-    private String url;
+    private List<String> urls;
 }

@@ -17,6 +17,7 @@ public interface AgentService {
     boolean checkAccess(Long claimId);
 
     Map<String, Object> getClaimData(Long claimId);
+    ClaimsData getClaimsData(Long claimId);
 
     Map<String, Object> uploadDocument(AgentUploadDocumentDTO documentDTO);
 

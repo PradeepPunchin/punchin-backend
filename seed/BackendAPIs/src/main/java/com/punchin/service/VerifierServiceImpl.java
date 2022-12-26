@@ -757,18 +757,18 @@ public class VerifierServiceImpl implements VerifierService {
                     row.createCell(28).setCellValue(claimsData.getPolicyCoverageDuration());
                     row.createCell(29).setCellValue(claimsData.getPolicySumAssured());
                     row.createCell(30).setCellValue(claimsData.getNomineeName());
-                    row.createCell(32).setCellValue(claimsData.getNomineeRelationShip());
-                    row.createCell(33).setCellValue(claimsData.getNomineeContactNumber());
-                    row.createCell(34).setCellValue(claimsData.getNomineeEmailId());
-                    row.createCell(35).setCellValue(claimsData.getNomineeAddress());
-                    row.createCell(36).setCellValue("OPEN");
-                    row.createCell(37).setCellValue(claimsData.getClaimStatus().name());
-                    row.createCell(38).setCellValue(format.format(new Date()));
-                    row.createCell(39).setCellValue("");
+                    row.createCell(31).setCellValue(claimsData.getNomineeRelationShip());
+                    row.createCell(32).setCellValue(claimsData.getNomineeContactNumber());
+                    row.createCell(33).setCellValue(claimsData.getNomineeEmailId());
+                    row.createCell(34).setCellValue(claimsData.getNomineeAddress());
+                    row.createCell(35).setCellValue(claimsData.getClaimStatus().name());
+                    row.createCell(36).setCellValue(claimsData.getClaimStatus().name());
+                    row.createCell(37).setCellValue(format.format(new Date()));
+                    row.createCell(38).setCellValue("");
                 }
-                /*for (int i = 0; i < 40; i++) {
+                for (int i = 0; i < 39; i++) {
                     sheet.autoSizeColumn(i);
-                }*/
+                }
                 workbook.write(fileOut);
                 log.info("file exist file {}" + new File(downloadFolderUrl + filename).exists());
                 return new File(downloadFolderUrl + filename);

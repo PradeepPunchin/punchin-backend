@@ -154,6 +154,18 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
+    public ClaimsData getClaimsData(Long claimId) {
+        try {
+            log.info("AgentServiceImpl :: getClaimsData");
+            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
+            return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimsData e{}", e);
+            return null;
+        }
+    }
+
+    @Override
     public Map<String, Object> uploadDocument(AgentUploadDocumentDTO documentDTO) {
         Map<String, Object> map = new HashMap<>();
         try {
@@ -171,23 +183,24 @@ public class AgentServiceImpl implements AgentService {
             if (Objects.nonNull(documentDTO.getBorrowerIdDoc())) {
                 claimDocuments.add(uploadDocumentOnS3(AgentDocType.BORROWER_ID_PROOF, documentDTO.getBorrowerIdDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getBorrowerIdDoc()}));
             }
-            if (Objects.nonNull(documentDTO.getBorrowerAddressDoc())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.BORROWER_ADDRESS_PROOF, documentDTO.getBorrowerAddressDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getBorrowerAddressDoc()}));
-            }
-            if (Objects.nonNull(documentDTO.getNomineeIdDoc())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.NOMINEE_ID_PROOF, documentDTO.getNomineeIdDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getNomineeIdDoc()}));
-            }
-            if (Objects.nonNull(documentDTO.getNomineeAddressDoc())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.NOMINEE_ADDRESS_PROOF, documentDTO.getNomineeAddressDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getNomineeAddressDoc()}));
-            }
-            if (Objects.nonNull(documentDTO.getBankAccountDoc())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.BANK_ACCOUNT_PROOF, documentDTO.getBankAccountDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getBankAccountDoc()}));
-            }
-            if (Objects.nonNull(documentDTO.getFirOrPostmortemReport())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.FIR_POSTMORTEM_REPORT, "FIR_POSTMORTEM_REPORT", claimsData, new MultipartFile[]{documentDTO.getFirOrPostmortemReport()}));
-            }
-            if (Objects.nonNull(documentDTO.getAdditionalDoc())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.ADDITIONAL, documentDTO.getAdditionalDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getAdditionalDoc()}));
+            if(documentDTO.isMinor()) {
+                Map<AgentDocType, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
+                if(isMinorDoc.containsKey(AgentDocType.RELATIONSHIP_PROOF)){
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.RELATIONSHIP_PROOF, AgentDocType.RELATIONSHIP_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.RELATIONSHIP_PROOF)}));
+                }
+                if(isMinorDoc.containsKey(AgentDocType.GUARDIAN_ID_PROOF)){
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.GUARDIAN_ID_PROOF, AgentDocType.GUARDIAN_ID_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.GUARDIAN_ID_PROOF)}));
+                }
+                if(isMinorDoc.containsKey(AgentDocType.GUARDIAN_ADD_PROOF)){
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.GUARDIAN_ADD_PROOF, AgentDocType.GUARDIAN_ADD_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.GUARDIAN_ADD_PROOF)}));
+                }
+                if(isMinorDoc.containsKey(AgentDocType.OTHER)){
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.OTHER, AgentDocType.OTHER.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.OTHER)}));
+                }
+                /*int docLength = isMinorDocTypes.size();
+                for(int i = 0; i < docLength; i++){
+                    claimDocuments.add(uploadDocumentOnS3(documentDTO.getIsMinorDocTypes().get(i), documentDTO.getIsMinorDocTypes().get(i).name(), claimsData, new MultipartFile[]{documentDTO.getBorrowerAddressDoc()}));
+                }*/
             }
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
@@ -656,6 +669,7 @@ public class AgentServiceImpl implements AgentService {
         ClaimDocuments claimDocuments = new ClaimDocuments();
         claimDocuments.setDocType(nomineeProof.toString());
         claimDocuments.setAgentDocType(AgentDocType.NOMINEE_ID_PROOF);
+        claimDocuments.setDocType(AgentDocType.NOMINEE_ID_PROOF.name());
         claimDocuments.setClaimsData(claimsData);
         claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments.setUploadSideBy("agent");

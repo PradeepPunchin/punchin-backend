@@ -257,15 +257,18 @@ public class AgentController {
                                                          @RequestParam AgentDocType deathCertificate, @RequestBody(required = false) MultipartFile deathCertificateMultipart,
                                                          @RequestParam String nomineeStatus,
                                                          @RequestParam AgentDocType signedClaim, @RequestBody(required = false) MultipartFile signedClaimMultipart,
-                                                         @RequestParam AgentDocType relation_shipProof, @RequestBody(required = false) MultipartFile relation_shipProofMultipart,
-                                                         @RequestParam AgentDocType gUARDIAN_ID_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ID_PROOFMultipart,
-                                                         @RequestParam AgentDocType gUARDIAN_ADD_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ADD_PROOFMultipart,
+                                                         @RequestParam(required = false) AgentDocType relation_shipProof, @RequestBody(required = false) MultipartFile relation_shipProofMultipart,
+                                                         @RequestParam(required = false) AgentDocType gUARDIAN_ID_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ID_PROOFMultipart,
+                                                         @RequestParam(required = false) AgentDocType gUARDIAN_ADD_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ADD_PROOFMultipart,
                                                          @RequestParam AgentDocType borowerProof, @RequestBody(required = false) MultipartFile borowerProofMultipart) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, causeOfDeath, deathCertificate, deathCertificateMultipart, nomineeStatus, signedClaim, signedClaimMultipart, relation_shipProof, relation_shipProofMultipart,
                     gUARDIAN_ID_PROOF, gUARDIAN_ID_PROOFMultipart, gUARDIAN_ADD_PROOF, gUARDIAN_ADD_PROOFMultipart, borowerProof, borowerProofMultipart);
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            if (nomineeStatus.equalsIgnoreCase("Minor") && gUARDIAN_ID_PROOFMultipart == null && gUARDIAN_ADD_PROOFMultipart == null && relation_shipProof == null) {
+                    return ResponseHandler.response(null, MessageCode.MINOR_UPLOAD_ALL_DOCUMENTS, false, HttpStatus.BAD_REQUEST);
             }
             List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument(id, causeOfDeath, deathCertificate, new MultipartFile[]{deathCertificateMultipart}, nomineeStatus, signedClaim, new MultipartFile[] {signedClaimMultipart}, relation_shipProof, new MultipartFile[] {relation_shipProofMultipart},
                     gUARDIAN_ID_PROOF, new MultipartFile[] {gUARDIAN_ID_PROOFMultipart}, gUARDIAN_ADD_PROOF, new MultipartFile[]{gUARDIAN_ADD_PROOFMultipart}, borowerProof, new MultipartFile[]{borowerProofMultipart});
@@ -282,7 +285,6 @@ public class AgentController {
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
     @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_NEW_AGENT2)
     public ResponseEntity<Object> uploadAgentNewDocument2(@RequestParam Long id,
-
                                                          @RequestParam KycOrAddressDocType nomineeProof, @RequestBody(required = false) MultipartFile nomineeMultiparts,
                                                          @RequestParam AgentDocType bankerProof, @RequestBody(required = false) MultipartFile bankerPROOFMultipart,
                                                          @RequestParam AgentDocType additionalDocs, @RequestBody(required = false) MultipartFile additionalMultipart) {

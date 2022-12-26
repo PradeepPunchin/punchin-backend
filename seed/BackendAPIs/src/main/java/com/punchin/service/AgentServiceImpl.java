@@ -815,6 +815,30 @@ public class AgentServiceImpl implements AgentService {
                             dto.setAdditionalDoc("REJECTED");
                         }
                     }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.RELATIONSHIP_PROOF)) {
+                        dto.setRelationshipDoc("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setRelationshipDoc("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setRelationshipDoc("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.GUARDIAN_ID_PROOF)) {
+                        dto.setGuardianIdProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setGuardianIdProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setGuardianIdProof("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.GUARDIAN_ADD_PROOF)) {
+                        dto.setGuardianAddressProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setGuardianAddressProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setGuardianAddressProof("REJECTED");
+                        }
+                    }
                 }
                 dtos.add(dto);
             }

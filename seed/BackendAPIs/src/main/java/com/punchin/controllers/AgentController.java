@@ -287,7 +287,7 @@ public class AgentController {
     public ResponseEntity<Object> uploadAgentNewDocument2(@RequestParam Long id,
                                                          @RequestParam KycOrAddressDocType nomineeProof, @RequestBody(required = false) MultipartFile nomineeMultiparts,
                                                          @RequestParam AgentDocType bankerProof, @RequestBody(required = false) MultipartFile bankerPROOFMultipart,
-                                                         @RequestParam AgentDocType additionalDocs, @RequestBody(required = false) MultipartFile additionalMultipart) {
+                                                         @RequestParam(required = false) AgentDocType additionalDocs, @RequestBody(required = false) MultipartFile additionalMultipart) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id,nomineeProof,nomineeMultiparts,bankerProof, bankerPROOFMultipart,additionalDocs,additionalMultipart);
             if (!agentService.checkAccess(id)) {

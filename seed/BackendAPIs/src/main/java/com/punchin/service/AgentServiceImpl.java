@@ -174,33 +174,15 @@ public class AgentServiceImpl implements AgentService {
             ClaimsData claimsData = documentDTO.getClaimsData();
             claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
             claimsData.setIsMinor(documentDTO.isMinor());
-            if (Objects.nonNull(documentDTO.getSignedForm())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.SIGNED_FORM, "SIGNED_FORM", claimsData, new MultipartFile[]{documentDTO.getSignedForm()}));
-            }
-            if (Objects.nonNull(documentDTO.getDeathCertificate())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.DEATH_CERTIFICATE, "DEATH_CERTIFICATE", claimsData, new MultipartFile[]{documentDTO.getDeathCertificate()}));
-            }
-            if (Objects.nonNull(documentDTO.getBorrowerIdDoc())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.BORROWER_ID_PROOF, documentDTO.getBorrowerIdDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getBorrowerIdDoc()}));
-            }
-            if(documentDTO.isMinor()) {
-                Map<AgentDocType, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
-                if(isMinorDoc.containsKey(AgentDocType.RELATIONSHIP_PROOF)){
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.RELATIONSHIP_PROOF, AgentDocType.RELATIONSHIP_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.RELATIONSHIP_PROOF)}));
+            Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
+            List<String> keys = new ArrayList<>(isMinorDoc.keySet());
+            for(String key : keys){
+                if(key.contains(":")){
+                    String keyArray[] = key.split(":");
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0]), keyArray[1], claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                }else{
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }
-                if(isMinorDoc.containsKey(AgentDocType.GUARDIAN_ID_PROOF)){
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.GUARDIAN_ID_PROOF, AgentDocType.GUARDIAN_ID_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.GUARDIAN_ID_PROOF)}));
-                }
-                if(isMinorDoc.containsKey(AgentDocType.GUARDIAN_ADD_PROOF)){
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.GUARDIAN_ADD_PROOF, AgentDocType.GUARDIAN_ADD_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.GUARDIAN_ADD_PROOF)}));
-                }
-                if(isMinorDoc.containsKey(AgentDocType.OTHER)){
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.OTHER, AgentDocType.OTHER.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.OTHER)}));
-                }
-                /*int docLength = isMinorDocTypes.size();
-                for(int i = 0; i < docLength; i++){
-                    claimDocuments.add(uploadDocumentOnS3(documentDTO.getIsMinorDocTypes().get(i), documentDTO.getIsMinorDocTypes().get(i).name(), claimsData, new MultipartFile[]{documentDTO.getBorrowerAddressDoc()}));
-                }*/
             }
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);

@@ -146,10 +146,8 @@ public class AgentController {
 
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam CauseOfDeathEnum causeOfDeath, @RequestParam boolean isMinor,
-                                                  @RequestBody(required = false) MultipartFile signedForm, @RequestBody(required = false) MultipartFile deathCertificate,
-                                                  @RequestParam(required = false) KycOrAddressDocType borrowerIdDocType, @RequestBody(required = false) MultipartFile borrowerIdDoc,
-                                                  @RequestParam(required = false) Map<AgentDocType, MultipartFile> isMinorDoc) {
+    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor,
+                                                  @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", id);
             if (!agentService.checkAccess(id)) {
@@ -159,16 +157,10 @@ public class AgentController {
             documentDTO.setClaimsData(agentService.getClaimsData(id));
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
-            documentDTO.setSignedForm(signedForm);
-            documentDTO.setDeathCertificate(deathCertificate);
-            documentDTO.setBorrowerIdDocType(borrowerIdDocType);
-            documentDTO.setBorrowerIdDoc(borrowerIdDoc);
-            if(isMinor) {
-                if(Objects.isNull(isMinorDoc)){
-                    return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-                documentDTO.setIsMinorDoc(isMinorDoc);
+            if(Objects.isNull(isMinorDoc) || isMinorDoc.isEmpty()){
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_NOT_FOUND, false, HttpStatus.BAD_REQUEST);
             }
+            documentDTO.setIsMinorDoc(isMinorDoc);
             Map<String, Object> result = agentService.uploadDocument(documentDTO);
             if (Boolean.parseBoolean(result.get("status").toString())) {
                 return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);

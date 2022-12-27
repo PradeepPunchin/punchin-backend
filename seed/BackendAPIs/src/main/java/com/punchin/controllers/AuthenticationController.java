@@ -1,8 +1,8 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.LoginRequestDTO;
 import com.punchin.enums.Platform;
 import com.punchin.service.AuthenticationService;
-import com.punchin.dto.LoginRequestDTO;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
@@ -10,8 +10,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,19 +34,19 @@ public class AuthenticationController {
 
     @ApiOperation(value = "User Login", notes = "This can be used to generate API token")
     @PostMapping(value = UrlMapping.LOGIN)
-    public ResponseEntity<Object> userAuthentication(@ApiParam(name = "Credential", value = "The Login request Object for user login", required = true) @Valid @RequestBody LoginRequestDTO credentials){
-        try{
+    public ResponseEntity<Object> userAuthentication(@ApiParam(name = "Credential", value = "The Login request Object for user login", required = true) @Valid @RequestBody LoginRequestDTO credentials) {
+        try {
             log.info("AuthenticationController :: userAuthentication LoginRequestDTO{}", credentials);
-                log.info("LOGIN BY CREDENTIALS");
-                if(Objects.isNull(credentials.getPlatform())){
-                    credentials.setPlatform(Platform.ANDROID);
-                }
-                Map<String, Object> resultMap = authenticationService.authenticateUserAccount(credentials);
-                if(resultMap.get("message").equals(MessageCode.success)){
-                    return ResponseHandler.response(resultMap.get("session"), MessageCode.login, true, HttpStatus.OK);
-                }
+            log.info("LOGIN BY CREDENTIALS");
+            if (Objects.isNull(credentials.getPlatform())) {
+                credentials.setPlatform(Platform.ANDROID);
+            }
+            Map<String, Object> resultMap = authenticationService.authenticateUserAccount(credentials);
+            if (resultMap.get("message").equals(MessageCode.success)) {
+                return ResponseHandler.response(resultMap.get("session"), MessageCode.login, true, HttpStatus.OK);
+            }
             return ResponseHandler.response(null, resultMap.get("message").toString(), true, HttpStatus.BAD_REQUEST);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("EXCEPTION WHILE AuthenticationController :: userAuthentication e{}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }

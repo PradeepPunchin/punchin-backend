@@ -4,7 +4,7 @@ public class MessageCode {
 
 
 
-    private MessageCode(){
+    private MessageCode() {
 
     }
 
@@ -26,6 +26,8 @@ public class MessageCode {
     public static final String documentNotUploaded = "Document not uploaded";
     public static final String DOCUMENT_DELETED = "Document deleted successfully";
     public static final String DOCUMENT_SAVEAS_DRAFT = "Document save as draft successfully";
+    public static final String UPLOAD_BANKER_DOCUMENT = "Upload banker document";
+    public static final String DOCUMENT_NOT_FOUND = "Document not found";
 
 
 
@@ -39,6 +41,11 @@ public class MessageCode {
     public static final String SEARCHED_CLAIM_DATA_FETCHED_SUCCESS = "Searched claim data fetch succeeded";
     public static final String NO_RECORD_FOUND = "No record found";
     public static final String ERROR_SEARCHED_CLAIM_DATA_FETCHED = "Error while Searching claim data";
+    public static final String ERROR_UPLOAD_DOCUMENT = "Error while uploading document";
+    public static final String DOCUMENT_UPLOADED_SUCCESS = "Document uploaded successfully";
+    public static final String ALL_AGENTS_LIST_FETCHED_SUCCESS = "All agents list fetched successfully";
+    public static final String DOCUMENT_ALREADY_EXISTS = "Document already exists";
 
-
+    public static final String invalidCredentials = "Invalid credentials";
+    public static final String MINOR_UPLOAD_ALL_DOCUMENTS = "Minor should upload all Documents";
 }

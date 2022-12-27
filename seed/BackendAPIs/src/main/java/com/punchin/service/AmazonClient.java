@@ -1,13 +1,13 @@
 package com.punchin.service;
 
-import com.amazonaws.HttpMethod;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
-import java.util.Date;
 
 @Slf4j
 @Service
@@ -56,6 +54,20 @@ public class AmazonClient {
             log.error("Exception in file convert service :: {}", ex);
         }
         return file;
+    }
+
+    public String uploadFile(String claimId, MultipartFile multipartFile) {
+        try {
+            File file = convertMultiPartToFile(multipartFile);
+            String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+            String fileName = claimId + "-" + System.currentTimeMillis() + extension;
+            uploadFileTos3bucket(fileName, file);
+            deleteLocalFile(file);
+            return endpointUrl + fileName;
+        } catch (IOException e) {
+            log.error("Exception while uploading file from local:: {}", e.getMessage());
+            return null;
+        }
     }
 
     void uploadFileTos3bucket(String fileName, File file) {

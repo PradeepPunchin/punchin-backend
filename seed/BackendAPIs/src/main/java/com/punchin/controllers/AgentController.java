@@ -1,14 +1,10 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.AgentUploadDocumentDTO;
-import com.punchin.dto.ClaimDetailForVerificationDTO;
-import com.punchin.dto.ClaimDocumentsDTO;
-import com.punchin.dto.PageDTO;
-import com.punchin.entity.ClaimDocuments;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
-import com.punchin.enums.ClaimDataFilter;
+import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.service.AgentService;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
@@ -36,6 +32,9 @@ public class AgentController {
 
     @Autowired
     private AgentService agentService;
+
+    @Autowired
+    private ClaimDocumentsRepository claimDocumentsRepository;
 
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
@@ -72,7 +71,7 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            ClaimsData claimsData = agentService.getClaimData(id);
+            Map<String, Object> claimsData = agentService.getClaimData(id);
             if (Objects.nonNull(claimsData)) {
                 return ResponseHandler.response(claimsData, MessageCode.success, true, HttpStatus.OK);
             }
@@ -102,7 +101,7 @@ public class AgentController {
     }
 
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
-    @PostMapping(value = UrlMapping.AGENT_DISCREPANCY_DOCUMENT_UPLOAD)
+    @PostMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
     public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {
         try {
             log.info("BankerController :: discrepancyDocumentUpload claimId {}, multipartFile {}, docType {}", id, multipartFile, docType);
@@ -147,39 +146,21 @@ public class AgentController {
 
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam CauseOfDeathEnum causeOfDeath, @RequestParam boolean isMinor,
-                                                  @RequestBody(required = false) MultipartFile signedForm, @RequestBody(required = false) MultipartFile deathCertificate,
-                                                  @RequestParam(required = false) KycOrAddressDocType borrowerIdDocType, @RequestBody(required = false) MultipartFile borrowerIdDoc,
-                                                  @RequestParam(required = false) KycOrAddressDocType borrowerAddressDocType, @RequestBody(required = false) MultipartFile borrowerAddressDoc,
-                                                  @RequestParam(required = false) KycOrAddressDocType nomineeIdDocType, @RequestBody(required = false) MultipartFile nomineeIdDoc,
-                                                  @RequestParam(required = false) KycOrAddressDocType nomineeAddressDocType, @RequestBody(required = false) MultipartFile nomineeAddressDoc,
-                                                  @RequestParam(required = false) BankAccountDocType bankAccountDocType, @RequestBody(required = false) MultipartFile bankAccountDoc,
-                                                  @RequestBody(required = false) MultipartFile FirOrPostmortemReport, @RequestParam(required = false) AdditionalDocType additionalDocType,
-                                                  @RequestBody(required = false) MultipartFile additionalDoc) {
+    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor,
+                                                  @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", id);
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             AgentUploadDocumentDTO documentDTO = new AgentUploadDocumentDTO();
-            documentDTO.setClaimsData(agentService.getClaimData(id));
+            documentDTO.setClaimsData(agentService.getClaimsData(id));
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
-            documentDTO.setSignedForm(signedForm);
-            documentDTO.setDeathCertificate(deathCertificate);
-            documentDTO.setBorrowerIdDocType(borrowerIdDocType);
-            documentDTO.setBorrowerIdDoc(borrowerIdDoc);
-            documentDTO.setBorrowerAddressDocType(borrowerAddressDocType);
-            documentDTO.setBorrowerAddressDoc(borrowerAddressDoc);
-            documentDTO.setNomineeIdDocType(nomineeIdDocType);
-            documentDTO.setNomineeIdDoc(nomineeIdDoc);
-            documentDTO.setNomineeAddressDocType(nomineeAddressDocType);
-            documentDTO.setNomineeAddressDoc(nomineeAddressDoc);
-            documentDTO.setBankAccountDocType(bankAccountDocType);
-            documentDTO.setBankAccountDoc(bankAccountDoc);
-            documentDTO.setFirOrPostmortemReport(FirOrPostmortemReport);
-            documentDTO.setAdditionalDocType(additionalDocType);
-            documentDTO.setAdditionalDoc(additionalDoc);
+            if(Objects.isNull(isMinorDoc) || isMinorDoc.isEmpty()){
+                //return ResponseHandler.response(null, MessageCode.DOCUMENT_NOT_FOUND, false, HttpStatus.BAD_REQUEST);
+            }
+            documentDTO.setIsMinorDoc(isMinorDoc);
             Map<String, Object> result = agentService.uploadDocument(documentDTO);
             if (Boolean.parseBoolean(result.get("status").toString())) {
                 return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
@@ -193,10 +174,11 @@ public class AgentController {
 
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA)
-    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "caseType") String caseType, @RequestParam(value = "searchedKeyword") String searchedKeyword, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer limit) {
         try {
-            log.info("Get Searched data request received for caseType :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", caseType, searchedKeyword, pageNo, limit);
-            PageDTO searchedClaimData = agentService.getClaimSearchedData(caseType, searchedKeyword, pageNo, limit);
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
+            PageDTO searchedClaimData = agentService.getClaimSearchedData(searchCaseEnum, searchedKeyword, pageNo, limit, claimDataFilter);
             if (searchedClaimData != null) {
                 log.info("Searched claim data fetched successfully");
                 return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
@@ -208,4 +190,98 @@ public class AgentController {
             return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
+    //@PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
+    public ResponseEntity<Object> uploadAgentDocument(@RequestParam Long id, @RequestParam AgentDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
+        try {
+            log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
+            if (!agentService.checkAccess(id)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            boolean documentExists = claimDocumentsRepository.findExistingDocument(id, docType.toString());
+            if (documentExists) {
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_ALREADY_EXISTS, true, HttpStatus.OK);
+            }
+            List<DocumentUrls> documentUrlsList = agentService.uploadAgentDocument(id, new MultipartFile[]{multipartFiles}, docType);
+            if (!documentUrlsList.isEmpty()) {
+                return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: uploadAgentDocument e{}", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_UPLOAD_DOCUMENT, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
+    @DeleteMapping(value = UrlMapping.AGENT_DELETE_DOCUMENT)
+    public ResponseEntity<Object> deleteAgentDocument(@RequestParam Long documentId) {
+        try {
+            log.info("AgentController :: delete docId {}", documentId);
+            String deleteClaimDocument = agentService.deleteClaimDocument(documentId);
+            if (deleteClaimDocument.equals(MessageCode.DOCUMENT_DELETED)) {
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_DELETED, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: deleteClaimDocument e {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
+    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_NEW_AGENT)
+    public ResponseEntity<Object> uploadAgentNewDocument(@RequestParam Long id,
+                                                         @RequestParam CauseOfDeathEnum causeOfDeath,
+                                                         @RequestParam AgentDocType deathCertificate, @RequestBody(required = false) MultipartFile deathCertificateMultipart,
+                                                         @RequestParam String nomineeStatus,
+                                                         @RequestParam AgentDocType signedClaim, @RequestBody(required = false) MultipartFile signedClaimMultipart,
+                                                         @RequestParam(required = false) AgentDocType relation_shipProof, @RequestBody(required = false) MultipartFile relation_shipProofMultipart,
+                                                         @RequestParam(required = false) AgentDocType gUARDIAN_ID_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ID_PROOFMultipart,
+                                                         @RequestParam(required = false) AgentDocType gUARDIAN_ADD_PROOF, @RequestBody(required = false) MultipartFile gUARDIAN_ADD_PROOFMultipart,
+                                                         @RequestParam AgentDocType borowerProof, @RequestBody(required = false) MultipartFile borowerProofMultipart) {
+        try {
+            log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, causeOfDeath, deathCertificate, deathCertificateMultipart, nomineeStatus, signedClaim, signedClaimMultipart, relation_shipProof, relation_shipProofMultipart,
+                    gUARDIAN_ID_PROOF, gUARDIAN_ID_PROOFMultipart, gUARDIAN_ADD_PROOF, gUARDIAN_ADD_PROOFMultipart, borowerProof, borowerProofMultipart);
+            if (!agentService.checkAccess(id)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            if (nomineeStatus.equalsIgnoreCase("Minor") && gUARDIAN_ID_PROOFMultipart == null && gUARDIAN_ADD_PROOFMultipart == null && relation_shipProof == null) {
+                return ResponseHandler.response(null, MessageCode.MINOR_UPLOAD_ALL_DOCUMENTS, false, HttpStatus.BAD_REQUEST);
+            }
+            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument(id, causeOfDeath, deathCertificate, new MultipartFile[]{deathCertificateMultipart}, nomineeStatus, signedClaim, new MultipartFile[]{signedClaimMultipart}, relation_shipProof, new MultipartFile[]{relation_shipProofMultipart},
+                    gUARDIAN_ID_PROOF, new MultipartFile[]{gUARDIAN_ID_PROOFMultipart}, gUARDIAN_ADD_PROOF, new MultipartFile[]{gUARDIAN_ADD_PROOFMultipart}, borowerProof, new MultipartFile[]{borowerProofMultipart});
+            if (documentUrlsList != null) {
+                return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: uploadAgentDocument e{}", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_UPLOAD_DOCUMENT, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
+    @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_NEW_AGENT2)
+    public ResponseEntity<Object> uploadAgentNewDocument2(@RequestParam Long id,
+                                                          @RequestParam KycOrAddressDocType nomineeProof, @RequestBody(required = false) MultipartFile nomineeMultiparts,
+                                                          @RequestParam AgentDocType bankerProof, @RequestBody(required = false) MultipartFile bankerPROOFMultipart,
+                                                          @RequestParam(required = false) AgentDocType additionalDocs, @RequestBody(required = false) MultipartFile additionalMultipart) {
+        try {
+            log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, nomineeProof, nomineeMultiparts, bankerProof, bankerPROOFMultipart, additionalDocs, additionalMultipart);
+            if (!agentService.checkAccess(id)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            List<UploadResponseUrl> documentUrlsList = agentService.uploadAgentNewDocument2(id, nomineeProof, new MultipartFile[]{nomineeMultiparts}, bankerProof, new MultipartFile[]{bankerPROOFMultipart}, additionalDocs, new MultipartFile[]{additionalMultipart});
+            if (documentUrlsList != null) {
+                return ResponseHandler.response(documentUrlsList, MessageCode.DOCUMENT_UPLOADED_SUCCESS, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: uploadAgentDocument e{}", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_UPLOAD_DOCUMENT, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

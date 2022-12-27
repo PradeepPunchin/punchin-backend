@@ -1,20 +1,21 @@
 package com.punchin.service;
 
+import com.punchin.dto.AgentListResponseDTO;
 import com.punchin.dto.ClaimDetailForVerificationDTO;
 import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
-import com.punchin.dto.VerifierClaimDataResponseDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.SearchCaseEnum;
 
 import java.util.List;
 import java.util.Map;
 
 public interface VerifierService {
 
-    PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize);
+    PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize, SearchCaseEnum searchCaseEnum, String searchedKeyword);
 
     Map<String, Long> getDashboardData();
 
@@ -31,4 +32,12 @@ public interface VerifierService {
     PageDTO getClaimDataWithDocumentStatus(Integer page, Integer limit);
 
     String downloadAllDocuments(Long claimId);
+
+    String downloadClaimDataWithDocumentStatus(Integer page, Integer limit);
+
+    PageDTO getVerifierClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer limit);
+
+    List<AgentListResponseDTO> getAllAgentsForVerifier(long userId);
+
+    String downloadMISReport(ClaimDataFilter claimDataFilter);
 }

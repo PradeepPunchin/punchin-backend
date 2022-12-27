@@ -1,12 +1,12 @@
 package com.punchin.dto;
 
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.AdditionalDocType;
-import com.punchin.enums.BankAccountDocType;
-import com.punchin.enums.CauseOfDeathEnum;
-import com.punchin.enums.KycOrAddressDocType;
+import com.punchin.enums.*;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
 
 @Data
 public class AgentUploadDocumentDTO {
@@ -34,6 +34,6 @@ public class AgentUploadDocumentDTO {
     private MultipartFile FirOrPostmortemReport;
     private AdditionalDocType additionalDocType;
     private MultipartFile additionalDoc;
-
+    private Map<String, MultipartFile> isMinorDoc;
 
 }

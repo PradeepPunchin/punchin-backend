@@ -13,4 +13,6 @@ public interface SessionService {
     Session createSession(User user, Platform platform);
 
     void deleteByAuthToken(String authToken);
+
+    void updateSessionTimeOut(Session session);
 }

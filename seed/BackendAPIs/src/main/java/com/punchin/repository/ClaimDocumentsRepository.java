@@ -2,6 +2,7 @@ package com.punchin.repository;
 
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.enums.AgentDocType;
+import com.punchin.enums.BankerDocType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,6 +32,8 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =:id AND upload_side_by ='agent' AND is_active = true ORDER BY agent_doc_type")
     List<ClaimDocuments> getClaimDocumentWithDiscrepancyStatus(Long id);
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =:id AND upload_side_by ='banker' AND is_active = true ORDER BY agent_doc_type")
+    List<ClaimDocuments> getClaimDocumentWithDiscrepancyStatusAndBanker(Long id);
 
     List<ClaimDocuments> findByClaimsDataIdAndAgentDocType(Long claimId, AgentDocType valueOf);
 
@@ -41,4 +44,16 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
     List<ClaimDocuments> findByClaimsDataId(Long id);
 
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActive(Long id, String banker, boolean b);
+
+    @Query(nativeQuery = true, value = "select exists (select * from claim_documents cd where cd.claims_data_id =:claimId and cd.agent_doc_type =:agentDoc)")
+    boolean findExistingDocument(@Param("claimId") Long id, String agentDoc);
+
+    @Query(nativeQuery = true, value = "SELECT EXISTS (SELECT * FROM claim_documents WHERE claims_data_id=:id AND agent_doc_type=:docType AND is_deleted=false AND upload_side_by=:sideBy)")
+    boolean existsByClaimsDataIdAndUploadSideByAndAgentDocType(Long id, String sideBy, String docType);
+
+    List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsDeletedOrderById(Long id, String banker, boolean b);
+    @Query(nativeQuery = true, value = " select * from claim_documents cd where cd.upload_by='agent' and cd.claims_data_id:claimDataId and cd.doc_type:docType ")
+    ClaimDocuments findClaimDocumentsByClaimDataIdAndDocType(Long claimDataId, String docType);
+
+    List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActiveOrderById(Long id, String agent, boolean b);
 }

@@ -16,7 +16,7 @@ public class ClaimDocuments extends BasicEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false, unique = true)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private ClaimsData claimsData;
     @Enumerated(EnumType.STRING)
     private AgentDocType agentDocType;
@@ -33,5 +33,6 @@ public class ClaimDocuments extends BasicEntity {
     private String reason;
     @Column(columnDefinition = "Text")
     private String rejectRemark;
+
 
 }

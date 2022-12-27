@@ -34,6 +34,7 @@ public class ClaimsData extends BasicEntity {
     private String loanAccountNumber;
     @Column(columnDefinition = "Text")
     private String borrowerAddress;
+    private String lenderName;
     private String loanType;
     private Date loanDisbursalDate;
     private Double loanOutstandingAmount;
@@ -63,6 +64,8 @@ public class ClaimsData extends BasicEntity {
     private String nomineeAddress;
     @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
+    @Enumerated(EnumType.STRING)
+    private ClaimStatus claimBankerStatus;
     private Long agentId = 0L;
     private Long bankerId = 0L;
     private Long submittedBy;

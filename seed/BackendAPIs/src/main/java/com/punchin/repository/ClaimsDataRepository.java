@@ -150,4 +150,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page<ClaimsData> findAllVerifierClaimDataBySearchName(String searchedKeyword, String state, Pageable pageable);
 
     Page findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, List<ClaimStatus> claimsStatus1, String userId, Pageable pageable);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE punchin_banker_id=:userId AND submitted_by is not null")
+    Page<ClaimsData> findBySubmittedClaims(String userId, Pageable pageable);
 }

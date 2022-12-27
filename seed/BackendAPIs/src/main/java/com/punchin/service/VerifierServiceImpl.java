@@ -84,6 +84,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+                claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
@@ -117,6 +118,7 @@ public class VerifierServiceImpl implements VerifierService {
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.IN_PROGRESS);
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
+            claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
@@ -447,6 +449,7 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setBorrowerName(claimData.getBorrowerName());
                 dto.setNomineeAddress(claimData.getNomineeAddress());
                 dto.setNomineeName(claimData.getNomineeName());
+                dto.setBorrowerContactNumber(claimData.getBorrowerContactNumber());
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "agent");
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
@@ -766,9 +769,9 @@ public class VerifierServiceImpl implements VerifierService {
                     row.createCell(37).setCellValue(format.format(new Date()));
                     row.createCell(38).setCellValue("");
                 }
-                for (int i = 0; i < 39; i++) {
+                /*for (int i = 0; i < 39; i++) {
                     sheet.autoSizeColumn(i);
-                }
+                }*/
                 workbook.write(fileOut);
                 log.info("file exist file {}" + new File(downloadFolderUrl + filename).exists());
                 return new File(downloadFolderUrl + filename);

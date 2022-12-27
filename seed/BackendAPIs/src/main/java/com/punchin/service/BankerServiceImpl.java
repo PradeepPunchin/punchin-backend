@@ -121,7 +121,7 @@ public class BankerServiceImpl implements BankerService {
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findBySubmittedClaims(GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
@@ -820,9 +820,9 @@ public class BankerServiceImpl implements BankerService {
                     row.createCell(37).setCellValue(format.format(new Date()));
                     row.createCell(38).setCellValue("");
                 }
-                for (int i = 0; i < 39; i++) {
+                /*for (int i = 0; i < 39; i++) {
                     sheet.autoSizeColumn(i);
-                }
+                }*/
                 workbook.write(fileOut);
                 log.info("file exist file {}" + new File(downloadFolderPath + filename).exists());
                 return new File(downloadFolderPath + filename);

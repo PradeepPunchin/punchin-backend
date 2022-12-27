@@ -12,6 +12,7 @@ public class VerifierClaimDataResponseDTO {
     private String punchinClaimId;
     private Date claimDate;
     private String borrowerName;
+    private String borrowerContactNumber;
     private String nomineeName;
     private String nomineeContactNumber;
     private String nomineeAddress;

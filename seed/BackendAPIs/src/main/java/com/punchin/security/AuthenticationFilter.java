@@ -42,6 +42,7 @@ public class AuthenticationFilter extends GenericFilterBean {
                 if (checkSessionTimeOut(session)) {
                     sessionService.expireSessionAtAnyTime(authenticationToken);
                 }else {
+                    sessionService.updateSessionTimeOut(session);
                     userNamePasswordAuthentication(authenticationToken, session);
                 }
             }

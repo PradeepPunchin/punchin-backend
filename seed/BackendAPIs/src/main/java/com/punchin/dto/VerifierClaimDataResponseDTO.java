@@ -29,6 +29,8 @@ public class VerifierClaimDataResponseDTO {
     private String relationshipDoc = "NOT_UPLOADED";
     private String guardianIdProof = "NOT_UPLOADED";
     private String guardianAddressProof = "NOT_UPLOADED";
+    private String nomineeKycProof = "NOT_UPLOADED";
+    private String borrowerKycProof = "NOT_UPLOADED";
 }
 
 

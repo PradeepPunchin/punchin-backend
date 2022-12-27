@@ -440,7 +440,6 @@ public class AgentServiceImpl implements AgentService {
             agentSearchDTO1.setAllocationDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimStatus(agentSearchDTO1.getClaimStatus());
-            agentSearchDTO1s.add(agentSearchDTO1);
         }
         log.info("searched claim data fetched successfully");
         return commonService.convertPageToDTO(agentSearchDTO1s, claimSearchedData);

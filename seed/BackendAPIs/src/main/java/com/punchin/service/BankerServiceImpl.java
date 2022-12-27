@@ -12,10 +12,12 @@ import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -329,6 +331,7 @@ public class BankerServiceImpl implements BankerService {
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(is);
             XSSFSheet sheet = workbook.getSheetAt(0);
+            DataFormatter formatter = new DataFormatter();
             if (Objects.isNull(sheet)) {
                 map.put("message", "sheet.not.found");
                 return map;
@@ -375,9 +378,15 @@ public class BankerServiceImpl implements BankerService {
                             p.setBorrowerCity(cell.getStringCellValue());
                             break;
                         case 4:
-                            cell.setCellType(CellType.STRING);
-                            if (Objects.nonNull(cell.getStringCellValue())) {
-                                p.setBorrowerPinCode(cell.getStringCellValue());
+                            String borrowPinCode = formatter.formatCellValue(cell);
+                            if (borrowPinCode.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                borrowPinCode = String.valueOf(cell.getStringCellValue());
+                                p.setBorrowerPinCode(borrowPinCode);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setBorrowerPinCode(borrowPinCode);
                             }
                             break;
                         case 5:
@@ -385,24 +394,48 @@ public class BankerServiceImpl implements BankerService {
                             p.setBorrowerState(cell.getStringCellValue());
                             break;
                         case 6:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerContactNumber(cell.getStringCellValue());
+                            String borrowContactNumber = formatter.formatCellValue(cell);
+                            if (borrowContactNumber.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                borrowContactNumber = String.valueOf(cell.getStringCellValue());
+                                p.setBorrowerContactNumber(borrowContactNumber);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setBorrowerContactNumber(borrowContactNumber);
+                            }
                             break;
                         case 7:
                             cell.setCellType(CellType.STRING);
                             p.setBorrowerEmailId(cell.getStringCellValue());
                             break;
                         case 8:
-                            cell.setCellType(CellType.STRING);
-                            p.setBorrowerAlternateContactNumber(cell.getStringCellValue());
+                            String borrowerAlternateNo = formatter.formatCellValue(cell);
+                            if (borrowerAlternateNo.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                borrowerAlternateNo = String.valueOf(cell.getStringCellValue());
+                                p.setBorrowerAlternateContactNumber(borrowerAlternateNo);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setBorrowerAlternateContactNumber(borrowerAlternateNo);
+                            }
                             break;
                         case 9:
                             cell.setCellType(CellType.STRING);
                             p.setBorrowerAlternateContactDetails(cell.getStringCellValue());
                             break;
                         case 10:
-                            cell.setCellType(CellType.STRING);
-                            p.setLoanAccountNumber(cell.getStringCellValue());
+                            String loanAccountNo = formatter.formatCellValue(cell);
+                            if (loanAccountNo.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                loanAccountNo = String.valueOf(cell.getStringCellValue());
+                                p.setLoanAccountNumber(loanAccountNo);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setLoanAccountNumber(loanAccountNo);
+                            }
                             break;
                         case 11:
                             cell.setCellType(CellType.STRING);
@@ -450,24 +483,56 @@ public class BankerServiceImpl implements BankerService {
                             p.setBranchState(cell.getStringCellValue());
                             break;
                         case 20:
-                            cell.setCellType(CellType.STRING);
-                            p.setLoanAccountManagerName(cell.getStringCellValue());
+                            String loanAccMangName = formatter.formatCellValue(cell);
+                            if (loanAccMangName.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                loanAccMangName = String.valueOf(cell.getStringCellValue());
+                                p.setLoanAccountManagerName(loanAccMangName);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setLoanAccountManagerName(loanAccMangName);
+                            }
                             break;
                         case 21:
-                            cell.setCellType(CellType.STRING);
-                            p.setAccountManagerContactNumber(cell.getStringCellValue());
+                            String accMngContactNo = formatter.formatCellValue(cell);
+                            if (accMngContactNo.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                accMngContactNo = String.valueOf(cell.getStringCellValue());
+                                p.setAccountManagerContactNumber(accMngContactNo);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setAccountManagerContactNumber(accMngContactNo);
+                            }
                             break;
                         case 22:
                             cell.setCellType(CellType.STRING);
                             p.setInsurerName(cell.getStringCellValue());
                             break;
                         case 23:
-                            cell.setCellType(CellType.STRING);
-                            p.setPolicyNumber(cell.getStringCellValue());
+                            String policyNo = formatter.formatCellValue(cell);
+                            if (policyNo.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                policyNo = String.valueOf(cell.getStringCellValue());
+                                p.setPolicyNumber(policyNo);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setPolicyNumber(policyNo);
+                            }
                             break;
                         case 24:
-                            cell.setCellType(CellType.STRING);
-                            p.setMasterPolNumber(cell.getStringCellValue());
+                            String masterPolicyNo = formatter.formatCellValue(cell);
+                            if (masterPolicyNo.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                masterPolicyNo = String.valueOf(cell.getStringCellValue());
+                                p.setMasterPolNumber(masterPolicyNo);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setMasterPolNumber(masterPolicyNo);
+                            }
                             break;
                         case 25:
                             if (cell.getCellType().equals(CellType.NUMERIC)) {
@@ -503,8 +568,16 @@ public class BankerServiceImpl implements BankerService {
                             p.setNomineeRelationShip(cell.getStringCellValue());
                             break;
                         case 30:
-                            cell.setCellType(CellType.STRING);
-                            p.setNomineeContactNumber(cell.getStringCellValue());
+                            String nomineeContactNumber = formatter.formatCellValue(cell);
+                            if (nomineeContactNumber.contains("+")) {
+                                cell.setCellType(CellType.STRING);
+                                nomineeContactNumber = String.valueOf(cell.getStringCellValue());
+                                p.setNomineeContactNumber(nomineeContactNumber);
+                            }
+                            else {
+                                cell.setCellType(CellType.STRING);
+                                p.setNomineeContactNumber(nomineeContactNumber);
+                            }
                             break;
                         case 31:
                             cell.setCellType(CellType.STRING);

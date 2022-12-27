@@ -167,7 +167,7 @@ public class BankerController {
 
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by banker")
     @PutMapping(value = UrlMapping.BANKER_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocument(@PathVariable Long id, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
+    public ResponseEntity<Object> uploadDocument(@PathVariable Long id, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
         try {
             log.info("BankerController :: uploadDocument claimId {}, multipartFiles {}, docType {}", id, multipartFiles, docType);
             ClaimsData claimsData = bankerService.isClaimByBanker(id);
@@ -177,7 +177,7 @@ public class BankerController {
             if (bankerService.checkDocumentAlreadyExist(id, docType)) {
                 return ResponseHandler.response(null, MessageCode.DOCUMENT_ALREADY_EXISTS, false, HttpStatus.FORBIDDEN);
             }
-            Map<String, Object> result = bankerService.uploadDocument(claimsData, new MultipartFile[]{multipartFiles}, docType);
+            Map<String, Object> result = bankerService.uploadDocument(claimsData, multipartFiles, docType);
             if (result.get("message").equals(MessageCode.success)) {
                 return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
             }

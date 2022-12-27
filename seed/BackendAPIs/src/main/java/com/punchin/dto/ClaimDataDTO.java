@@ -51,6 +51,7 @@ public class ClaimDataDTO {
     private String branchCode;
 
     private String branchName;
+    private String lenderName;
 
     private String branchAddress;
 

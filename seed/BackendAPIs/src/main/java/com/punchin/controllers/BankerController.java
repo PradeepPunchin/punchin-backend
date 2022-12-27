@@ -293,6 +293,25 @@ public class BankerController {
         }
 
     }
+    @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
+    @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_BANKER)
+    public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum
+                                                               searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
+                                                       @RequestParam ClaimDataFilter claimDataFilter, @RequestParam(defaultValue = "0") Integer pageNo, @RequestParam(defaultValue = "10") Integer pageSize) {
+        try {
+            log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, pageSize);
+            PageDTO searchedClaimData = bankerService.getBankerClaimSearchedData(searchCaseEnum, searchedKeyword, claimDataFilter, pageNo, pageSize);
+            if (searchedClaimData != null) {
+                log.info("Searched claim data fetched successfully");
+                return ResponseHandler.response(searchedClaimData, MessageCode.SEARCHED_CLAIM_DATA_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            log.info("No records found");
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: Get searched data :: ", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
     public ResponseEntity<Object> getClaimBankerDocuments(@PathVariable Long id) {

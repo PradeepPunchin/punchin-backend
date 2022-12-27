@@ -836,9 +836,9 @@ public class BankerServiceImpl implements BankerService {
 
     public boolean save(MultipartFile file) {
         try {
-            List<ClaimsData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream());
+            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream());
             if (!claimsDataList.isEmpty()) {
-                claimsDataRepository.saveAll(claimsDataList);
+                claimDraftDataRepository.saveAll(claimsDataList);
                 return true;
             }
         } catch (IOException e) {

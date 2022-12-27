@@ -158,7 +158,7 @@ public class AgentController {
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
             if(Objects.isNull(isMinorDoc) || isMinorDoc.isEmpty()){
-                return ResponseHandler.response(null, MessageCode.DOCUMENT_NOT_FOUND, false, HttpStatus.BAD_REQUEST);
+                //return ResponseHandler.response(null, MessageCode.DOCUMENT_NOT_FOUND, false, HttpStatus.BAD_REQUEST);
             }
             documentDTO.setIsMinorDoc(isMinorDoc);
             Map<String, Object> result = agentService.uploadDocument(documentDTO);

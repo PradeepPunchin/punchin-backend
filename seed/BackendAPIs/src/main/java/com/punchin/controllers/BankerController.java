@@ -9,7 +9,6 @@ import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.SearchCaseEnum;
 import com.punchin.repository.ClaimDocumentsRepository;
-import com.punchin.service.AmazonClient;
 import com.punchin.service.BankerService;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
@@ -42,8 +41,6 @@ public class BankerController {
     private BankerService bankerService;
     @Autowired
     private HttpServletResponse httpServletResponse;
-    @Autowired
-    private AmazonClient amazonClient;
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
 

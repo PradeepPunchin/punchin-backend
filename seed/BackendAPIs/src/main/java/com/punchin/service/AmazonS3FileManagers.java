@@ -84,7 +84,7 @@ public class AmazonS3FileManagers {
             File file = convertMultiPartToFile(multipartFile);
             String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
             String fileName = claimId + "-" + System.currentTimeMillis() + extension;
-            return uploadFileToAmazonS3("test/", file, fileName);
+            return uploadFileToAmazonS3("banker/", file, fileName);
         } catch (IOException e) {
             return null;
         }

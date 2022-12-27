@@ -179,7 +179,7 @@ public class AgentServiceImpl implements AgentService {
             for(String key : keys){
                 if(key.contains(":")){
                     String keyArray[] = key.split(":");
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0]), keyArray[1], claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }else{
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }

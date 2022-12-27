@@ -48,4 +48,10 @@ public class SessionServiceImpl implements SessionService{
     public void deleteByAuthToken(String authToken) {
         sessionRepository.deleteByAuthToken(authToken);
     }
+
+    @Override
+    public void updateSessionTimeOut(Session session) {
+        session.setLastActiveTime(System.currentTimeMillis());
+        sessionRepository.save(session);
+    }
 }

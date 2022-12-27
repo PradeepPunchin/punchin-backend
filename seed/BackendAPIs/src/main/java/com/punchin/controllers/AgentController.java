@@ -146,39 +146,21 @@ public class AgentController {
 
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam CauseOfDeathEnum causeOfDeath, @RequestParam boolean isMinor,
-                                                  @RequestBody(required = false) MultipartFile signedForm, @RequestBody(required = false) MultipartFile deathCertificate,
-                                                  @RequestParam(required = false) KycOrAddressDocType borrowerIdDocType, @RequestBody(required = false) MultipartFile borrowerIdDoc,
-                                                  @RequestParam(required = false) KycOrAddressDocType borrowerAddressDocType, @RequestBody(required = false) MultipartFile borrowerAddressDoc,
-                                                  @RequestParam(required = false) KycOrAddressDocType nomineeIdDocType, @RequestBody(required = false) MultipartFile nomineeIdDoc,
-                                                  @RequestParam(required = false) KycOrAddressDocType nomineeAddressDocType, @RequestBody(required = false) MultipartFile nomineeAddressDoc,
-                                                  @RequestParam(required = false) BankAccountDocType bankAccountDocType, @RequestBody(required = false) MultipartFile bankAccountDoc,
-                                                  @RequestBody(required = false) MultipartFile FirOrPostmortemReport, @RequestParam(required = false) AdditionalDocType additionalDocType,
-                                                  @RequestBody(required = false) MultipartFile additionalDoc) {
+    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor,
+                                                  @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", id);
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             AgentUploadDocumentDTO documentDTO = new AgentUploadDocumentDTO();
-            //documentDTO.setClaimsData(agentService.getClaimData(id));
+            documentDTO.setClaimsData(agentService.getClaimsData(id));
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
-            documentDTO.setSignedForm(signedForm);
-            documentDTO.setDeathCertificate(deathCertificate);
-            documentDTO.setBorrowerIdDocType(borrowerIdDocType);
-            documentDTO.setBorrowerIdDoc(borrowerIdDoc);
-            documentDTO.setBorrowerAddressDocType(borrowerAddressDocType);
-            documentDTO.setBorrowerAddressDoc(borrowerAddressDoc);
-            documentDTO.setNomineeIdDocType(nomineeIdDocType);
-            documentDTO.setNomineeIdDoc(nomineeIdDoc);
-            documentDTO.setNomineeAddressDocType(nomineeAddressDocType);
-            documentDTO.setNomineeAddressDoc(nomineeAddressDoc);
-            documentDTO.setBankAccountDocType(bankAccountDocType);
-            documentDTO.setBankAccountDoc(bankAccountDoc);
-            documentDTO.setFirOrPostmortemReport(FirOrPostmortemReport);
-            documentDTO.setAdditionalDocType(additionalDocType);
-            documentDTO.setAdditionalDoc(additionalDoc);
+            if(Objects.isNull(isMinorDoc) || isMinorDoc.isEmpty()){
+                return ResponseHandler.response(null, MessageCode.DOCUMENT_NOT_FOUND, false, HttpStatus.BAD_REQUEST);
+            }
+            documentDTO.setIsMinorDoc(isMinorDoc);
             Map<String, Object> result = agentService.uploadDocument(documentDTO);
             if (Boolean.parseBoolean(result.get("status").toString())) {
                 return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);

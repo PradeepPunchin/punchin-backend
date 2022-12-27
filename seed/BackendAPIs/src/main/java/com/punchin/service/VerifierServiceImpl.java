@@ -345,6 +345,7 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setNomineeAddress(claimData.getNomineeAddress());
                 dto.setNomineeName(claimData.getNomineeName());
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
+                dto.setBorrowerContactNumber(claimData.getBorrowerContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "agent");
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
@@ -364,36 +365,20 @@ public class VerifierServiceImpl implements VerifierService {
                             dto.setDeathCertificate("REJECTED");
                         }
                     }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ID_PROOF)) {
-                        dto.setBorrowerIdProof("UPLOADED");
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_KYC_PROOF)) {
+                        dto.setBorrowerKycProof("UPLOADED");
                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setBorrowerIdProof("APPROVED");
+                            dto.setBorrowerKycProof("APPROVED");
                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setBorrowerIdProof("REJECTED");
+                            dto.setBorrowerKycProof("REJECTED");
                         }
                     }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ADDRESS_PROOF)) {
-                        dto.setBorrowerAddressProof("UPLOADED");
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_KYC_PROOF)) {
+                        dto.setNomineeKycProof("UPLOADED");
                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setBorrowerAddressProof("APPROVED");
+                            dto.setNomineeKycProof("APPROVED");
                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setBorrowerAddressProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ID_PROOF)) {
-                        dto.setNomineeIdProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setNomineeIdProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setNomineeIdProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ADDRESS_PROOF)) {
-                        dto.setNomineeAddressProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setNomineeAddressProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setNomineeAddressProof("REJECTED");
+                            dto.setNomineeKycProof("REJECTED");
                         }
                     }
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
@@ -402,14 +387,6 @@ public class VerifierServiceImpl implements VerifierService {
                             dto.setBankAccountProof("APPROVED");
                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
                             dto.setBankAccountProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.FIR_POSTMORTEM_REPORT)) {
-                        dto.setFirPostmortemReport("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setFirPostmortemReport("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setFirPostmortemReport("REJECTED");
                         }
                     }
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.ADDITIONAL)) {
@@ -469,38 +446,7 @@ public class VerifierServiceImpl implements VerifierService {
                             dto.setDeathCertificate("REJECTED");
                         }
                     }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ID_PROOF)) {
-                        dto.setBorrowerIdProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setBorrowerIdProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setBorrowerIdProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ADDRESS_PROOF)) {
-                        dto.setBorrowerAddressProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setBorrowerAddressProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setBorrowerAddressProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ID_PROOF)) {
-                        dto.setNomineeIdProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setNomineeIdProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setNomineeIdProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ADDRESS_PROOF)) {
-                        dto.setNomineeAddressProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setNomineeAddressProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setNomineeAddressProof("REJECTED");
-                        }
-                    }
+
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
                         dto.setBankAccountProof("UPLOADED");
                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
@@ -509,14 +455,7 @@ public class VerifierServiceImpl implements VerifierService {
                             dto.setBankAccountProof("REJECTED");
                         }
                     }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.FIR_POSTMORTEM_REPORT)) {
-                        dto.setFirPostmortemReport("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setFirPostmortemReport("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setFirPostmortemReport("REJECTED");
-                        }
-                    }
+
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.ADDITIONAL)) {
                         dto.setAdditionalDoc("UPLOADED");
                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
@@ -547,12 +486,12 @@ public class VerifierServiceImpl implements VerifierService {
                 row.createCell(5).setCellValue(verifierClaimDataResponseDTO.getNomineeAddress());
                 row.createCell(6).setCellValue(verifierClaimDataResponseDTO.getSingnedClaimDocument());
                 row.createCell(7).setCellValue(verifierClaimDataResponseDTO.getDeathCertificate());
-                row.createCell(8).setCellValue(verifierClaimDataResponseDTO.getBorrowerIdProof());
-                row.createCell(9).setCellValue(verifierClaimDataResponseDTO.getBorrowerAddressProof());
-                row.createCell(10).setCellValue(verifierClaimDataResponseDTO.getNomineeIdProof());
-                row.createCell(11).setCellValue(verifierClaimDataResponseDTO.getNomineeAddressProof());
+                //row.createCell(8).setCellValue(verifierClaimDataResponseDTO.getBorrowerIdProof());
+                //row.createCell(9).setCellValue(verifierClaimDataResponseDTO.getBorrowerAddressProof());
+                //row.createCell(10).setCellValue(verifierClaimDataResponseDTO.getNomineeIdProof());
+                //row.createCell(11).setCellValue(verifierClaimDataResponseDTO.getNomineeAddressProof());
                 row.createCell(12).setCellValue(verifierClaimDataResponseDTO.getBankAccountProof());
-                row.createCell(13).setCellValue(verifierClaimDataResponseDTO.getFirPostmortemReport());
+                //row.createCell(13).setCellValue(verifierClaimDataResponseDTO.getFirPostmortemReport());
                 row.createCell(14).setCellValue(verifierClaimDataResponseDTO.getAdditionalDoc());
             }
             workbook.write(out);

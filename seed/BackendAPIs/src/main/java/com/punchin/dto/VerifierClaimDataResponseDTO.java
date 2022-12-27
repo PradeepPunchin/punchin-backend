@@ -21,12 +21,7 @@ public class VerifierClaimDataResponseDTO {
     private ClaimStatus lenderName;
     private String singnedClaimDocument = "NOT_UPLOADED";
     private String deathCertificate = "NOT_UPLOADED";
-    private String borrowerIdProof = "NOT_UPLOADED";
-    private String borrowerAddressProof = "NOT_UPLOADED";
-    private String nomineeIdProof = "NOT_UPLOADED";
-    private String nomineeAddressProof = "NOT_UPLOADED";
     private String bankAccountProof = "NOT_UPLOADED";
-    private String firPostmortemReport = "NOT_UPLOADED";
     private String additionalDoc = "NOT_UPLOADED";
     private String relationshipDoc = "NOT_UPLOADED";
     private String guardianIdProof = "NOT_UPLOADED";

@@ -172,8 +172,10 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: uploadDocument documentDTO {]", documentDTO);
             List<ClaimDocuments> claimDocuments = new ArrayList<>();
             ClaimsData claimsData = documentDTO.getClaimsData();
-            claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
-            claimsData.setIsMinor(documentDTO.isMinor());
+            if(Objects.nonNull(documentDTO.getCauseOfDeath())) {
+                claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
+                claimsData.setIsMinor(documentDTO.isMinor());
+            }
             Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
             for(String key : keys){

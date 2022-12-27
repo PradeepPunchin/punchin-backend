@@ -17,6 +17,7 @@ public class VerifierClaimDataResponseDTO {
     private String nomineeAddress;
     private String borrowerAddress;
     private ClaimStatus claimStatus;
+    private ClaimStatus lenderName;
     private String singnedClaimDocument = "NOT_UPLOADED";
     private String deathCertificate = "NOT_UPLOADED";
     private String borrowerIdProof = "NOT_UPLOADED";

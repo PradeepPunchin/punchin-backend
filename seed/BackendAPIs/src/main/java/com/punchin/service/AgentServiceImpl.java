@@ -174,33 +174,15 @@ public class AgentServiceImpl implements AgentService {
             ClaimsData claimsData = documentDTO.getClaimsData();
             claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
             claimsData.setIsMinor(documentDTO.isMinor());
-            if (Objects.nonNull(documentDTO.getSignedForm())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.SIGNED_FORM, "SIGNED_FORM", claimsData, new MultipartFile[]{documentDTO.getSignedForm()}));
-            }
-            if (Objects.nonNull(documentDTO.getDeathCertificate())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.DEATH_CERTIFICATE, "DEATH_CERTIFICATE", claimsData, new MultipartFile[]{documentDTO.getDeathCertificate()}));
-            }
-            if (Objects.nonNull(documentDTO.getBorrowerIdDoc())) {
-                claimDocuments.add(uploadDocumentOnS3(AgentDocType.BORROWER_ID_PROOF, documentDTO.getBorrowerIdDocType().getValue(), claimsData, new MultipartFile[]{documentDTO.getBorrowerIdDoc()}));
-            }
-            if(documentDTO.isMinor()) {
-                Map<AgentDocType, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
-                if(isMinorDoc.containsKey(AgentDocType.RELATIONSHIP_PROOF)){
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.RELATIONSHIP_PROOF, AgentDocType.RELATIONSHIP_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.RELATIONSHIP_PROOF)}));
+            Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
+            List<String> keys = new ArrayList<>(isMinorDoc.keySet());
+            for(String key : keys){
+                if(key.contains(":")){
+                    String keyArray[] = key.split(":");
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                }else{
+                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }
-                if(isMinorDoc.containsKey(AgentDocType.GUARDIAN_ID_PROOF)){
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.GUARDIAN_ID_PROOF, AgentDocType.GUARDIAN_ID_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.GUARDIAN_ID_PROOF)}));
-                }
-                if(isMinorDoc.containsKey(AgentDocType.GUARDIAN_ADD_PROOF)){
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.GUARDIAN_ADD_PROOF, AgentDocType.GUARDIAN_ADD_PROOF.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.GUARDIAN_ADD_PROOF)}));
-                }
-                if(isMinorDoc.containsKey(AgentDocType.OTHER)){
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.OTHER, AgentDocType.OTHER.name(), claimsData, new MultipartFile[]{isMinorDoc.get(AgentDocType.OTHER)}));
-                }
-                /*int docLength = isMinorDocTypes.size();
-                for(int i = 0; i < docLength; i++){
-                    claimDocuments.add(uploadDocumentOnS3(documentDTO.getIsMinorDocTypes().get(i), documentDTO.getIsMinorDocTypes().get(i).name(), claimsData, new MultipartFile[]{documentDTO.getBorrowerAddressDoc()}));
-                }*/
             }
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
@@ -761,7 +743,7 @@ public class AgentServiceImpl implements AgentService {
                 dto.setNomineeName(claimData.getNomineeName());
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
-                List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "banker");
+                List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderById(claimData.getId(), "agent", true);
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
                         dto.setSingnedClaimDocument("UPLOADED");
@@ -779,52 +761,12 @@ public class AgentServiceImpl implements AgentService {
                             dto.setDeathCertificate("REJECTED");
                         }
                     }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ID_PROOF)) {
-                        dto.setBorrowerIdProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setBorrowerIdProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setBorrowerIdProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_ADDRESS_PROOF)) {
-                        dto.setBorrowerAddressProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setBorrowerAddressProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setBorrowerAddressProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ID_PROOF)) {
-                        dto.setNomineeIdProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setNomineeIdProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setNomineeIdProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_ADDRESS_PROOF)) {
-                        dto.setNomineeAddressProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setNomineeAddressProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setNomineeAddressProof("REJECTED");
-                        }
-                    }
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
                         dto.setBankAccountProof("UPLOADED");
                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
                             dto.setBankAccountProof("APPROVED");
                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
                             dto.setBankAccountProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.FIR_POSTMORTEM_REPORT)) {
-                        dto.setFirPostmortemReport("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setFirPostmortemReport("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setFirPostmortemReport("REJECTED");
                         }
                     }
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.ADDITIONAL)) {
@@ -857,6 +799,22 @@ public class AgentServiceImpl implements AgentService {
                             dto.setGuardianAddressProof("APPROVED");
                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
                             dto.setGuardianAddressProof("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_KYC_PROOF)) {
+                        dto.setBorrowerKycProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setBorrowerKycProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBorrowerKycProof("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_KYC_PROOF)) {
+                        dto.setNomineeKycProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setNomineeKycProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setNomineeKycProof("REJECTED");
                         }
                     }
                 }

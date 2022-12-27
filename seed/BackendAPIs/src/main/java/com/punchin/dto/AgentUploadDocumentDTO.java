@@ -34,6 +34,6 @@ public class AgentUploadDocumentDTO {
     private MultipartFile FirOrPostmortemReport;
     private AdditionalDocType additionalDocType;
     private MultipartFile additionalDoc;
-    private Map<AgentDocType, MultipartFile> isMinorDoc;
+    private Map<String, MultipartFile> isMinorDoc;
 
 }

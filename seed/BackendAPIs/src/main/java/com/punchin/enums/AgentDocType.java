@@ -30,7 +30,9 @@ public enum AgentDocType {
     RELATIONSHIP_PROOF(1, "RELATIONSHIP_PROOF"),
     GUARDIAN_ID_PROOF(2, "GUARDIAN_ID_PROOF"),
     GUARDIAN_ADD_PROOF(3, "GUARDIAN_ADD_PROOF"),
-    MEF(26, "MEF");
+    MEF(26, "MEF"),
+    BORROWER_KYC_PROOF(26, "BORROWER_KYC_PROOF"),
+    NOMINEE_KYC_PROOF(26, "NOMINEE_KYC_PROOF");
 
     private String value;
     private int key;

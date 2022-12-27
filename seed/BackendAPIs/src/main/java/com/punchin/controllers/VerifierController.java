@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public class VerifierController {
     @Autowired
     private VerifierService verifierService;
 
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
     public ResponseEntity<Object> getClaimsData(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit, @RequestParam(value = "searchCaseEnum", required = false) SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword", required = false) String searchedKeyword) {
         try {
@@ -49,6 +51,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS)
     public ResponseEntity<Object> getClaimDataWithDocumentStatus(@RequestParam Integer page, @RequestParam Integer limit) {
         try {
@@ -64,6 +67,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.DOWNLOAD_VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS)
     public ResponseEntity<Object> downloadClaimDataWithDocumentStatus(@RequestParam Integer page, @RequestParam Integer limit) {
         try {
@@ -79,6 +83,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @ApiOperation(value = "Dashboard Data Count", notes = "This can be used to Show Dashboard data count in Verifier dashboard tab.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
@@ -116,6 +121,7 @@ public class VerifierController {
         }
     }*/
 
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
     public ResponseEntity<Object> getClaimDocuments(@PathVariable Long id) {
         try {
@@ -148,6 +154,7 @@ public class VerifierController {
         }
     }*/
 
+    @Secured({"VERIFIER"})
     @PostMapping(value = UrlMapping.VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS)
     public ResponseEntity<Object> acceptAndRejectDocuments(@PathVariable Long id, @PathVariable Long docId, @RequestBody DocumentApproveRejectPayloadDTO approveRejectPayloadDTO) {
         try {
@@ -175,6 +182,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @ApiOperation(value = "Download All file", notes = "This can be used to donwload all document on claim.")
     @GetMapping(value = UrlMapping.DOWNLOAD_CLAIM_DOCUMENT_DATA)
     public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {
@@ -189,6 +197,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_VERIFIER)
     public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
@@ -208,6 +217,7 @@ public class VerifierController {
         return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.GET_ALL_AGENTS_VERIFIER)
     public ResponseEntity<Object> getAllAgentsForVerifier(@RequestParam long id) {
         try {
@@ -223,6 +233,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @ApiOperation(value = "Download MIS Report", notes = "This can be used to download MIS in excel sheet")
     @GetMapping(value = UrlMapping.DOWNLOAD_MIS_REPORT)
     public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {

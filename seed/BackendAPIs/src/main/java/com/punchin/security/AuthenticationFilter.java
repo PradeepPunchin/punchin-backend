@@ -1,5 +1,6 @@
 package com.punchin.security;
 
+import com.punchin.entity.CustomUserDetails;
 import com.punchin.service.SessionService;
 import com.punchin.entity.Session;
 import com.punchin.utility.constant.Headers;
@@ -51,7 +52,8 @@ public class AuthenticationFilter extends GenericFilterBean {
     }
 
     private void userNamePasswordAuthentication(String authenticationToken, Session session) {
-        final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(session.getUser(), null, AuthorityUtils.commaSeparatedStringToAuthorityList(session.getUser().getRole().toString()));
+        final UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(session.getUser(),
+                null, new CustomUserDetails(session.getUser()).getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
         AbstractAuthenticationToken auth = (AbstractAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         HashMap<String, Object> info = new HashMap<>();

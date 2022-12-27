@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,6 +47,7 @@ public class BankerController {
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
@@ -62,6 +64,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.BANKER_UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
@@ -90,6 +93,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Claim List", notes = "This can be used to get not submitted claims list")
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit, @RequestParam(value = "searchCaseEnum", required = false) SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword", required = false) String searchedKeyword) {
@@ -107,6 +111,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
     @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
     public ResponseEntity<Object> getClaimData(@PathVariable Long id) {
@@ -127,6 +132,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Submit Claim", notes = "This can be used to submit claims")
     @PutMapping(value = UrlMapping.BANKER_SUBMIT_CLAIMS)
     public ResponseEntity<Object> submitClaims() {
@@ -146,6 +152,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Discard Claim", notes = "This can be used to discard claims")
     @DeleteMapping(value = UrlMapping.BANKER_DISCARD_CLAIMS)
     public ResponseEntity<Object> discardClaims() {
@@ -165,6 +172,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by banker")
     @PutMapping(value = UrlMapping.BANKER_UPLOAD_DOCUMENT)
     public ResponseEntity<Object> uploadDocument(@PathVariable Long id, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
@@ -188,6 +196,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Forward Claim", notes = "This can be used to forward claim to verifier")
     @PutMapping(value = UrlMapping.FORWARD_TO_VERIFIER)
     public ResponseEntity<Object> forwardToVerifier(@PathVariable Long id) {
@@ -208,6 +217,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Download Excel Sheet", notes = "This can be used to download excel sheet format for upload claim data")
     @GetMapping(value = UrlMapping.BANKER_STANDARIZED_FORMAT)
     public ResponseEntity<Object> downloadStandardFormat() {
@@ -223,6 +233,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
     @DeleteMapping(value = UrlMapping.DELETE_CLAIM_DOCUMENT)
     public ResponseEntity<Object> deleteBankerClaimDocument(@PathVariable Long docId) {
@@ -246,6 +257,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
     @PostMapping(value = UrlMapping.BANKER_SAVEAS_DRAFT_DOCUMENT)
     public ResponseEntity<Object> saveASDraftDocument(@PathVariable Long claimId) {
@@ -266,6 +278,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Download MIS Report", notes = "This can be used to download MIS in excel sheet")
     @GetMapping(value = UrlMapping.DOWNLOAD_MIS_REPORT)
     public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
@@ -281,6 +294,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.BANKER_CSV_UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadCSVFileClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
@@ -293,6 +307,8 @@ public class BankerController {
         }
 
     }
+
+    @Secured({"BANKER"})
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_BANKER)
     public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum
@@ -313,6 +329,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
     public ResponseEntity<Object> getClaimBankerDocuments(@PathVariable Long id) {
         try {
@@ -328,6 +345,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
     @PutMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
     public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {

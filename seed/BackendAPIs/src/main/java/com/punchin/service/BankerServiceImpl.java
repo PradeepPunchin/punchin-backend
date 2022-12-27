@@ -188,6 +188,7 @@ public class BankerServiceImpl implements BankerService {
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
                 claimsData.setPunchinClaimId("P" + RandomStringUtils.randomNumeric(10));
                 claimsData.setClaimInwardDate(new Date());
+                claimsData.setLenderName(GenericUtils.getLoggedInUser().getFirstName());
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());

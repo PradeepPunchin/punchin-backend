@@ -37,6 +37,6 @@ public interface VerifierService {
 
     PageDTO getVerifierClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer limit);
 
-    List<AgentListResponseDTO> getAllAgentsForVerifier(long userId);
+    List<AgentListResponseDTO> getAllAgentsForVerifier(User verifier);
 
 }

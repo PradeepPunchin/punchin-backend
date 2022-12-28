@@ -8,6 +8,7 @@ import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.SearchCaseEnum;
+import com.punchin.service.MISExportService;
 import com.punchin.service.UserService;
 import com.punchin.service.VerifierService;
 import com.punchin.utility.ResponseHandler;
@@ -36,6 +37,9 @@ public class VerifierController {
 
     @Autowired
     private VerifierService verifierService;
+
+    @Autowired
+    private MISExportService misExportService;
 
     @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
@@ -239,7 +243,7 @@ public class VerifierController {
     public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
         try {
             log.info("BankerController :: downloadMISReport");
-            return ResponseHandler.response(verifierService.downloadMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
+            return ResponseHandler.response(misExportService.downloadVerifierMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

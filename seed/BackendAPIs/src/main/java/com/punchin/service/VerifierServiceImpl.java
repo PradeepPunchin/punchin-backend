@@ -13,11 +13,10 @@ import com.punchin.utility.ZipUtils;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.poi.hssf.usermodel.HSSFPalette;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -573,12 +571,7 @@ public class VerifierServiceImpl implements VerifierService {
         return convertInDocumentStatusDTO(claimSearchedData);
     }
 
-    public List<AgentListResponseDTO> getAllAgentsForVerifier(long id) {
-        User verifier = userRepository.verifierExistsByIdAndRole(id);
-        if (verifier == null) {
-            log.info(MessageCode.INVALID_USERID);
-            return Collections.emptyList();
-        }
+    public List<AgentListResponseDTO> getAllAgentsForVerifier(User verifier) {
         List<User> allAgents = userRepository.findAllAgentsForVerifier(verifier.getState());
         if (allAgents.isEmpty()) {
             log.info(MessageCode.NO_RECORD_FOUND);

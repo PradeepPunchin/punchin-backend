@@ -6,11 +6,14 @@ import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
+import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.SearchCaseEnum;
+import com.punchin.repository.UserRepository;
 import com.punchin.service.MISExportService;
 import com.punchin.service.UserService;
 import com.punchin.service.VerifierService;
+import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
@@ -40,6 +43,9 @@ public class VerifierController {
 
     @Autowired
     private MISExportService misExportService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
@@ -222,22 +228,6 @@ public class VerifierController {
     }
 
     @Secured({"VERIFIER"})
-    @GetMapping(value = UrlMapping.GET_ALL_AGENTS_VERIFIER)
-    public ResponseEntity<Object> getAllAgentsForVerifier(@RequestParam long id) {
-        try {
-            log.info("Request received for verifier's agent list {}", id);
-            List<AgentListResponseDTO> allAgentsList = verifierService.getAllAgentsForVerifier(id);
-            if (!allAgentsList.isEmpty()) {
-                return ResponseHandler.response(allAgentsList, MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS, true, HttpStatus.OK);
-            }
-            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            log.error("Error while fetching verifier's agents list", e);
-            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @Secured({"VERIFIER"})
     @ApiOperation(value = "Download MIS Report", notes = "This can be used to download MIS in excel sheet")
     @GetMapping(value = UrlMapping.DOWNLOAD_MIS_REPORT)
     public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
@@ -249,4 +239,29 @@ public class VerifierController {
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Secured({"VERIFIER"})
+    @GetMapping(value = UrlMapping.GET_ALL_AGENTS_VERIFIER)
+    public ResponseEntity<Object> getAllAgentsForVerifier() {
+        try {
+            Long verifierId = GenericUtils.getLoggedInUser().getId();
+            log.info("Request received for verifier's agent list {}", verifierId);
+            User verifier = userRepository.verifierExistsByIdAndRole(verifierId);
+            if (verifier == null) {
+                log.info(MessageCode.INVALID_USERID);
+                return ResponseHandler.response(null, MessageCode.INVALID_USERID, true, HttpStatus.NOT_FOUND);
+            }
+            List<AgentListResponseDTO> allAgentsList = verifierService.getAllAgentsForVerifier(verifier);
+            if (!allAgentsList.isEmpty()) {
+                log.info(MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS);
+                return ResponseHandler.response(allAgentsList, MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            log.info(MessageCode.NO_RECORD_FOUND);
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error while fetching verifier's agents list", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_WHILE_FETCHING_VERIFIERS_AGENT_LIST, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

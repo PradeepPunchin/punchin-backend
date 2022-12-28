@@ -3,7 +3,6 @@ package com.punchin.utility.constant;
 public class MessageCode {
 
 
-
     private MessageCode() {
 
     }
@@ -30,7 +29,6 @@ public class MessageCode {
     public static final String DOCUMENT_NOT_FOUND = "Document not found";
 
 
-
     //Claim Messages
     public static final String invalidClaimId = "Invalid claim id";
     public static final String fileNotUploaded = "File not uploaded";
@@ -48,4 +46,5 @@ public class MessageCode {
 
     public static final String invalidCredentials = "Invalid credentials";
     public static final String MINOR_UPLOAD_ALL_DOCUMENTS = "Minor should upload all Documents";
+    public static final String ERROR_WHILE_FETCHING_VERIFIERS_AGENT_LIST = "Error while fetching verifier's agent list";
 }

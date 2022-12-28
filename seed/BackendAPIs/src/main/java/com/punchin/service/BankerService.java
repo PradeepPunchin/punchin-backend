@@ -33,8 +33,6 @@ public interface BankerService {
 
     Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType);
 
-    ByteArrayInputStream downloadMISFile(ClaimStatus claimStatus);
-
     String forwardToVerifier(ClaimsData claimsData);
 
     boolean isBanker();
@@ -46,9 +44,6 @@ public interface BankerService {
     String deleteBankDocument(ClaimDocuments claimDocuments);
 
     String saveASDraftDocument(ClaimsData claimsData);
-
-    String downloadMISReport(ClaimDataFilter claimDataFilter);
-
 
     ResponseEntity<Object> saveUploadCSVData(MultipartFile file);
 

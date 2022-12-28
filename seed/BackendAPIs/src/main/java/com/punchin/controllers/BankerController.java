@@ -10,6 +10,7 @@ import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.SearchCaseEnum;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.service.BankerService;
+import com.punchin.service.MISExportService;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
@@ -43,6 +44,8 @@ public class BankerController {
     private HttpServletResponse httpServletResponse;
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
+    @Autowired
+    private MISExportService misExportService;
 
     @Secured({"BANKER"})
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
@@ -284,7 +287,7 @@ public class BankerController {
             if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            return ResponseHandler.response(bankerService.downloadMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
+            return ResponseHandler.response(misExportService.downloadBankerExcelFile(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);

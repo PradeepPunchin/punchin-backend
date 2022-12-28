@@ -39,5 +39,4 @@ public interface VerifierService {
 
     List<AgentListResponseDTO> getAllAgentsForVerifier(long userId);
 
-    String downloadMISReport(ClaimDataFilter claimDataFilter);
 }

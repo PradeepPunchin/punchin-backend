@@ -281,7 +281,7 @@ public class VerifierController {
                 return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
         } catch (Exception e) {
-            log.error("Error while fetching verifier's agents list", e);
+            log.error("Error while submitting Agent allocation", e);
             return ResponseHandler.response(null, MessageCode.ERROR_WHILE_AGENT_ALLOCATED, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

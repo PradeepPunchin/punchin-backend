@@ -39,4 +39,5 @@ public interface VerifierService {
 
     List<AgentListResponseDTO> getAllAgentsForVerifier(User verifier);
 
+    String claimDataAgentAllocation(Long agentId, Long claimDataId);
 }

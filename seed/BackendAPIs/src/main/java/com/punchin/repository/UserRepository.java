@@ -28,4 +28,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(nativeQuery = true, value = "select * from users u where u.role = 'AGENT' and u.status = 'ACTIVE' and u.state =:state ")
     List<User> findAllAgentsForVerifier(@Param("state") String state);
+
+    @Query(nativeQuery = true, value = "select exists(select * from users u where u.role = 'AGENT' and u.status = 'ACTIVE' and u.id =:agentId and u.state =:state) ")
+    Boolean findAgentState(@Param("agentId") Long agentId, @Param("state") String state);
 }

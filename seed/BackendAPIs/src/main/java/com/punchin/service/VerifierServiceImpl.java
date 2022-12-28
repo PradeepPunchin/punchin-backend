@@ -591,6 +591,11 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     public String claimDataAgentAllocation(Long agentId, Long claimDataId) {
+        String state = GenericUtils.getLoggedInUser().getState();
+        Boolean agentExists = userRepository.findAgentState(agentId, state);
+        if (!agentExists) {
+            return MessageCode.invalidAgentId;
+        }
         Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimDataId);
         if (!optionalClaimsData.isPresent()) {
             return MessageCode.invalidClaimId;

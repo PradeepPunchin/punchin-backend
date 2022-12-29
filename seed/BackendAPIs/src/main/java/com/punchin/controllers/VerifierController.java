@@ -249,7 +249,7 @@ public class VerifierController {
             User verifier = userRepository.verifierExistsByIdAndRole(verifierId);
             if (verifier == null) {
                 log.info(MessageCode.INVALID_USERID);
-                return ResponseHandler.response(null, MessageCode.INVALID_USERID, true, HttpStatus.NOT_FOUND);
+                return ResponseHandler.response(null, MessageCode.INVALID_USERID, false, HttpStatus.NOT_FOUND);
             }
             List<AgentListResponseDTO> allAgentsList = verifierService.getAllAgentsForVerifier(verifier);
             if (!allAgentsList.isEmpty()) {
@@ -261,6 +261,28 @@ public class VerifierController {
         } catch (Exception e) {
             log.error("Error while fetching verifier's agents list", e);
             return ResponseHandler.response(null, MessageCode.ERROR_WHILE_FETCHING_VERIFIERS_AGENT_LIST, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"VERIFIER"})
+    @PutMapping(value = UrlMapping.CLAIM_DATA_AGENT_ALLOCATION)
+    public ResponseEntity<Object> claimDataAgentAllocation(@RequestParam(value = "agentId") Long agentId, @RequestParam(value = "id") Long claimDataId) {
+        try {
+            log.info("Request received for claim data agent allocation {}, agentId {} ", claimDataId, agentId);
+            String agentAllocation = verifierService.claimDataAgentAllocation(agentId, claimDataId);
+            if (agentAllocation.equalsIgnoreCase(MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS)) {
+                log.info(MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS);
+                return ResponseHandler.response(agentAllocation, MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS, true, HttpStatus.OK);
+            } else if (agentAllocation.equalsIgnoreCase(MessageCode.invalidAgentId)) {
+                log.info(MessageCode.invalidAgentId);
+                return ResponseHandler.response(agentAllocation, MessageCode.invalidAgentId, false, HttpStatus.BAD_REQUEST);
+            } else {
+                log.info(MessageCode.invalidClaimId);
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception e) {
+            log.error("Error while submitting Agent allocation", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_WHILE_AGENT_ALLOCATED, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

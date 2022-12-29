@@ -60,4 +60,7 @@ public class UrlMapping {
 
     public static final String UPLOAD_DOCUMENT_NEW_AGENT = "/claim/uploadDocumentNew1";
     public static final String UPLOAD_DOCUMENT_NEW_AGENT2 = "/claim/uploadDocumentNew2";
+
+    public static final String CLAIM_DATA_AGENT_ALLOCATION = "/claim/agentAllocation";
+
 }

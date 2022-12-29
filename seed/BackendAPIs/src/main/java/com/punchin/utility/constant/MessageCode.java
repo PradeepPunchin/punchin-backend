@@ -50,4 +50,6 @@ public class MessageCode {
     public static final String invalidCredentials = "Invalid credentials";
     public static final String MINOR_UPLOAD_ALL_DOCUMENTS = "Minor should upload all Documents";
     public static final String ERROR_WHILE_FETCHING_VERIFIERS_AGENT_LIST = "Error while fetching verifier's agent list";
+    public static final String AGENT_ALLOCATED_SAVED_SUCCESS = "Agent allocated saved successfully";
+    public static final String ERROR_WHILE_AGENT_ALLOCATED = "Error while submitting Agent allocation";
 }

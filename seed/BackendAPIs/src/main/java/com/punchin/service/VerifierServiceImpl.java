@@ -590,5 +590,21 @@ public class VerifierServiceImpl implements VerifierService {
         return agentListResponseDTOList;
     }
 
+    public String claimDataAgentAllocation(Long agentId, Long claimDataId) {
+        String state = GenericUtils.getLoggedInUser().getState();
+        Boolean agentExists = userRepository.findAgentState(agentId, state);
+        if (!agentExists) {
+            return MessageCode.invalidAgentId;
+        }
+        Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimDataId);
+        if (!optionalClaimsData.isPresent()) {
+            return MessageCode.invalidClaimId;
+        }
+        ClaimsData claimsData = optionalClaimsData.get();
+        claimsData.setAgentId(agentId);
+        claimsDataRepository.save(claimsData);
+        return MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS;
+    }
+
 }
 

@@ -3,6 +3,7 @@ package com.punchin.utility.constant;
 public class MessageCode {
 
 
+
     private MessageCode() {
 
     }
@@ -27,6 +28,8 @@ public class MessageCode {
     public static final String DOCUMENT_SAVEAS_DRAFT = "Document save as draft successfully";
     public static final String UPLOAD_BANKER_DOCUMENT = "Upload banker document";
     public static final String DOCUMENT_NOT_FOUND = "Document not found";
+    public static final String CLAIM_NOT_FOUND = "Claim not found";
+
 
 
     //Claim Messages

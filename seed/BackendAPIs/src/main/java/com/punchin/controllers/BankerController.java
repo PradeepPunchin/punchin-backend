@@ -104,6 +104,8 @@ public class BankerController {
             }
             //page = page > 0 ? page - 1 : page;
             PageDTO pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit, searchedKeyword, searchCaseEnum);
+            if(Objects.nonNull(pageDTO.getMessage()))
+                return ResponseHandler.response(pageDTO, pageDTO.getMessage(), true, HttpStatus.OK);
             return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getClaimsList e{}", e);

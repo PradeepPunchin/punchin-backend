@@ -103,6 +103,7 @@ public class BankerServiceImpl implements BankerService {
             Page page1 = Page.empty();
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
+                PageDTO pageDTO = new PageDTO();
                 if (Objects.nonNull(searchCaseEnum) && Objects.nonNull(searchedKeyword)) {
                     if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                         page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId(searchedKeyword, bankerId, pageable);
@@ -111,8 +112,15 @@ public class BankerServiceImpl implements BankerService {
                     } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                         page1 = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerId, pageable);
                     }
-                } else
+                    if(page1.isEmpty()) {
+                        page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                        pageDTO = commonService.convertPageToDTO(page1.getContent(), page1);
+                        pageDTO.setMessage(MessageCode.CLAIM_NOT_FOUND);
+                        return pageDTO;
+                    }
+                } else {
                     page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                }
             } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
                 page1 = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {

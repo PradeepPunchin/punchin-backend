@@ -56,4 +56,7 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
     ClaimDocuments findClaimDocumentsByClaimDataIdAndDocType(Long claimDataId, String docType);
 
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActiveOrderById(Long id, String agent, boolean b);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claims_documents WHERE is_deleted = false AND is_active = false AND is_verified = true AND is_approved = deleted AND upload_side_by = 'New Requirement' AND claims_data_id=:id")
+    List<ClaimDocuments> getAdditionalDocumentRequestClaims(Long id);
 }

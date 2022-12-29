@@ -69,6 +69,7 @@ public class AgentServiceImpl implements AgentService {
                 page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                statusList.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.UNDER_VERIFICATION);
@@ -109,6 +110,7 @@ public class AgentServiceImpl implements AgentService {
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.IN_PROGRESS);
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            statusList.add(ClaimStatus.NEW_REQUIREMENT);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.ACTION_PENDING);
@@ -232,6 +234,19 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
                 claimDocumentsDTOS.add(claimDocumentsDTO);
             }
+            //Add new document request claims
+            claimDocumentsList = claimDocumentsRepository.getAdditionalDocumentRequestClaims(id);
+            for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                claimDocumentsDTO.setId(claimDocuments.getId());
+                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                claimDocumentsDTO.setReason(claimDocuments.getReason());
+                claimDocumentsDTOS.add(claimDocumentsDTO);
+            }
+
             rejectedDocList.add(AgentDocType.OTHER.name());
             map.put("claimDocuments", claimDocumentsDTOS);
             map.put("rejectedDocList", rejectedDocList);

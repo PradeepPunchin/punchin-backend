@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -367,4 +368,24 @@ public class BankerController {
         }
     }
 
+
+    @Secured({"BANKER"})
+    @PostMapping(value = UrlMapping.REQUEST_ADDITIONAL_DOCUMENT)
+    public ResponseEntity<Object> requestForAdditionalDocument(@PathVariable Long id, @RequestParam List<AgentDocType> docTypes, @RequestParam String remark) {
+        try {
+            log.info("BankerController :: requestForAdditionalDocument claimsId - {}, docTypes - {}, remark - {}", id, docTypes, remark);
+            ClaimsData claimsData = bankerService.isClaimByBanker(id);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            boolean claimDocumentsMAP = bankerService.requestForAdditionalDocument(claimsData, docTypes, remark);
+            if (claimDocumentsMAP) {
+                return ResponseHandler.response(claimDocumentsMAP, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: requestForAdditionalDocument :: e {} ", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

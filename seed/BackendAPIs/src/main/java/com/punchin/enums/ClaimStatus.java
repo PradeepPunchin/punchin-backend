@@ -14,7 +14,8 @@ public enum ClaimStatus {
     SUBMITTED_TO_INSURER(7, "SUBMITTED_TO_INSURER"),//When claim info is submitted to insurer via API
     INSURER_DISCREPENCY(8, "INSURER_DISCREPENCY"),//When insurer reject any document or other info in claim case
     INSURER_REJECTED(9, "INSURER_REJECTED"),//Claim is rejected/not accepted by Insurer due to some reason
-    SETTLED(10, "SETTLED");//Claim is Settled or paid by Insurer
+    SETTLED(10, "SETTLED"),//Claim is Settled or paid by Insurer
+    NEW_REQUIREMENT(11, "NEW_REQUIREMENT");//Claim new document requirement request
 
 
     private final String value;

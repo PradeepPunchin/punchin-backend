@@ -4,10 +4,7 @@ import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.BankerDocType;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.SearchCaseEnum;
+import com.punchin.enums.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,4 +55,6 @@ public interface BankerService {
     boolean checkDocumentIsInDiscrepancy(Long id, String docType);
 
     Map<String, Object> discrepancyDocumentUpload(Long id, MultipartFile[] files, String docType);
+
+    boolean requestForAdditionalDocument(ClaimsData claimsData, List<AgentDocType> docTypes, String remark);
 }

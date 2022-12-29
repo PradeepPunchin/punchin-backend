@@ -91,6 +91,7 @@ public class VerifierServiceImpl implements VerifierService {
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
@@ -124,6 +125,7 @@ public class VerifierServiceImpl implements VerifierService {
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
+            claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);

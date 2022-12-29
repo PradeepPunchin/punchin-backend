@@ -244,9 +244,9 @@ public class BankerServiceImpl implements BankerService {
                 dto.setBorrowerPolicyNumber(claimsData.getPolicyNumber());
                 dto.setPolicySumAssured(claimsData.getPolicySumAssured());
                 dto.setLoanAmount(claimsData.getLoanAmount());
-                dto.setLoanAmountPaidByBorrower(0.0D);
-                dto.setOutstandingLoanAmount(0.0D);
-                dto.setBalanceClaimAmount(0.0D);
+                dto.setOutstandingLoanAmount(claimsData.getLoanOutstandingAmount());
+                dto.setLoanAmountPaidByBorrower(claimsData.getLoanAmount() - claimsData.getLoanOutstandingAmount());
+                dto.setBalanceClaimAmount(claimsData.getLoanOutstandingAmount());
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActive(claimsData.getId(), "banker", true);
                 List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
@@ -1073,6 +1073,34 @@ public class BankerServiceImpl implements BankerService {
             map.put("message", e.getMessage());
             map.put("claimDocuments", null);
             return map;
+        }
+    }
+
+    @Override
+    public boolean requestForAdditionalDocument(ClaimsData claimsData, List<AgentDocType> docTypes, String remark) {
+        try {
+            log.info("BankerServiceImpl :: requestForAdditionalDocument claimsData - {}, docTypes - {}, remark - {}", claimsData, docTypes, remark);
+            List<ClaimDocuments> claimDocumentsList = new ArrayList<>();
+            claimsData.setClaimStatus(ClaimStatus.NEW_REQUIREMENT);
+            claimsDataRepository.save(claimsData);
+            for(AgentDocType docType : docTypes){
+                ClaimDocuments documents = new ClaimDocuments();
+                documents.setIsActive(false);
+                documents.setIsDeleted(false);
+                documents.setReason(remark);
+                documents.setIsVerified(true);
+                documents.setIsApproved(false);
+                documents.setDocumentUrls(null);
+                documents.setAgentDocType(docType);
+                documents.setUploadSideBy("New Requirement");
+                documents.setClaimsData(claimsData);
+                claimDocumentsList.add(documents);
+            }
+            claimDocumentsRepository.saveAll(claimDocumentsList);
+            return true;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: requestForAdditionalDocument e{}", e);
+            return false;
         }
     }
 

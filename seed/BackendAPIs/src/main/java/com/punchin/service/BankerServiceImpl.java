@@ -203,10 +203,10 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());
-                User agent = userRepository.findByAgentAndState(RoleEnum.AGENT.name(), claimsData.getBorrowerState().toLowerCase());
+                /*User agent = userRepository.findByAgentAndState(RoleEnum.AGENT.name(), claimsData.getBorrowerState().toLowerCase());
                 if (Objects.nonNull(agent)) {
                     claimsData.setAgentId(agent.getId());
-                }
+                }*/
                 claimsDataList.add(claimsData);
             }
             claimsDataRepository.saveAll(claimsDataList);

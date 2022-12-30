@@ -583,9 +583,7 @@ public class VerifierServiceImpl implements VerifierService {
         for (User agent : allAgents) {
             AgentListResponseDTO agentListResponseDTO = new AgentListResponseDTO();
             agentListResponseDTO.setId(agent.getId());
-            agentListResponseDTO.setUserName(agent.getUserId());
-            agentListResponseDTO.setFirstName(agent.getFirstName());
-            agentListResponseDTO.setLastName(agent.getLastName());
+            agentListResponseDTO.setFirstName(agent.getFirstName() + "-" + agent.getCity() + "-" + agent.getState());
             agentListResponseDTOList.add(agentListResponseDTO);
         }
         log.info(MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS);

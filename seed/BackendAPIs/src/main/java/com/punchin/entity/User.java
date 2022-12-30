@@ -61,11 +61,9 @@ public class User extends BasicEntity {
     private RoleEnum role;
 
     private String state;
-
+    private String city;
+    private String address;
+    private String mobileNumber;
+    private String profilePicUrl;
     private String aadharCardUrl;
-
-    private String panCardUrl;
-    //address
-    //mobile number
-    //photo
 }

@@ -23,7 +23,6 @@ import java.io.IOException;
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsConfig extends OncePerRequestFilter {
-    private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);
     private static final String ALLOWED_METHODS = "GET, POST, PUT, DELETE, OPTIONS";
     private static final String ALLOWED_HEADERS = "Content-Type,X-preferedLanguage,RequestTimeZone,X-XSRF-TOKEN,RequestTime,X-Xsrf-Token,AcceptLanguage";
     private static final String ALLOWED_CREDENTIALS = "true";

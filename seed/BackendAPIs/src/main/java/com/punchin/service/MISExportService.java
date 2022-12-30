@@ -63,7 +63,7 @@ public class MISExportService {
             }
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            String filePath = System.getProperty("user.dir") + filename;
+            String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
             File file = new File(filePath);
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Sheet1");
@@ -232,7 +232,7 @@ public class MISExportService {
             }
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            String filePath = System.getProperty("user.dir") + filename;
+            String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
             File file = new File(filePath);
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Sheet1");

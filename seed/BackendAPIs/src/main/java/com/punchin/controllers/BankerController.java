@@ -390,7 +390,7 @@ public class BankerController {
         }
     }
 
-    @Secured({"VERIFIER"})
+    @Secured({"BANKER"})
     @ApiOperation(value = "Download All file", notes = "This can be used to donwload all document on claim.")
     @GetMapping(value = UrlMapping.DOWNLOAD_CLAIM_DOCUMENT_DATA)
     public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {

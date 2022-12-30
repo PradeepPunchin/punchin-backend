@@ -4,10 +4,7 @@ import com.punchin.dto.*;
 import com.punchin.entity.*;
 import com.punchin.enums.*;
 import com.punchin.repository.*;
-import com.punchin.utility.CSVHelper;
-import com.punchin.utility.GenericUtils;
-import com.punchin.utility.ModelMapper;
-import com.punchin.utility.ResponseHandler;
+import com.punchin.utility.*;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -31,8 +28,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -1111,6 +1113,52 @@ public class BankerServiceImpl implements BankerService {
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: requestForAdditionalDocument e{}", e);
             return false;
+        }
+    }
+
+    @Override
+    public String downloadAllDocuments(Long claimId) {
+        try {
+            String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
+            log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
+            String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
+            for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                for (DocumentUrls documentUrls : documentUrlsList) {
+                    downloadDocumentInDirectory(documentUrls.getDocUrl(), claimId, filePath);
+                }
+            }
+            ZipUtils appZip = new ZipUtils();
+            appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
+            appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
+            new File(filePath + claimId).deleteOnExit();
+            File file = new File(filePath + punchinClaimId + ".zip");
+            String fileName = file.getName();
+            String version = amazonS3FileManagers.uploadFileToAmazonS3("verifier/", new File(filePath + punchinClaimId + ".zip"), fileName);
+            amazonS3FileManagers.cleanUp(file);
+            return version;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: downloadAllDocuments ", e);
+            return null;
+        }
+    }
+
+    private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
+        try {
+            log.info("ready to download claim documents docUrl {}", docUrl);
+            URL url = new URL(docUrl);
+            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+            File file1 = new File(filePath + claimId);
+            file1.mkdirs();
+            log.info("Directory created");
+            FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);
+            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            log.info("File downloaded");
+            fos.close();
+            rbc.close();
+        } catch (Exception e) {
+            log.error("ERROR WHILE DOWNLOADING FILE FROM URL e {}", e);
         }
     }
 

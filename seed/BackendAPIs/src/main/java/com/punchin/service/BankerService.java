@@ -57,4 +57,6 @@ public interface BankerService {
     Map<String, Object> discrepancyDocumentUpload(Long id, MultipartFile[] files, String docType);
 
     boolean requestForAdditionalDocument(ClaimsData claimsData, List<AgentDocType> docTypes, String remark);
+
+    String downloadAllDocuments(Long id);
 }

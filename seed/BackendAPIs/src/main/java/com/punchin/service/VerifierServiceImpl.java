@@ -292,14 +292,14 @@ public class VerifierServiceImpl implements VerifierService {
     @Override
     public String downloadAllDocuments(Long claimId) {
         try {
-            String filePath = downloadFolderUrl;
+            String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
             log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    downloadDocumentInDirectory(documentUrls.getDocUrl(), claimId);
+                    downloadDocumentInDirectory(documentUrls.getDocUrl(), claimId, filePath);
                 }
             }
             ZipUtils appZip = new ZipUtils();
@@ -317,12 +317,12 @@ public class VerifierServiceImpl implements VerifierService {
         }
     }
 
-    private void downloadDocumentInDirectory(String docUrl, Long claimId) {
+    private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
         try {
             log.info("ready to download claim documents docUrl {}", docUrl);
             URL url = new URL(docUrl);
             ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-            File file1 = new File(downloadFolderUrl + claimId);
+            File file1 = new File(filePath + claimId);
             file1.mkdirs();
             log.info("Directory created");
             FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);

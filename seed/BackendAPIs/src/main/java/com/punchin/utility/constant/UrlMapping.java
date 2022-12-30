@@ -23,7 +23,7 @@ public class UrlMapping {
     public static final String GET_CLAIM_SEARCHED_DATA_VERIFIER = "/claim/searchVerifier";
     public static final String DOWNLOAD_MIS_REPORT = "/claim/download-mis-report";
     public static final String DELETE_CLAIM_DOCUMENT = "/claim/document/delete/{docId}";
-    public static final String REQUEST_ADDITIONAL_DOCUMENT = "/claim/{id}/document/additional-request";
+    public static final String REQUEST_ADDITIONAL_DOCUMENT = "/claim/document/additional-request";
 
 
     //Authentication Endpoints

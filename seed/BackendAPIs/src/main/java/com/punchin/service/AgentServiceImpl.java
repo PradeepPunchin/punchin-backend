@@ -669,8 +669,8 @@ public class AgentServiceImpl implements AgentService {
         ClaimsData claimsData = optionalClaimsData.get();
         ClaimDocuments claimDocuments = new ClaimDocuments();
         claimDocuments.setDocType(nomineeProof.toString());
-        claimDocuments.setAgentDocType(AgentDocType.NOMINEE_ID_PROOF);
-        claimDocuments.setDocType(AgentDocType.NOMINEE_ID_PROOF.name());
+        //claimDocuments.setAgentDocType(AgentDocType.NOMINEE_ID_PROOF);
+        //claimDocuments.setDocType(AgentDocType.NOMINEE_ID_PROOF.name());
         claimDocuments.setClaimsData(claimsData);
         claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments.setUploadSideBy("agent");

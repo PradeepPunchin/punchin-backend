@@ -108,7 +108,7 @@ public class VerifierController {
         }
     }
 
-   /* @PostMapping(value = UrlMapping.VERIFIER_ALLOCATE_CLAIM)
+   /*@PostMapping(value = UrlMapping.VERIFIER_ALLOCATE_CLAIM)
     public ResponseEntity<Object> allocateClaimToAgent(@PathVariable Long id, @PathVariable Long agentId) {
         try {
             log.info("VerifierController :: allocateClaimToAgent claimId {}, agentId {}", id, agentId);
@@ -265,8 +265,8 @@ public class VerifierController {
     }
 
     @Secured({"VERIFIER"})
-    @PutMapping(value = UrlMapping.CLAIM_DATA_AGENT_ALLOCATION)
-    public ResponseEntity<Object> claimDataAgentAllocation(@RequestParam(value = "agentId") Long agentId, @RequestParam(value = "id") Long claimDataId) {
+    @PutMapping(value = UrlMapping.VERIFIER_ALLOCATE_CLAIM)
+    public ResponseEntity<Object> claimDataAgentAllocation(@PathVariable(value = "agentId") Long agentId, @PathVariable(value = "id") Long claimDataId) {
         try {
             log.info("Request received for claim data agent allocation {}, agentId {} ", claimDataId, agentId);
             String agentAllocation = verifierService.claimDataAgentAllocation(agentId, claimDataId);

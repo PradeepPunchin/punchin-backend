@@ -1,5 +1,6 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.AdditionalDocumentRequestDTO;
 import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
@@ -371,20 +372,35 @@ public class BankerController {
 
     @Secured({"BANKER"})
     @PostMapping(value = UrlMapping.REQUEST_ADDITIONAL_DOCUMENT)
-    public ResponseEntity<Object> requestForAdditionalDocument(@PathVariable Long id, @RequestParam List<AgentDocType> docTypes, @RequestParam String remark) {
+    public ResponseEntity<Object> requestForAdditionalDocument(@RequestBody AdditionalDocumentRequestDTO additionalDocumentRequestDTO) {
         try {
-            log.info("BankerController :: requestForAdditionalDocument claimsId - {}, docTypes - {}, remark - {}", id, docTypes, remark);
-            ClaimsData claimsData = bankerService.isClaimByBanker(id);
+            log.info("BankerController :: requestForAdditionalDocument claimsId - {}, docTypes - {}, remark - {}", additionalDocumentRequestDTO.getClaimId(), additionalDocumentRequestDTO.getDocTypes(), additionalDocumentRequestDTO.getRemark());
+            ClaimsData claimsData = bankerService.isClaimByBanker(additionalDocumentRequestDTO.getClaimId());
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            boolean claimDocumentsMAP = bankerService.requestForAdditionalDocument(claimsData, docTypes, remark);
+            boolean claimDocumentsMAP = bankerService.requestForAdditionalDocument(claimsData, additionalDocumentRequestDTO.getDocTypes(), additionalDocumentRequestDTO.getRemark());
             if (claimDocumentsMAP) {
                 return ResponseHandler.response(claimDocumentsMAP, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: requestForAdditionalDocument :: e {} ", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"VERIFIER"})
+    @ApiOperation(value = "Download All file", notes = "This can be used to donwload all document on claim.")
+    @GetMapping(value = UrlMapping.DOWNLOAD_CLAIM_DOCUMENT_DATA)
+    public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {
+        try {
+            log.info("VerifierController :: downloadAllDocuments");
+            String url = bankerService.downloadAllDocuments(id);
+            log.info("Verifier Dashboard count fetched Successfully");
+            return ResponseHandler.response(url, MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE downloading claim documents::", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

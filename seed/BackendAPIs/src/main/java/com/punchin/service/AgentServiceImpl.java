@@ -178,11 +178,14 @@ public class AgentServiceImpl implements AgentService {
                 claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
                 claimsData.setIsMinor(documentDTO.isMinor());
             }
+            Map<String, List<MultipartFile>> isMinorDocs = new HashMap<>();
             Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
+            List<MultipartFile> multipartFiles = new ArrayList<>();
             for(String key : keys){
                 if(key.contains(":")){
                     String keyArray[] = key.split(":");
+                    GenericUtils.hasMatchingSubstring2(keyArray[0].trim(), keys);
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }else{
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));

@@ -4,6 +4,9 @@ import com.punchin.entity.User;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class GenericUtils {
     /**
      * To Get the current logged in user.
@@ -26,5 +29,11 @@ public class GenericUtils {
         return false;
     }
 
+    public static List<String> hasMatchingSubstring2(String str, List<String> substrings) {
+        return substrings.stream().filter(str::contains).collect(Collectors.toList());
+    }
 
+    public static boolean hasMatchingSubstring1(String str, List<String> substrings) {
+        return substrings.stream().anyMatch(str::contains);
+    }
 }

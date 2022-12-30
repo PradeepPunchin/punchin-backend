@@ -247,8 +247,16 @@ public class BankerServiceImpl implements BankerService {
                 dto.setPolicySumAssured(claimsData.getPolicySumAssured());
                 dto.setLoanAmount(claimsData.getLoanAmount());
                 dto.setOutstandingLoanAmount(claimsData.getLoanOutstandingAmount());
-                dto.setLoanAmountPaidByBorrower(claimsData.getLoanAmount() - claimsData.getLoanOutstandingAmount());
-                dto.setBalanceClaimAmount(claimsData.getLoanOutstandingAmount());
+                dto.setBalanceClaimAmount(0d);
+                dto.setLoanAmountPaidByBorrower(0d);
+                if(Objects.nonNull(claimsData.getPolicySumAssured()) && Objects.nonNull(claimsData.getLoanOutstandingAmount())){
+                    double outStandingLoan = claimsData.getPolicySumAssured() - claimsData.getLoanOutstandingAmount();
+                    dto.setLoanAmountPaidByBorrower(claimsData.getLoanAmount() - claimsData.getLoanOutstandingAmount());
+                    if(outStandingLoan > 0 ) {
+                        dto.setBalanceClaimAmount(outStandingLoan);
+                    }
+                }
+
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActive(claimsData.getId(), "banker", true);
                 List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {

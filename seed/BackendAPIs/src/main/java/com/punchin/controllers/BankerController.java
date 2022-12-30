@@ -1,5 +1,6 @@
 package com.punchin.controllers;
 
+import com.punchin.dto.AdditionalDocumentRequestDTO;
 import com.punchin.dto.BankerClaimDocumentationDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
@@ -9,8 +10,8 @@ import com.punchin.enums.BankerDocType;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.SearchCaseEnum;
 import com.punchin.repository.ClaimDocumentsRepository;
-import com.punchin.service.AmazonClient;
 import com.punchin.service.BankerService;
+import com.punchin.service.MISExportService;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
@@ -22,12 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -42,10 +45,11 @@ public class BankerController {
     @Autowired
     private HttpServletResponse httpServletResponse;
     @Autowired
-    private AmazonClient amazonClient;
-    @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
+    @Autowired
+    private MISExportService misExportService;
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
@@ -62,6 +66,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.BANKER_UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
@@ -90,6 +95,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Claim List", notes = "This can be used to get not submitted claims list")
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit, @RequestParam(value = "searchCaseEnum", required = false) SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword", required = false) String searchedKeyword) {
@@ -100,6 +106,8 @@ public class BankerController {
             }
             //page = page > 0 ? page - 1 : page;
             PageDTO pageDTO = bankerService.getClaimsList(claimDataFilter, page, limit, searchedKeyword, searchCaseEnum);
+            if(Objects.nonNull(pageDTO.getMessage()))
+                return ResponseHandler.response(pageDTO, pageDTO.getMessage(), true, HttpStatus.OK);
             return ResponseHandler.response(pageDTO, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getClaimsList e{}", e);
@@ -107,6 +115,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
     @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
     public ResponseEntity<Object> getClaimData(@PathVariable Long id) {
@@ -127,6 +136,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Submit Claim", notes = "This can be used to submit claims")
     @PutMapping(value = UrlMapping.BANKER_SUBMIT_CLAIMS)
     public ResponseEntity<Object> submitClaims() {
@@ -146,6 +156,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Discard Claim", notes = "This can be used to discard claims")
     @DeleteMapping(value = UrlMapping.BANKER_DISCARD_CLAIMS)
     public ResponseEntity<Object> discardClaims() {
@@ -165,6 +176,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by banker")
     @PutMapping(value = UrlMapping.BANKER_UPLOAD_DOCUMENT)
     public ResponseEntity<Object> uploadDocument(@PathVariable Long id, @PathVariable BankerDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile[] multipartFiles) {
@@ -188,6 +200,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Forward Claim", notes = "This can be used to forward claim to verifier")
     @PutMapping(value = UrlMapping.FORWARD_TO_VERIFIER)
     public ResponseEntity<Object> forwardToVerifier(@PathVariable Long id) {
@@ -208,6 +221,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Download Excel Sheet", notes = "This can be used to download excel sheet format for upload claim data")
     @GetMapping(value = UrlMapping.BANKER_STANDARIZED_FORMAT)
     public ResponseEntity<Object> downloadStandardFormat() {
@@ -223,6 +237,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
     @DeleteMapping(value = UrlMapping.DELETE_CLAIM_DOCUMENT)
     public ResponseEntity<Object> deleteBankerClaimDocument(@PathVariable Long docId) {
@@ -246,6 +261,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Claim List", notes = "This can be used to get submitted claims list")
     @PostMapping(value = UrlMapping.BANKER_SAVEAS_DRAFT_DOCUMENT)
     public ResponseEntity<Object> saveASDraftDocument(@PathVariable Long claimId) {
@@ -266,6 +282,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Download MIS Report", notes = "This can be used to download MIS in excel sheet")
     @GetMapping(value = UrlMapping.DOWNLOAD_MIS_REPORT)
     public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
@@ -274,13 +291,14 @@ public class BankerController {
             if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            return ResponseHandler.response(bankerService.downloadMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
+            return ResponseHandler.response(misExportService.downloadBankerExcelFile(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Upload Claims", notes = "This can be used to Upload spreadsheet for claims data")
     @PostMapping(value = UrlMapping.BANKER_CSV_UPLOAD_CLAIM)
     public ResponseEntity<Object> uploadCSVFileClaimData(@ApiParam(name = "multipartFile", value = "The multipart object to upload multiple files.") @Valid @RequestBody MultipartFile multipartFile) {
@@ -293,6 +311,8 @@ public class BankerController {
         }
 
     }
+
+    @Secured({"BANKER"})
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_BANKER)
     public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum
@@ -313,6 +333,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
     public ResponseEntity<Object> getClaimBankerDocuments(@PathVariable Long id) {
         try {
@@ -328,6 +349,7 @@ public class BankerController {
         }
     }
 
+    @Secured({"BANKER"})
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
     @PutMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
     public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {
@@ -347,4 +369,39 @@ public class BankerController {
         }
     }
 
+
+    @Secured({"BANKER"})
+    @PostMapping(value = UrlMapping.REQUEST_ADDITIONAL_DOCUMENT)
+    public ResponseEntity<Object> requestForAdditionalDocument(@RequestBody AdditionalDocumentRequestDTO additionalDocumentRequestDTO) {
+        try {
+            log.info("BankerController :: requestForAdditionalDocument claimsId - {}, docTypes - {}, remark - {}", additionalDocumentRequestDTO.getClaimId(), additionalDocumentRequestDTO.getDocTypes(), additionalDocumentRequestDTO.getRemark());
+            ClaimsData claimsData = bankerService.isClaimByBanker(additionalDocumentRequestDTO.getClaimId());
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            boolean claimDocumentsMAP = bankerService.requestForAdditionalDocument(claimsData, additionalDocumentRequestDTO.getDocTypes(), additionalDocumentRequestDTO.getRemark());
+            if (claimDocumentsMAP) {
+                return ResponseHandler.response(claimDocumentsMAP, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: requestForAdditionalDocument :: e {} ", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"BANKER"})
+    @ApiOperation(value = "Download All file", notes = "This can be used to donwload all document on claim.")
+    @GetMapping(value = UrlMapping.DOWNLOAD_CLAIM_DOCUMENT_DATA)
+    public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {
+        try {
+            log.info("VerifierController :: downloadAllDocuments");
+            String url = bankerService.downloadAllDocuments(id);
+            log.info("Verifier Dashboard count fetched Successfully");
+            return ResponseHandler.response(url, MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE downloading claim documents::", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

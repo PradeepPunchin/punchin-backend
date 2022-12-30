@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,6 +37,7 @@ public class AgentController {
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Dashboard Data", notes = "This can be used to Show count in dashboard tile.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
@@ -49,6 +51,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Claim List", notes = "This can be used to get not allocated claims list")
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
     public ResponseEntity<Object> getClaimsList(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit) {
@@ -63,6 +66,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Claim List", notes = "This can be used to get Allocated claim data")
     @GetMapping(value = UrlMapping.GET_CLAIM_DATA)
     public ResponseEntity<Object> getClaimData(@PathVariable Long id) {
@@ -82,6 +86,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
     public ResponseEntity<Object> getClaimDocuments(@PathVariable Long id) {
         try {
@@ -100,6 +105,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
     @PostMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
     public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {
@@ -122,6 +128,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Submit claim", notes = "This can be used to forward claim to verifier (Under verification)")
     @PostMapping(value = UrlMapping.FORWARD_TO_VERIFIER)
     public ResponseEntity<Object> forwardToVerifier(@PathVariable Long id) {
@@ -144,6 +151,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
     public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor,
@@ -172,6 +180,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA)
     public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
@@ -191,6 +200,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
     //@PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
     public ResponseEntity<Object> uploadAgentDocument(@RequestParam Long id, @RequestParam AgentDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
@@ -214,6 +224,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
     @DeleteMapping(value = UrlMapping.AGENT_DELETE_DOCUMENT)
     public ResponseEntity<Object> deleteAgentDocument(@RequestParam Long documentId) {
@@ -230,6 +241,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
     @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_NEW_AGENT)
     public ResponseEntity<Object> uploadAgentNewDocument(@RequestParam Long id,
@@ -262,6 +274,7 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
     @PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_NEW_AGENT2)
     public ResponseEntity<Object> uploadAgentNewDocument2(@RequestParam Long id,

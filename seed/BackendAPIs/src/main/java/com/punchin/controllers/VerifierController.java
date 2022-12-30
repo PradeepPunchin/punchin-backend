@@ -6,10 +6,14 @@ import com.punchin.dto.DocumentApproveRejectPayloadDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
+import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.SearchCaseEnum;
+import com.punchin.repository.UserRepository;
+import com.punchin.service.MISExportService;
 import com.punchin.service.UserService;
 import com.punchin.service.VerifierService;
+import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
@@ -19,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +41,13 @@ public class VerifierController {
     @Autowired
     private VerifierService verifierService;
 
+    @Autowired
+    private MISExportService misExportService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.GET_CLAIMS_LIST)
     public ResponseEntity<Object> getClaimsData(@RequestParam ClaimDataFilter claimDataFilter, @RequestParam Integer page, @RequestParam Integer limit, @RequestParam(value = "searchCaseEnum", required = false) SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword", required = false) String searchedKeyword) {
         try {
@@ -49,6 +61,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS)
     public ResponseEntity<Object> getClaimDataWithDocumentStatus(@RequestParam Integer page, @RequestParam Integer limit) {
         try {
@@ -64,6 +77,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.DOWNLOAD_VERIFIER_GET_CLAIM_DATA_WITH_DOCUMENT_STATUS)
     public ResponseEntity<Object> downloadClaimDataWithDocumentStatus(@RequestParam Integer page, @RequestParam Integer limit) {
         try {
@@ -79,6 +93,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @ApiOperation(value = "Dashboard Data Count", notes = "This can be used to Show Dashboard data count in Verifier dashboard tab.")
     @GetMapping(value = UrlMapping.GET_DASHBOARD_DATA)
     public ResponseEntity<Object> getDashboardData() {
@@ -93,7 +108,7 @@ public class VerifierController {
         }
     }
 
-   /* @PostMapping(value = UrlMapping.VERIFIER_ALLOCATE_CLAIM)
+   /*@PostMapping(value = UrlMapping.VERIFIER_ALLOCATE_CLAIM)
     public ResponseEntity<Object> allocateClaimToAgent(@PathVariable Long id, @PathVariable Long agentId) {
         try {
             log.info("VerifierController :: allocateClaimToAgent claimId {}, agentId {}", id, agentId);
@@ -116,6 +131,7 @@ public class VerifierController {
         }
     }*/
 
+    @Secured({"VERIFIER"})
     @GetMapping(value = UrlMapping.GET_CLAIM_DOCUMENTS)
     public ResponseEntity<Object> getClaimDocuments(@PathVariable Long id) {
         try {
@@ -148,6 +164,7 @@ public class VerifierController {
         }
     }*/
 
+    @Secured({"VERIFIER"})
     @PostMapping(value = UrlMapping.VERIFIER_ACCEPT_AND_REJECT_DOCUMENTS)
     public ResponseEntity<Object> acceptAndRejectDocuments(@PathVariable Long id, @PathVariable Long docId, @RequestBody DocumentApproveRejectPayloadDTO approveRejectPayloadDTO) {
         try {
@@ -175,6 +192,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @ApiOperation(value = "Download All file", notes = "This can be used to donwload all document on claim.")
     @GetMapping(value = UrlMapping.DOWNLOAD_CLAIM_DOCUMENT_DATA)
     public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {
@@ -189,6 +207,7 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
     @ApiOperation(value = "Get searched data", notes = "This can be used to get by criteria loan account no or by claim id or by name")
     @GetMapping(value = UrlMapping.GET_CLAIM_SEARCHED_DATA_VERIFIER)
     public ResponseEntity<Object> getClaimSearchedData(@RequestParam(value = "searchCaseEnum") SearchCaseEnum searchCaseEnum, @RequestParam(value = "searchedKeyword") String searchedKeyword,
@@ -208,30 +227,63 @@ public class VerifierController {
         return ResponseHandler.response(null, MessageCode.ERROR_SEARCHED_CLAIM_DATA_FETCHED, false, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @GetMapping(value = UrlMapping.GET_ALL_AGENTS_VERIFIER)
-    public ResponseEntity<Object> getAllAgentsForVerifier(@RequestParam long id) {
-        try {
-            log.info("Request received for verifier's agent list {}", id);
-            List<AgentListResponseDTO> allAgentsList = verifierService.getAllAgentsForVerifier(id);
-            if (!allAgentsList.isEmpty()) {
-                return ResponseHandler.response(allAgentsList, MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS, true, HttpStatus.OK);
-            }
-            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            log.error("Error while fetching verifier's agents list", e);
-            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
+    @Secured({"VERIFIER"})
     @ApiOperation(value = "Download MIS Report", notes = "This can be used to download MIS in excel sheet")
     @GetMapping(value = UrlMapping.DOWNLOAD_MIS_REPORT)
     public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
         try {
             log.info("BankerController :: downloadMISReport");
-            return ResponseHandler.response(verifierService.downloadMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
+            return ResponseHandler.response(misExportService.downloadVerifierMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Secured({"VERIFIER"})
+    @GetMapping(value = UrlMapping.GET_ALL_AGENTS_VERIFIER)
+    public ResponseEntity<Object> getAllAgentsForVerifier() {
+        try {
+            Long verifierId = GenericUtils.getLoggedInUser().getId();
+            log.info("Request received for verifier's agent list {}", verifierId);
+            User verifier = userRepository.verifierExistsByIdAndRole(verifierId);
+            if (verifier == null) {
+                log.info(MessageCode.INVALID_USERID);
+                return ResponseHandler.response(null, MessageCode.INVALID_USERID, false, HttpStatus.NOT_FOUND);
+            }
+            List<AgentListResponseDTO> allAgentsList = verifierService.getAllAgentsForVerifier(verifier);
+            if (!allAgentsList.isEmpty()) {
+                log.info(MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS);
+                return ResponseHandler.response(allAgentsList, MessageCode.ALL_AGENTS_LIST_FETCHED_SUCCESS, true, HttpStatus.OK);
+            }
+            log.info(MessageCode.NO_RECORD_FOUND);
+            return ResponseHandler.response(null, MessageCode.NO_RECORD_FOUND, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Error while fetching verifier's agents list", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_WHILE_FETCHING_VERIFIERS_AGENT_LIST, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"VERIFIER"})
+    @PutMapping(value = UrlMapping.VERIFIER_ALLOCATE_CLAIM)
+    public ResponseEntity<Object> claimDataAgentAllocation(@PathVariable(value = "agentId") Long agentId, @PathVariable(value = "id") Long claimDataId) {
+        try {
+            log.info("Request received for claim data agent allocation {}, agentId {} ", claimDataId, agentId);
+            String agentAllocation = verifierService.claimDataAgentAllocation(agentId, claimDataId);
+            if (agentAllocation.equalsIgnoreCase(MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS)) {
+                log.info(MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS);
+                return ResponseHandler.response(agentAllocation, MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS, true, HttpStatus.OK);
+            } else if (agentAllocation.equalsIgnoreCase(MessageCode.invalidAgentId)) {
+                log.info(MessageCode.invalidAgentId);
+                return ResponseHandler.response(agentAllocation, MessageCode.invalidAgentId, false, HttpStatus.BAD_REQUEST);
+            } else {
+                log.info(MessageCode.invalidClaimId);
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+        } catch (Exception e) {
+            log.error("Error while submitting Agent allocation", e);
+            return ResponseHandler.response(null, MessageCode.ERROR_WHILE_AGENT_ALLOCATED, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

@@ -28,6 +28,7 @@ public class MessageCode {
     public static final String DOCUMENT_SAVEAS_DRAFT = "Document save as draft successfully";
     public static final String UPLOAD_BANKER_DOCUMENT = "Upload banker document";
     public static final String DOCUMENT_NOT_FOUND = "Document not found";
+    public static final String CLAIM_NOT_FOUND = "Claim not found";
 
 
 
@@ -48,4 +49,7 @@ public class MessageCode {
 
     public static final String invalidCredentials = "Invalid credentials";
     public static final String MINOR_UPLOAD_ALL_DOCUMENTS = "Minor should upload all Documents";
+    public static final String ERROR_WHILE_FETCHING_VERIFIERS_AGENT_LIST = "Error while fetching verifier's agent list";
+    public static final String AGENT_ALLOCATED_SAVED_SUCCESS = "Agent allocated saved successfully";
+    public static final String ERROR_WHILE_AGENT_ALLOCATED = "Error while submitting Agent allocation";
 }

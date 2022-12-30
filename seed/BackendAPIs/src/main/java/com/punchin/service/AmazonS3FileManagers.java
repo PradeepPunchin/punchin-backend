@@ -58,9 +58,9 @@ public class AmazonS3FileManagers {
 
 
     public String uploadFileToAmazonS3(String key, File uncompressedFile, String name) throws IOException {
-        String path = System.getProperty("user.dir") +  "/";
-        File compressedFile = new File(path + name);
-        //getCompressedFile(uncompressedFile, compressedFile);
+//        String path = System.getProperty("user.dir") + "/";
+//        File compressedFile = new File(path + name);
+//        getCompressedFile(uncompressedFile, compressedFile);
         AmazonS3 client = getAmazonConnection();
         PutObjectRequest por = new PutObjectRequest(bucketName, key + name, uncompressedFile);
         por.setCannedAcl(CannedAccessControlList.Private);
@@ -68,25 +68,26 @@ public class AmazonS3FileManagers {
         return client.getUrl(bucketName, key + name).toString();
     }
 
-    void deleteLocalFile(File file) {
+
+    public String uploadFile(String claimId, MultipartFile multipartFile, String folderName) {
         try {
-            if (file != null) {
-                Files.delete(file.toPath());
-            }
-        } catch (IOException e) {
-
-        }
-    }
-
-
-    public String uploadFile(String claimId, MultipartFile multipartFile) {
-        try {
+            String versionId = null;
             File file = convertMultiPartToFile(multipartFile);
             String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
             String fileName = claimId + "-" + System.currentTimeMillis() + extension;
-            return uploadFileToAmazonS3("test/", file, fileName);
+            versionId = uploadFileToAmazonS3(folderName, file, fileName);
+            cleanUp(file);
+            return versionId;
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    public void cleanUp(File file) {
+        try {
+            Files.delete(file.toPath());
+        } catch (Exception e) {
+
         }
     }
 

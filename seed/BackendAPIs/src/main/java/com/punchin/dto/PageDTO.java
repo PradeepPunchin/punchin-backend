@@ -12,4 +12,6 @@ public class PageDTO {
     private int totalPages;
 
     private long totalRecords;
+
+    private String message;
 }

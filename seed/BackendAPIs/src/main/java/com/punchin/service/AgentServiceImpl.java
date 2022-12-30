@@ -69,6 +69,7 @@ public class AgentServiceImpl implements AgentService {
                 page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                statusList.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.UNDER_VERIFICATION);
@@ -109,6 +110,7 @@ public class AgentServiceImpl implements AgentService {
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.IN_PROGRESS);
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            statusList.add(ClaimStatus.NEW_REQUIREMENT);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.ACTION_PENDING);
@@ -176,11 +178,14 @@ public class AgentServiceImpl implements AgentService {
                 claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
                 claimsData.setIsMinor(documentDTO.isMinor());
             }
+            Map<String, List<MultipartFile>> isMinorDocs = new HashMap<>();
             Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
+            List<MultipartFile> multipartFiles = new ArrayList<>();
             for(String key : keys){
                 if(key.contains(":")){
                     String keyArray[] = key.split(":");
+                    GenericUtils.hasMatchingSubstring2(keyArray[0].trim(), keys);
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }else{
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
@@ -232,6 +237,19 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
                 claimDocumentsDTOS.add(claimDocumentsDTO);
             }
+            //Add new document request claims
+            claimDocumentsList = claimDocumentsRepository.getAdditionalDocumentRequestClaims(id);
+            for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                claimDocumentsDTO.setId(claimDocuments.getId());
+                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                claimDocumentsDTO.setReason(claimDocuments.getReason());
+                claimDocumentsDTOS.add(claimDocumentsDTO);
+            }
+
             rejectedDocList.add(AgentDocType.OTHER.name());
             map.put("claimDocuments", claimDocumentsDTOS);
             map.put("rejectedDocList", rejectedDocList);
@@ -272,7 +290,7 @@ public class AgentServiceImpl implements AgentService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
@@ -363,7 +381,7 @@ public class AgentServiceImpl implements AgentService {
             List<DocumentUrls> documentUrls = new ArrayList<>();
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonClient.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "agent"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "agent/"));
                 documentUrls.add(urls);
             }
             documentUrlsRepository.saveAll(documentUrls);
@@ -459,7 +477,7 @@ public class AgentServiceImpl implements AgentService {
         List<DocumentUrls> documentUrls = new ArrayList<>();
         for (MultipartFile multipartFile : multipartFiles) {
             DocumentUrls urls = new DocumentUrls();
-            urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
             if (Objects.isNull(urls.getDocUrl())) {
                 log.info("file not uploaded");
                 return Collections.emptyList();
@@ -500,7 +518,7 @@ public class AgentServiceImpl implements AgentService {
         DocumentUrls urls = new DocumentUrls();
         List<String> urlList = new ArrayList<>();
         for (MultipartFile multipartFile : deathCertificateMultipart) {
-            urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
             String url = urls.getDocUrl();
             urlList.add(url);
             documentUrls.add(urls);
@@ -524,7 +542,7 @@ public class AgentServiceImpl implements AgentService {
         DocumentUrls urls0 = new DocumentUrls();
         List<String> urlList0 = new ArrayList<>();
         for (MultipartFile multipartFile : borowerProofMultipart) {
-            urls0.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            urls0.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
             String url = urls0.getDocUrl();
             urlList0.add(url);
             documentUrls0.add(urls0);
@@ -548,7 +566,7 @@ public class AgentServiceImpl implements AgentService {
         DocumentUrls urls1 = new DocumentUrls();
         List<String> urlList1 = new ArrayList<>();
         for (MultipartFile multipartFile : signedClaimMultipart) {
-            urls1.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            urls1.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
             String url = urls1.getDocUrl();
             documentUrls1.add(urls1);
             urlList1.add(url);
@@ -575,7 +593,7 @@ public class AgentServiceImpl implements AgentService {
             List<String> urlList2 = new ArrayList<>();
             DocumentUrls urls2 = new DocumentUrls();
             for (MultipartFile multipartFile : relation_shipProofMultipart) {
-                urls2.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+                urls2.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
                 String url = urls2.getDocUrl();
                 urlList2.add(url);
                 documentUrls2.add(urls2);
@@ -599,7 +617,7 @@ public class AgentServiceImpl implements AgentService {
             List<String> urlList3 = new ArrayList<>();
             DocumentUrls urls3 = new DocumentUrls();
             for (MultipartFile multipartFile : gUARDIAN_ID_PROOFMultipart) {
-                urls3.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+                urls3.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
                 String url = urls3.getDocUrl();
                 urlList3.add(url);
                 documentUrls3.add(urls3);
@@ -624,7 +642,7 @@ public class AgentServiceImpl implements AgentService {
             List<String> urlList4 = new ArrayList<>();
             DocumentUrls urls4 = new DocumentUrls();
             for (MultipartFile multipartFile : gUARDIAN_ADD_PROOFMultipart) {
-                urls4.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+                urls4.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
                 documentUrls4.add(urls4);
                 String url = urls4.getDocUrl();
                 urlList4.add(url);
@@ -651,8 +669,8 @@ public class AgentServiceImpl implements AgentService {
         ClaimsData claimsData = optionalClaimsData.get();
         ClaimDocuments claimDocuments = new ClaimDocuments();
         claimDocuments.setDocType(nomineeProof.toString());
-        claimDocuments.setAgentDocType(AgentDocType.NOMINEE_ID_PROOF);
-        claimDocuments.setDocType(AgentDocType.NOMINEE_ID_PROOF.name());
+        //claimDocuments.setAgentDocType(AgentDocType.NOMINEE_ID_PROOF);
+        //claimDocuments.setDocType(AgentDocType.NOMINEE_ID_PROOF.name());
         claimDocuments.setClaimsData(claimsData);
         claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
         claimDocuments.setUploadSideBy("agent");
@@ -660,7 +678,7 @@ public class AgentServiceImpl implements AgentService {
         List<String> urlList = new ArrayList<>();
         DocumentUrls urls = new DocumentUrls();
         for (MultipartFile multipartFile : nomineeMultiparts) {
-            urls.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
             String url = urls.getDocUrl();
             documentUrls.add(urls);
             urlList.add(url);
@@ -684,7 +702,7 @@ public class AgentServiceImpl implements AgentService {
         List<DocumentUrls> documentUrls1 = new ArrayList<>();
         DocumentUrls urls1 = new DocumentUrls();
         for (MultipartFile multipartFile : bankerPROOFMultipart) {
-            urls1.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            urls1.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
             documentUrls1.add(urls1);
             String url = urls.getDocUrl();
             urlList1.add(url);
@@ -707,7 +725,7 @@ public class AgentServiceImpl implements AgentService {
         List<DocumentUrls> documentUrls2 = new ArrayList<>();
         DocumentUrls urls2 = new DocumentUrls();
         for (MultipartFile multipartFile : additionalMultipart) {
-            urls2.setDocUrl(amazonClient.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent"));
+            urls2.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
             documentUrls2.add(urls2);
             String url = urls2.getDocUrl();
             urlList2.add(url);

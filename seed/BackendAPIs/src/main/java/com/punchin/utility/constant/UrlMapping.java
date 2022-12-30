@@ -3,6 +3,7 @@ package com.punchin.utility.constant;
 public class UrlMapping {
 
 
+
     private UrlMapping() {
     }
 
@@ -22,6 +23,7 @@ public class UrlMapping {
     public static final String GET_CLAIM_SEARCHED_DATA_VERIFIER = "/claim/searchVerifier";
     public static final String DOWNLOAD_MIS_REPORT = "/claim/download-mis-report";
     public static final String DELETE_CLAIM_DOCUMENT = "/claim/document/delete/{docId}";
+    public static final String REQUEST_ADDITIONAL_DOCUMENT = "/claim/document/additional-request";
 
 
     //Authentication Endpoints
@@ -56,8 +58,11 @@ public class UrlMapping {
     public static final String UPLOAD_DOCUMENT_AGENT = "/claim/uploadDocument";
 
     public static final String AGENT_DELETE_DOCUMENT = "/claim/document/delete";
-    public static final String GET_ALL_AGENTS_VERIFIER = "/verifier/agents";
+    public static final String GET_ALL_AGENTS_VERIFIER = "/agents";
 
     public static final String UPLOAD_DOCUMENT_NEW_AGENT = "/claim/uploadDocumentNew1";
     public static final String UPLOAD_DOCUMENT_NEW_AGENT2 = "/claim/uploadDocumentNew2";
+
+    public static final String CLAIM_DATA_AGENT_ALLOCATION = "/claim/agentAllocation";
+
 }

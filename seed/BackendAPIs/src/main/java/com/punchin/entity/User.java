@@ -62,5 +62,10 @@ public class User extends BasicEntity {
 
     private String state;
 
-    private String userState;
+    private String aadharCardUrl;
+
+    private String panCardUrl;
+    //address
+    //mobile number
+    //photo
 }

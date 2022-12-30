@@ -87,20 +87,23 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
+                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
@@ -122,13 +125,15 @@ public class VerifierServiceImpl implements VerifierService {
             claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+            claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
+            claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-            claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
+            claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             return map;
         } catch (Exception e) {

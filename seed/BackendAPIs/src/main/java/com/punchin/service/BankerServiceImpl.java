@@ -77,7 +77,7 @@ public class BankerServiceImpl implements BankerService {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
             String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), bankerId);
+                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getFirstName());
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 if (Objects.nonNull(claimsData)) {
                     claimsData = claimDraftDataRepository.saveAll(claimsData);
@@ -136,6 +136,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
@@ -147,6 +148,7 @@ public class BankerServiceImpl implements BankerService {
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.BANKER_DRAFT.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(GenericUtils.getLoggedInUser().getUserId(), pageable);
@@ -171,6 +173,8 @@ public class BankerServiceImpl implements BankerService {
             claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
             claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+            claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
+            claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
@@ -640,7 +644,9 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 claimDocuments.setIsActive(true);
             }
-            claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
+            if(claimsData.getClaimStatus().equals(ClaimStatus.CLAIM_INTIMATED)) {
+                claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
+            }
             claimsData.setSubmittedAt(System.currentTimeMillis());
             claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getId());
             claimsDataRepository.save(claimsData);

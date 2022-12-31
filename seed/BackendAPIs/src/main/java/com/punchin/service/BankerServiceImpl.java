@@ -77,7 +77,7 @@ public class BankerServiceImpl implements BankerService {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
             String bankerId = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getFirstName());
+                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 if (Objects.nonNull(claimsData)) {
                     claimsData = claimDraftDataRepository.saveAll(claimsData);

@@ -79,10 +79,10 @@ public class BankerServiceImpl implements BankerService {
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 List<ClaimDraftData> claimsDataList = new ArrayList<>();
                 for (ClaimDraftData claimDraftData : claimsData) {
-                    if (!claimDraftData.getBorrowerName().isEmpty() || !claimDraftData.getBorrowerAddress().isEmpty() || !claimDraftData.getBorrowerCity().isEmpty() ||
-                            !claimDraftData.getBorrowerPinCode().isEmpty() || !claimDraftData.getBorrowerState().isEmpty() || !claimDraftData.getBorrowerContactNumber().isEmpty() ||
-                            !claimDraftData.getLoanAccountNumber().isEmpty() || claimDraftData.getLoanDisbursalDate() != null || claimDraftData.getLoanAmount() != null ||
-                            !claimDraftData.getInsurerName().isEmpty() || claimDraftData.getPolicySumAssured() != null || !claimDraftData.getNomineeName().isEmpty() || !claimDraftData.getNomineeRelationShip().isEmpty()){
+                    if (!claimDraftData.getBorrowerName().isEmpty() && !claimDraftData.getBorrowerAddress().isEmpty() && !claimDraftData.getBorrowerCity().isEmpty() &&
+                            !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
+                            !claimDraftData.getLoanAccountNumber().isEmpty() && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
+                            !claimDraftData.getInsurerName().isEmpty() && claimDraftData.getPolicySumAssured() != null && !claimDraftData.getNomineeName().isEmpty() && !claimDraftData.getNomineeRelationShip().isEmpty()) {
                         boolean existingLoanNumber = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
                         if (!existingLoanNumber) {
                             claimsDataList.add(claimDraftData);
@@ -1159,7 +1159,7 @@ public class BankerServiceImpl implements BankerService {
         File file1 = new File(filePath + claimId);
         file1.mkdirs();
         log.info("Directory created");
-        try(FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);) {
+        try (FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);) {
             log.info("ready to download claim documents docUrl {}", docUrl);
             ByteArrayOutputStream byteArrayOutputStream = amazonS3FileManagers.downloadFile("agent/" + FilenameUtils.getName(docUrl));
             byteArrayOutputStream.writeTo(fos);

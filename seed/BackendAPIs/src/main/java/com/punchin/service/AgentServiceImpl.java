@@ -3,12 +3,10 @@ package com.punchin.service;
 import com.punchin.dto.*;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
+import com.punchin.entity.ClaimsRemarks;
 import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
-import com.punchin.repository.ClaimAllocatedRepository;
-import com.punchin.repository.ClaimDocumentsRepository;
-import com.punchin.repository.ClaimsDataRepository;
-import com.punchin.repository.DocumentUrlsRepository;
+import com.punchin.repository.*;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ObjectMapperUtils;
 import com.punchin.utility.constant.MessageCode;
@@ -28,26 +26,24 @@ import java.util.*;
 public class AgentServiceImpl implements AgentService {
     @Autowired
     private ModelMapperService mapperService;
-
     @Autowired
     private CommonUtilService commonService;
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
     @Autowired
     private ClaimAllocatedRepository claimAllocatedRepository;
-
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
-
     @Autowired
     private DocumentUrlsRepository documentUrlsRepository;
-
     @Autowired
     private AmazonS3FileManagers amazonS3FileManagers;
     @Autowired
     private AmazonClient amazonClient;
     @Autowired
     private CommonUtilService commonUtilService;
+    @Autowired
+    private ClaimsRemarksRepository remarksRepository;
 
     @Override
     public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit) {
@@ -60,7 +56,6 @@ public class AgentServiceImpl implements AgentService {
                 page1 = claimsDataRepository.findByAgentIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getId(), pageable);    //findAllByAgentAllocated(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.ACTION_PENDING);
-                statusList.add(ClaimStatus.AGENT_ALLOCATED);
                 statusList.add(ClaimStatus.CLAIM_INTIMATED);
                 statusList.add(ClaimStatus.CLAIM_SUBMITTED);
                 page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
@@ -178,10 +173,8 @@ public class AgentServiceImpl implements AgentService {
                 claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
                 claimsData.setIsMinor(documentDTO.isMinor());
             }
-            Map<String, List<MultipartFile>> isMinorDocs = new HashMap<>();
             Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
-            List<MultipartFile> multipartFiles = new ArrayList<>();
             for(String key : keys){
                 if(key.contains(":")){
                     String keyArray[] = key.split(":");
@@ -191,7 +184,13 @@ public class AgentServiceImpl implements AgentService {
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }
             }
-            claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
+            claimsData.setClaimStatus(ClaimStatus.IN_PROGRESS);
+            if(Objects.nonNull(documentDTO.getAgentRemark())) {
+                ClaimsRemarks claimsRemarks = new ClaimsRemarks();
+                claimsRemarks.setRemark(documentDTO.getAgentRemark());
+                remarksRepository.save(claimsRemarks);
+                claimsData.setAgentRemark(documentDTO.getAgentRemark());
+            }
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
             claimDataDTO.setClaimDocuments(claimDocuments);
             map.put("claimsData", claimDataDTO);
@@ -359,8 +358,6 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: forwardToVerifier claimId {}", claimId);
             ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
-            //claimsData.setAgentToVerifier(true);
-            //claimsData.setAgentToVerifierTime(System.currentTimeMillis());
             claimsDataRepository.save(claimsData);
             return MessageCode.success;
         } catch (Exception e) {

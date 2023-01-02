@@ -6,6 +6,7 @@ import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.service.AgentService;
+import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
@@ -154,8 +155,7 @@ public class AgentController {
     @Secured({"AGENT"})
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor,
-                                                  @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc) {
+    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor, @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc, @RequestParam(required = false) String agentRemark) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", id);
             if (!agentService.checkAccess(id)) {
@@ -165,10 +165,8 @@ public class AgentController {
             documentDTO.setClaimsData(agentService.getClaimsData(id));
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
-            if(Objects.isNull(isMinorDoc) || isMinorDoc.isEmpty()){
-                //return ResponseHandler.response(null, MessageCode.DOCUMENT_NOT_FOUND, false, HttpStatus.BAD_REQUEST);
-            }
             documentDTO.setIsMinorDoc(isMinorDoc);
+            documentDTO.setAgentRemark(agentRemark);
             Map<String, Object> result = agentService.uploadDocument(documentDTO);
             if (Boolean.parseBoolean(result.get("status").toString())) {
                 return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);

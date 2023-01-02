@@ -54,12 +54,13 @@ public class MISExportService {
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             }
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            String filePath = System.getProperty("user.dir") + "BackendAPIs/downloads/" + filename;
+            String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
             File file = new File(filePath);
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Sheet1");
@@ -226,9 +227,9 @@ public class MISExportService {
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
             }
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
-            String filePath = System.getProperty("user.dir") + "BackendAPIs/downloads/" + filename;
+            String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
             File file = new File(filePath);
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Sheet1");

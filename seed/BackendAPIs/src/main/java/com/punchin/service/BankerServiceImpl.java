@@ -42,8 +42,6 @@ import java.util.*;
 @Service
 @Transactional
 public class BankerServiceImpl implements BankerService {
-    @Value("${data.downloads.folder.url}")
-    String downloadFolderPath;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -1125,7 +1123,7 @@ public class BankerServiceImpl implements BankerService {
     @Override
     public String downloadAllDocuments(Long claimId) {
         try {
-            String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
+            String filePath = System.getProperty("user.dir") + "BackendAPIs/downloads/";
             log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);

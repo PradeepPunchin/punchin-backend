@@ -37,9 +37,6 @@ import java.util.*;
 @Slf4j
 @Service
 public class VerifierServiceImpl implements VerifierService {
-
-    @Value("${data.downloads.folder.url}")
-    String downloadFolderUrl;
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
     @Autowired
@@ -297,7 +294,7 @@ public class VerifierServiceImpl implements VerifierService {
     @Override
     public String downloadAllDocuments(Long claimId) {
         try {
-            String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
+            String filePath = System.getProperty("user.dir") + "BackendAPIs/downloads/";
             log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);

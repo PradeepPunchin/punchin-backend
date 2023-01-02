@@ -37,9 +37,6 @@ import java.util.*;
 @Slf4j
 @Service
 public class VerifierServiceImpl implements VerifierService {
-
-    @Value("${data.downloads.folder.url}")
-    String downloadFolderUrl;
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
     @Autowired
@@ -97,6 +94,7 @@ public class VerifierServiceImpl implements VerifierService {
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
@@ -133,6 +131,7 @@ public class VerifierServiceImpl implements VerifierService {
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
+            claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             return map;
@@ -253,7 +252,7 @@ public class VerifierServiceImpl implements VerifierService {
                     claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
                 } else {
                     if (!claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(claimsData.getId(), "agent", true, false)) {
-                        claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
+                        claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_LENDER);
                     }
                 }
             } else if (claimDocuments.getUploadSideBy().equalsIgnoreCase("banker")) {
@@ -313,7 +312,7 @@ public class VerifierServiceImpl implements VerifierService {
             new File(filePath + claimId).deleteOnExit();
             File file = new File(filePath + punchinClaimId + ".zip");
             String fileName = file.getName();
-            String version = amazonS3FileManagers.uploadFileToAmazonS3("verifier/", new File(filePath + punchinClaimId + ".zip"), fileName);
+            String version = amazonS3FileManagers.uploadFileToAmazonS3("zip/", new File(filePath + punchinClaimId + ".zip"), fileName);
             amazonS3FileManagers.cleanUp(file);
             return version;
         } catch (Exception e) {
@@ -323,18 +322,15 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
-        try {
+        File file1 = new File(filePath + claimId);
+        file1.mkdirs();
+        log.info("Directory created");
+        try(FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);) {
             log.info("ready to download claim documents docUrl {}", docUrl);
-            URL url = new URL(docUrl);
-            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-            File file1 = new File(filePath + claimId);
-            file1.mkdirs();
-            log.info("Directory created");
-            FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);
-            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            ByteArrayOutputStream byteArrayOutputStream = amazonS3FileManagers.downloadFile("agent/" + FilenameUtils.getName(docUrl));
+            byteArrayOutputStream.writeTo(fos);
             log.info("File downloaded");
-            fos.close();
-            rbc.close();
+            byteArrayOutputStream.close();
         } catch (Exception e) {
             log.error("ERROR WHILE DOWNLOADING FILE FROM URL e {}", e);
         }
@@ -607,6 +603,7 @@ public class VerifierServiceImpl implements VerifierService {
         }
         ClaimsData claimsData = optionalClaimsData.get();
         claimsData.setAgentId(agentId);
+        claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
         claimsDataRepository.save(claimsData);
         return MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS;
     }

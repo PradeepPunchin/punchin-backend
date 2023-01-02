@@ -31,10 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -45,8 +42,6 @@ import java.util.*;
 @Service
 @Transactional
 public class BankerServiceImpl implements BankerService {
-    @Value("${data.downloads.folder.url}")
-    String downloadFolderPath;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -153,6 +148,7 @@ public class BankerServiceImpl implements BankerService {
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
@@ -188,6 +184,7 @@ public class BankerServiceImpl implements BankerService {
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
+            claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
             claimsStatus.removeAll(claimsStatus);
@@ -945,7 +942,8 @@ public class BankerServiceImpl implements BankerService {
             }
         } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.SETTLED.toString());
-            statusList.add(ClaimStatus.SUBMITTED_TO_INSURER.toString());
+            statusList.add(ClaimStatus.SUBMITTED_TO_LENDER.toString());
+            statusList.add(ClaimStatus.SUBMITTED_TO_INSURER.name());
             if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId, pageable);
             } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
@@ -1142,7 +1140,7 @@ public class BankerServiceImpl implements BankerService {
             new File(filePath + claimId).deleteOnExit();
             File file = new File(filePath + punchinClaimId + ".zip");
             String fileName = file.getName();
-            String version = amazonS3FileManagers.uploadFileToAmazonS3("verifier/", new File(filePath + punchinClaimId + ".zip"), fileName);
+            String version = amazonS3FileManagers.uploadFileToAmazonS3("zip/", new File(filePath + punchinClaimId + ".zip"), fileName);
             amazonS3FileManagers.cleanUp(file);
             return version;
         } catch (Exception e) {
@@ -1152,18 +1150,15 @@ public class BankerServiceImpl implements BankerService {
     }
 
     private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
-        try {
+        File file1 = new File(filePath + claimId);
+        file1.mkdirs();
+        log.info("Directory created");
+        try(FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);) {
             log.info("ready to download claim documents docUrl {}", docUrl);
-            URL url = new URL(docUrl);
-            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-            File file1 = new File(filePath + claimId);
-            file1.mkdirs();
-            log.info("Directory created");
-            FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);
-            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            ByteArrayOutputStream byteArrayOutputStream = amazonS3FileManagers.downloadFile("agent/" + FilenameUtils.getName(docUrl));
+            byteArrayOutputStream.writeTo(fos);
             log.info("File downloaded");
-            fos.close();
-            rbc.close();
+            byteArrayOutputStream.close();
         } catch (Exception e) {
             log.error("ERROR WHILE DOWNLOADING FILE FROM URL e {}", e);
         }

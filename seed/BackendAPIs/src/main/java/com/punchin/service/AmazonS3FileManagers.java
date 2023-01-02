@@ -1,24 +1,27 @@
 package com.punchin.service;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.zip.GZIPOutputStream;
 
+@Slf4j
 @Service
 @Transactional
 public class AmazonS3FileManagers {
@@ -124,5 +127,33 @@ public class AmazonS3FileManagers {
         AmazonS3 s3 = new AmazonS3Client(creds, new ClientConfiguration().withSignerOverride(S_3_SIGNER_TYPE));
         s3.setEndpoint(AWS_END_POINT);
         return s3;
+    }
+
+
+    public ByteArrayOutputStream downloadFile(String keyName) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            AmazonS3 client = getAmazonConnection();
+            S3Object s3object = client.getObject(new GetObjectRequest(bucketName, keyName));
+
+            InputStream is = s3object.getObjectContent();
+
+            int len;
+            byte[] buffer = new byte[4096];
+            while ((len = is.read(buffer, 0, buffer.length)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+
+            return outputStream;
+        } catch (IOException ioException) {
+            log.error("IOException: " + ioException.getMessage());
+        } catch (AmazonServiceException serviceException) {
+            log.info("AmazonServiceException Message:    " + serviceException.getMessage());
+            throw serviceException;
+        } catch (AmazonClientException clientException) {
+            log.info("AmazonClientException Message: " + clientException.getMessage());
+            throw clientException;
+        }
+
+        return null;
     }
 }

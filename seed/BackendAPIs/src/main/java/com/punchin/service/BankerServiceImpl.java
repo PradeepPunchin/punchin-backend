@@ -1,7 +1,10 @@
 package com.punchin.service;
 
 import com.punchin.dto.*;
-import com.punchin.entity.*;
+import com.punchin.entity.ClaimDocuments;
+import com.punchin.entity.ClaimDraftData;
+import com.punchin.entity.ClaimsData;
+import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.*;
@@ -79,9 +82,16 @@ public class BankerServiceImpl implements BankerService {
             for (MultipartFile file : files) {
                 Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
-                if (Objects.nonNull(claimsData)) {
-                    claimsData = claimDraftDataRepository.saveAll(claimsData);
-                    map.put("data", claimsData);
+                List<ClaimDraftData> claimsDataList = new ArrayList<>();
+                for (ClaimDraftData claimDraftData : claimsData) {
+                    boolean existingLoanNumber = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
+                    if (!existingLoanNumber) {
+                        claimsDataList.add(claimDraftData);
+                    }
+                }
+                if (!claimsDataList.isEmpty()) {
+                    claimsDataList = claimDraftDataRepository.saveAll(claimsDataList);
+                    map.put("data", claimsDataList);
                     map.put("status", true);
                     map.put("message", MessageCode.success);
                     return map;
@@ -114,7 +124,7 @@ public class BankerServiceImpl implements BankerService {
                     } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                         page1 = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerId, pageable);
                     }
-                    if(page1.isEmpty()) {
+                    if (page1.isEmpty()) {
                         page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
                         pageDTO = commonService.convertPageToDTO(page1.getContent(), page1);
                         pageDTO.setMessage(MessageCode.CLAIM_NOT_FOUND);
@@ -255,10 +265,10 @@ public class BankerServiceImpl implements BankerService {
                 dto.setOutstandingLoanAmount(claimsData.getLoanOutstandingAmount());
                 dto.setBalanceClaimAmount(0d);
                 dto.setLoanAmountPaidByBorrower(0d);
-                if(Objects.nonNull(claimsData.getPolicySumAssured()) && Objects.nonNull(claimsData.getLoanOutstandingAmount())){
+                if (Objects.nonNull(claimsData.getPolicySumAssured()) && Objects.nonNull(claimsData.getLoanOutstandingAmount())) {
                     double outStandingLoan = claimsData.getPolicySumAssured() - claimsData.getLoanOutstandingAmount();
                     dto.setLoanAmountPaidByBorrower(claimsData.getLoanAmount() - claimsData.getLoanOutstandingAmount());
-                    if(outStandingLoan > 0 ) {
+                    if (outStandingLoan > 0) {
                         dto.setBalanceClaimAmount(outStandingLoan);
                     }
                 }
@@ -404,8 +414,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 borrowPinCode = String.valueOf(cell.getStringCellValue());
                                 p.setBorrowerPinCode(borrowPinCode);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setBorrowerPinCode(borrowPinCode);
                             }
@@ -420,8 +429,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 borrowContactNumber = String.valueOf(cell.getStringCellValue());
                                 p.setBorrowerContactNumber(borrowContactNumber);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setBorrowerContactNumber(borrowContactNumber);
                             }
@@ -436,8 +444,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 borrowerAlternateNo = String.valueOf(cell.getStringCellValue());
                                 p.setBorrowerAlternateContactNumber(borrowerAlternateNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setBorrowerAlternateContactNumber(borrowerAlternateNo);
                             }
@@ -452,8 +459,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 loanAccountNo = String.valueOf(cell.getStringCellValue());
                                 p.setLoanAccountNumber(loanAccountNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setLoanAccountNumber(loanAccountNo);
                             }
@@ -509,8 +515,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 loanAccMangName = String.valueOf(cell.getStringCellValue());
                                 p.setLoanAccountManagerName(loanAccMangName);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setLoanAccountManagerName(loanAccMangName);
                             }
@@ -521,8 +526,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 accMngContactNo = String.valueOf(cell.getStringCellValue());
                                 p.setAccountManagerContactNumber(accMngContactNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setAccountManagerContactNumber(accMngContactNo);
                             }
@@ -537,8 +541,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 policyNo = String.valueOf(cell.getStringCellValue());
                                 p.setPolicyNumber(policyNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setPolicyNumber(policyNo);
                             }
@@ -549,8 +552,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 masterPolicyNo = String.valueOf(cell.getStringCellValue());
                                 p.setMasterPolNumber(masterPolicyNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setMasterPolNumber(masterPolicyNo);
                             }
@@ -594,8 +596,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 nomineeContactNumber = String.valueOf(cell.getStringCellValue());
                                 p.setNomineeContactNumber(nomineeContactNumber);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setNomineeContactNumber(nomineeContactNumber);
                             }
@@ -644,7 +645,7 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 claimDocuments.setIsActive(true);
             }
-            if(claimsData.getClaimStatus().equals(ClaimStatus.CLAIM_INTIMATED)) {
+            if (claimsData.getClaimStatus().equals(ClaimStatus.CLAIM_INTIMATED)) {
                 claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
             }
             claimsData.setSubmittedAt(System.currentTimeMillis());
@@ -1101,7 +1102,7 @@ public class BankerServiceImpl implements BankerService {
             List<ClaimDocuments> claimDocumentsList = new ArrayList<>();
             claimsData.setClaimStatus(ClaimStatus.NEW_REQUIREMENT);
             claimsDataRepository.save(claimsData);
-            for(AgentDocType docType : docTypes){
+            for (AgentDocType docType : docTypes) {
                 ClaimDocuments documents = new ClaimDocuments();
                 documents.setIsActive(false);
                 documents.setIsDeleted(false);

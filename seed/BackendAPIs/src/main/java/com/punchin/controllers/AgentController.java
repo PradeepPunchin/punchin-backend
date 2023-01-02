@@ -109,7 +109,7 @@ public class AgentController {
     @Secured({"AGENT"})
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
     @PostMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
-    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {
+    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile[] multipartFile) {
         try {
             log.info("BankerController :: discrepancyDocumentUpload claimId {}, multipartFile {}, docType {}", id, multipartFile, docType);
             if (!agentService.checkAccess(id)) {
@@ -118,7 +118,7 @@ public class AgentController {
             if (!agentService.checkDocumentIsInDiscrepancy(id, docType) && !docType.equals(AgentDocType.OTHER.name())) {
                 return ResponseHandler.response(null, MessageCode.documentInUnderVerification, false, HttpStatus.BAD_REQUEST);
             }
-            Map<String, Object> result = agentService.discrepancyDocumentUpload(id, new MultipartFile[]{multipartFile}, docType);
+            Map<String, Object> result = agentService.discrepancyDocumentUpload(id, multipartFile, docType);
             if (result.get("message").equals(MessageCode.success)) {
                 return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
             }

@@ -79,10 +79,16 @@ public class BankerServiceImpl implements BankerService {
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 List<ClaimDraftData> claimsDataList = new ArrayList<>();
                 for (ClaimDraftData claimDraftData : claimsData) {
-                    boolean existingLoanNumber = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
-                    if (!existingLoanNumber) {
-                        claimsDataList.add(claimDraftData);
+                    if (!claimDraftData.getBorrowerName().isEmpty() && !claimDraftData.getBorrowerAddress().isEmpty() && !claimDraftData.getBorrowerCity().isEmpty() &&
+                            !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
+                            !claimDraftData.getLoanAccountNumber().isEmpty() && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
+                            !claimDraftData.getInsurerName().isEmpty() && claimDraftData.getPolicySumAssured() != null && !claimDraftData.getNomineeName().isEmpty() && !claimDraftData.getNomineeRelationShip().isEmpty()){
+                        boolean existingLoanNumber = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
+                        if (!existingLoanNumber) {
+                            claimsDataList.add(claimDraftData);
+                        }
                     }
+
                 }
                 if (!claimsDataList.isEmpty()) {
                     claimsDataList = claimDraftDataRepository.saveAll(claimsDataList);

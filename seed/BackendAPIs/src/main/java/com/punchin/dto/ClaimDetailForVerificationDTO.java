@@ -15,6 +15,11 @@ public class ClaimDetailForVerificationDTO {
     private String nomineeRelationShip;
     private List<ClaimDocumentsDTO> agentClaimDocumentsDTOs;
     private List<ClaimDocumentsDTO> bankerClaimDocumentsDTOs;
+<<<<<<< HEAD
     private List<ClaimDocumentsDTO> newDocumentRequestDTOs;
+=======
+    private String claimStatus;
+
+>>>>>>> 1733218aaa058d78fa710e4b737c03cb303025ec
 
 }

@@ -1,10 +1,7 @@
 package com.punchin.service;
 
 import com.punchin.dto.*;
-import com.punchin.entity.ClaimDocuments;
-import com.punchin.entity.ClaimDraftData;
-import com.punchin.entity.ClaimsData;
-import com.punchin.entity.DocumentUrls;
+import com.punchin.entity.*;
 import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.*;
@@ -19,7 +16,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,9 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.io.*;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.time.ZoneId;
 import java.util.*;
 

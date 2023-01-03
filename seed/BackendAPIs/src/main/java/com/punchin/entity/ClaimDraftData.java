@@ -31,6 +31,7 @@ public class ClaimDraftData extends BasicEntity {
     @Column(columnDefinition = "Text")
     private String borrowerAddress;
     private String loanType;
+    private String category;
     private Date loanDisbursalDate;
     private Double loanOutstandingAmount;
     private Double loanAmount;

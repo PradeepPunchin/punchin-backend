@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class ClaimHistoryDTO {
+    private Long createdAt;
     private Long claimId;
     private ClaimStatus claimStatus;
     private String description;

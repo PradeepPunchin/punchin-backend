@@ -616,6 +616,7 @@ public class AgentServiceImpl implements AgentService {
                 dtos.add(dto);
             }
             map.put("claimDocuments", dtos);
+            map.put("claimCategory", "Housing");
             map.put("claimData", claimsData.get(0));
             map.put("message", MessageCode.success);
             return map;

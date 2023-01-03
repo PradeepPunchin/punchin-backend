@@ -252,7 +252,7 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                 claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
                 claimDocumentsDTO.setReason(claimDocuments.getReason());
-                rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                rejectedDocList.add(claimDocuments.getAgentDocType().toString());
                 claimDocumentsDTOS.add(claimDocumentsDTO);
             }
 
@@ -383,8 +383,8 @@ public class AgentServiceImpl implements AgentService {
             ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
             claimsData.setIsForwardToVerifier(true);
-            claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.UNDER_VERIFICATION, "Under Verification"));
             claimsDataRepository.save(claimsData);
+            claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.UNDER_VERIFICATION, "Under Verification"));
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: forwardToVerifier e{}", e);
@@ -521,6 +521,9 @@ public class AgentServiceImpl implements AgentService {
     public Map<String, Object> getClaimHistory(String id) {
         try {
             Map<String, Object> map = new HashMap<>();
+            map.put("claimHistoryDTOS", null);
+            map.put("claimStatus", null);
+            map.put("startedAt", null);
             log.info("AgentServiceImpl :: getClaimHistory claimId - {}", id);
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
             ClaimsData claimsData = claimsDataRepository.findIdByPunchinId(id);
@@ -534,6 +537,9 @@ public class AgentServiceImpl implements AgentService {
                     }
                     oldClaimHistory = claimHistoryDTO;
                 }
+                map.put("claimHistoryDTOS", claimHistoryDTOS);
+                map.put("claimStatus", claimsData.getClaimStatus());
+                map.put("startedAt", claimsData.getCreatedAt());
             }
             map.put("claimHistoryDTOS", claimHistoryDTOS);
             map.put("claimStatus", claimsData.getClaimStatus());

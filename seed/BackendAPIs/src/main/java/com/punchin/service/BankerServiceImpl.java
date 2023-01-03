@@ -470,7 +470,7 @@ public class BankerServiceImpl implements BankerService {
                             break;
                         case 12:
                             cell.setCellType(CellType.STRING);
-                            p.setCategory(cell.getStringCellValue());
+                            p.setCategory(cell.getStringCellValue().toLowerCase());
                             break;
                         case 13:
                             if (cell.getCellType().equals(CellType.NUMERIC)) {
@@ -1121,6 +1121,7 @@ public class BankerServiceImpl implements BankerService {
                 documents.setClaimsData(claimsData);
                 claimDocumentsList.add(documents);
             }
+            claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.NEW_REQUIREMENT, "New Requirement"));
             claimDocumentsRepository.saveAll(claimDocumentsList);
             return true;
         } catch (Exception e) {

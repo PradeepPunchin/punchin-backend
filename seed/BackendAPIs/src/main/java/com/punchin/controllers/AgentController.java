@@ -96,7 +96,7 @@ public class AgentController {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Object> claimDocumentsMAP = agentService.getClaimDocuments(id);
-            if (claimDocumentsMAP.get("message").equals(MessageCode.success)) {
+            if (MessageCode.success.equals(claimDocumentsMAP.get("message"))) {
                 return ResponseHandler.response(claimDocumentsMAP, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, claimDocumentsMAP.get("message").toString(), false, HttpStatus.BAD_REQUEST);

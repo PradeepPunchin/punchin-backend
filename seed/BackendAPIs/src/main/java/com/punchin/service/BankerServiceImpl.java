@@ -713,17 +713,34 @@ public class BankerServiceImpl implements BankerService {
         }
     }
 
-    public boolean save(MultipartFile file) {
+    public List<ClaimDraftData> save(MultipartFile file) {
         try {
             List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream());
+
+            List<ClaimDraftData> claimsDraftDataList = new ArrayList<>();
+
+            for (ClaimDraftData claimDraftData : claimsDataList) {
+                if (!claimDraftData.getBorrowerName().isEmpty() && !claimDraftData.getBorrowerAddress().isEmpty() && !claimDraftData.getBorrowerCity().isEmpty() &&
+                        !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
+                        !claimDraftData.getLoanAccountNumber().isEmpty() && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
+                        !claimDraftData.getInsurerName().isEmpty() && claimDraftData.getPolicySumAssured() != null && !claimDraftData.getNomineeName().isEmpty() && !claimDraftData.getNomineeRelationShip().isEmpty()) {
+                    boolean existingLoanNumber = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
+                    if (!existingLoanNumber) {
+                        claimsDraftDataList.add(claimDraftData);
+                    }
+                    log.info("Loan number already exists :: {}",claimDraftData.getId());
+                }
+                log.info("Mandatory fields are missing :: {}",claimDraftData.getId());
+            }
+
+
             if (!claimsDataList.isEmpty()) {
-                claimDraftDataRepository.saveAll(claimsDataList);
-                return true;
+                return claimDraftDataRepository.saveAll(claimsDraftDataList);
             }
         } catch (IOException e) {
             log.error("fail to store csv data: " + e.getMessage());
         }
-        return false;
+        return null;
     }
 
     @Override
@@ -734,10 +751,10 @@ public class BankerServiceImpl implements BankerService {
             String message = "";
             if (CSVHelper.hasCSVFormat(file)) {
                 try {
-                    boolean save = save(file);
-                    if (save) {
+                    List<ClaimDraftData> csvFile = save(file);
+                    if (!csvFile.isEmpty()) {
                         message = "Uploaded the file successfully: " + file.getOriginalFilename();
-                        return ResponseHandler.response(message, MessageCode.success, true, HttpStatus.CREATED);
+                        return ResponseHandler.response(csvFile, MessageCode.success, true, HttpStatus.CREATED);
                     }
                     return ResponseHandler.response(message, MessageCode.success, true, HttpStatus.BAD_REQUEST);
 

@@ -382,6 +382,7 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: forwardToVerifier claimId {}", claimId);
             ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
             claimsData.setClaimStatus(ClaimStatus.UNDER_VERIFICATION);
+            claimsData.setIsForwardToVerifier(true);
             claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.UNDER_VERIFICATION, "Under Verification"));
             claimsDataRepository.save(claimsData);
             return MessageCode.success;
@@ -433,10 +434,10 @@ public class AgentServiceImpl implements AgentService {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId3(searchedKeyword, pageable, agentId);
             }
         } else if (claimDataFilter.ACTION_PENDING.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.ACTION_PENDING.toString());
-            statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
-            statusList.add(ClaimStatus.CLAIM_INTIMATED.toString());
-            statusList.add(ClaimStatus.CLAIM_SUBMITTED.toString());
+            statusList.add(ClaimStatus.ACTION_PENDING.name());
+            statusList.add(ClaimStatus.CLAIM_INTIMATED.name());
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED.name());
+            statusList.add(ClaimStatus.AGENT_ALLOCATED.name());
             if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
             } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
@@ -445,7 +446,7 @@ public class AgentServiceImpl implements AgentService {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
             }
         } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.IN_PROGRESS.toString());
+            statusList.add(ClaimStatus.IN_PROGRESS.name());
             if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
             } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
@@ -454,7 +455,7 @@ public class AgentServiceImpl implements AgentService {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
             }
         } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
+            statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.name());
             if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
             } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
@@ -463,7 +464,8 @@ public class AgentServiceImpl implements AgentService {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataBySearchName(searchedKeyword, pageable, statusList, agentId);
             }
         } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
-            statusList.add(ClaimStatus.UNDER_VERIFICATION.toString());
+            statusList.add(ClaimStatus.UNDER_VERIFICATION.name());
+            statusList.add(ClaimStatus.NEW_REQUIREMENT.name());
             if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findClaimSearchedDataByClaimDataId(searchedKeyword, pageable, statusList, agentId);
             } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
@@ -556,7 +558,7 @@ public class AgentServiceImpl implements AgentService {
         Map<String, Object> map = new HashMap<>();
         try {
             String category = "";
-            log.info("Verifier Controller :: convertInDocumentStatusDTO page {}, limit {}", page);
+            log.info("AgentServiceImpl :: convertInDocumentStatusDTO page {}, limit {}", page);
             List<ClaimsData> claimsData = new ArrayList<>();
             claimsData.add(page);
             List<VerifierClaimDataResponseDTO> dtos = new ArrayList<>();
@@ -656,7 +658,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("message", MessageCode.success);
             return map;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimBankerDocuments e {}", e);
+            log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimBankerDocuments e {}", e);
             map.put("claimDocuments", null);
             map.put("rejectedDocList", null);
             map.put("message", e.getMessage());

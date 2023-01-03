@@ -161,7 +161,7 @@ public class AgentController {
     @Secured({"AGENT"})
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor, @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc, @RequestParam(required = false) String agentRemark) {
+    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false) CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor, @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc, @RequestParam(required = false) String agentRemark) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", id);
             if (!agentService.checkAccess(id)) {

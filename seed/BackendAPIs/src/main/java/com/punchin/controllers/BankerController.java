@@ -386,6 +386,9 @@ public class BankerController {
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
+            if(claimsData.getBankerId() < 1){
+                return ResponseHandler.response(null, MessageCode.AGENT_NOT_ALLOCATED, false, HttpStatus.FORBIDDEN);
+            }
             boolean claimDocumentsMAP = bankerService.requestForAdditionalDocument(claimsData, additionalDocumentRequestDTO.getDocTypes(), additionalDocumentRequestDTO.getRemark());
             if (claimDocumentsMAP) {
                 return ResponseHandler.response(claimDocumentsMAP, MessageCode.success, true, HttpStatus.OK);

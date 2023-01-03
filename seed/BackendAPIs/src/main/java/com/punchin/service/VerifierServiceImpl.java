@@ -357,7 +357,7 @@ public class VerifierServiceImpl implements VerifierService {
             new File(filePath + claimId).deleteOnExit();
             File file = new File(filePath + punchinClaimId + ".zip");
             String fileName = file.getName();
-            String version = amazonS3FileManagers.uploadFileToAmazonS3("zip/", new File(filePath + punchinClaimId + ".zip"), fileName);
+            String version = amazonS3FileManagers.uploadFileToAmazonS3("agent/", new File(filePath + punchinClaimId + ".zip"), fileName);
             amazonS3FileManagers.cleanUp(file);
             return version;
         } catch (Exception e) {

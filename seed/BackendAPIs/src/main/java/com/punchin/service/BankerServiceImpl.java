@@ -1151,7 +1151,7 @@ public class BankerServiceImpl implements BankerService {
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
             log.info("BankerServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "banker", true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                 for (DocumentUrls documentUrls : documentUrlsList) {
@@ -1164,7 +1164,7 @@ public class BankerServiceImpl implements BankerService {
             new File(filePath + claimId).deleteOnExit();
             File file = new File(filePath + punchinClaimId + ".zip");
             String fileName = file.getName();
-            String version = amazonS3FileManagers.uploadFileToAmazonS3("zip/", new File(filePath + punchinClaimId + ".zip"), fileName);
+            String version = amazonS3FileManagers.uploadFileToAmazonS3("banker/", new File(filePath + punchinClaimId + ".zip"), fileName);
             amazonS3FileManagers.cleanUp(file);
             return version;
         } catch (Exception e) {

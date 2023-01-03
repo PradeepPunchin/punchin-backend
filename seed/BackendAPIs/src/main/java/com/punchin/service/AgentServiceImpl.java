@@ -57,6 +57,7 @@ public class AgentServiceImpl implements AgentService {
                 statusList.add(ClaimStatus.ACTION_PENDING);
                 statusList.add(ClaimStatus.CLAIM_INTIMATED);
                 statusList.add(ClaimStatus.CLAIM_SUBMITTED);
+                statusList.add(ClaimStatus.AGENT_ALLOCATED);
                 page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.IN_PROGRESS);
@@ -110,6 +111,7 @@ public class AgentServiceImpl implements AgentService {
             statusList.add(ClaimStatus.ACTION_PENDING);
             statusList.add(ClaimStatus.CLAIM_SUBMITTED);
             statusList.add(ClaimStatus.CLAIM_INTIMATED);
+            statusList.add(ClaimStatus.AGENT_ALLOCATED);
             map.put(ClaimStatus.ACTION_PENDING.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.UNDER_VERIFICATION);

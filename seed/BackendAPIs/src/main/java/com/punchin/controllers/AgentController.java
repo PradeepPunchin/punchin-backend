@@ -120,7 +120,7 @@ public class AgentController {
             }
             Map<String, Object> result = agentService.discrepancyDocumentUpload(id, multipartFile, docType, isDiscrepancy);
             if (result.get("message").equals(MessageCode.success)) {
-                if (!agentService.checkDocumentUploaded(id)) {
+                if (!agentService.checkDocumentUploaded(id, isDiscrepancy)) {
                     String result2 = agentService.forwardToVerifier(id);
                     if (result2.equals(MessageCode.success)) {
                         return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);

@@ -259,12 +259,14 @@ public class AgentServiceImpl implements AgentService {
             rejectedDocList.add(AgentDocType.OTHER.name());
             map.put("claimDocuments", claimDocumentsDTOS);
             map.put("rejectedDocList", rejectedDocList);
+            map.put("claimStatus", claimsDataRepository.findById(id).get().getClaimStatus());
             map.put("message", MessageCode.success);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimDocuments e {}", e);
             map.put("claimDocuments", null);
             map.put("rejectedDocList", null);
+            map.put("claimStatus", null);
             map.put("message", e.getMessage());
             return map;
         }
@@ -369,6 +371,21 @@ public class AgentServiceImpl implements AgentService {
         try {
             log.info("AgentServiceImpl :: checkDocumentUploaded");
             return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsVerifiedAndIsApprovedAndIsActive(claimId, "agent", true, false, true);
+            //return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsVerified(claimId, "agent", false);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentServiceImpl :: checkDocumentUploaded e{}", e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean checkDocumentUploaded(Long claimId, boolean isDiscrepancy) {
+        try {
+            log.info("AgentServiceImpl :: checkDocumentUploaded");
+            if(isDiscrepancy){
+                return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsVerifiedAndIsApprovedAndIsActive(claimId, "agent", true, false, true);
+            }
+            return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsVerifiedAndIsApprovedAndIsActiveAndIsDeleted(claimId, "New Requirement", true, false, false, false);
             //return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsVerified(claimId, "agent", false);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: checkDocumentUploaded e{}", e);
@@ -526,7 +543,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("startedAt", null);
             log.info("AgentServiceImpl :: getClaimHistory claimId - {}", id);
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
-            ClaimsData claimsData = claimsDataRepository.findIdByPunchinId(id);
+            ClaimsData claimsData = claimsDataRepository.findIdByPunchinId(id.toLowerCase().trim());
             if(Objects.nonNull(claimsData)) {
                 List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());
                 ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();

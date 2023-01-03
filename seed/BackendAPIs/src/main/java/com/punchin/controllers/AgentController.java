@@ -115,10 +115,10 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            if (!agentService.checkDocumentIsInDiscrepancy(id, docType) && !docType.equals(AgentDocType.OTHER) && isDiscrepancy) {
+            if (!agentService.checkDocumentIsInDiscrepancy(id, docType, isDiscrepancy) && !docType.equals(AgentDocType.OTHER)) {
                 return ResponseHandler.response(null, MessageCode.documentInUnderVerification, false, HttpStatus.BAD_REQUEST);
             }
-            Map<String, Object> result = agentService.discrepancyDocumentUpload(id, multipartFile, docType);
+            Map<String, Object> result = agentService.discrepancyDocumentUpload(id, multipartFile, docType, isDiscrepancy);
             if (result.get("message").equals(MessageCode.success)) {
                 if (!agentService.checkDocumentUploaded(id)) {
                     String result2 = agentService.forwardToVerifier(id);

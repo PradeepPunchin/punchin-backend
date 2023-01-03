@@ -36,6 +36,7 @@ public class ClaimsData extends BasicEntity {
     private String borrowerAddress;
     private String lenderName;
     private String loanType;
+    private String category;
     private Date loanDisbursalDate;
     private Double loanOutstandingAmount;
     private Double loanAmount;

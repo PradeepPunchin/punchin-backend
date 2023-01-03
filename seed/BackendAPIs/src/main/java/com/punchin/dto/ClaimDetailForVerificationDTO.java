@@ -15,6 +15,6 @@ public class ClaimDetailForVerificationDTO {
     private String nomineeRelationShip;
     private List<ClaimDocumentsDTO> agentClaimDocumentsDTOs;
     private List<ClaimDocumentsDTO> bankerClaimDocumentsDTOs;
-
+    private List<ClaimDocumentsDTO> newDocumentRequestDTOs;
 
 }

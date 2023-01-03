@@ -70,4 +70,8 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id=:id AND upload_side_by=:agent AND is_active=:b AND agent_doc_type=:docType")
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(Long id, String agent, boolean b, String docType);
+
+    ClaimDocuments findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(Long claimId, AgentDocType docType, String newRequirement);
+
+    List<ClaimDocuments> findByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(Long claimId, AgentDocType docType, String newRequirement);
 }

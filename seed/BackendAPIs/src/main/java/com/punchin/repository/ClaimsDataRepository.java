@@ -162,6 +162,6 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = "select exists (select * from  claims_data cd where cd.loan_account_number =:loanAccountNumber)")
     boolean findExistingLoanNumber(@Param("loanAccountNumber") String loanAccountNumber);
 
-    @Query(nativeQuery = true, value = "SELECT id FROM claims_data WHERE punchin_claim_id=:id")
-    Long findIdByPunchinId(String id);
+    @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE punchin_claim_id=:id")
+    ClaimsData findIdByPunchinId(String id);
 }

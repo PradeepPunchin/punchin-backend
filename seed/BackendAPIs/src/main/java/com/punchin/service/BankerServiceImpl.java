@@ -1156,18 +1156,30 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public List<ClaimHistoryDTO> getClaimHistory(Long id) {
+    public Map<String, Object> getClaimHistory(Long id) {
         try {
+            Map<String, Object> map = new HashMap<>();
             log.info("BankerServiceImpl :: getClaimHistory claimId - {}", id);
-            List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(id);
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
-            for(ClaimHistory claimHistory : claimHistories){
-                claimHistoryDTOS.add(modelMapper.map(claimHistory, ClaimHistoryDTO.class));
+            ClaimsData claimsData = claimsDataRepository.findById(id).get();
+            if(Objects.nonNull(claimsData)) {
+                List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());
+                ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
+                for (ClaimHistory claimHistory : claimHistories) {
+                    ClaimHistoryDTO claimHistoryDTO = modelMapper.map(claimHistory, ClaimHistoryDTO.class);
+                    if (Objects.nonNull(oldClaimHistory) && !claimHistoryDTO.getClaimStatus().equals(oldClaimHistory.getClaimStatus())) {
+                        claimHistoryDTOS.add(claimHistoryDTO);
+                    }
+                    oldClaimHistory = claimHistoryDTO;
+                }
             }
-            return claimHistoryDTOS;
+            map.put("claimHistoryDTOS", claimHistoryDTOS);
+            map.put("claimStatus", claimsData.getClaimStatus());
+            map.put("startedAt", claimsData.getCreatedAt());
+            return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimHistory e - {}", e);
-            return Collections.EMPTY_LIST;
+            return Collections.EMPTY_MAP;
         }
     }
 

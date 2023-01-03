@@ -64,5 +64,5 @@ public interface BankerService {
 
     String downloadAllDocuments(Long id);
 
-    List<ClaimHistoryDTO> getClaimHistory(Long id);
+    Map<String, Object> getClaimHistory(Long id);
 }

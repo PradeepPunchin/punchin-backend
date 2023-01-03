@@ -186,7 +186,7 @@ public class AgentServiceImpl implements AgentService {
                 }
             }
             claimsData.setClaimStatus(ClaimStatus.IN_PROGRESS);
-            claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.IN_PROGRESS, "In Progress"));
+            //claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.IN_PROGRESS, "In Progress"));
             if(Objects.nonNull(documentDTO.getAgentRemark())) {
                 ClaimsRemarks claimsRemarks = new ClaimsRemarks();
                 claimsRemarks.setRemark(documentDTO.getAgentRemark());
@@ -516,13 +516,14 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public List<ClaimHistoryDTO> getClaimHistory(String id) {
+    public Map<String, Object> getClaimHistory(String id) {
         try {
+            Map<String, Object> map = new HashMap<>();
             log.info("AgentServiceImpl :: getClaimHistory claimId - {}", id);
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
-            Long claimId = claimsDataRepository.findIdByPunchinId(id);
-            if(Objects.nonNull(claimId)) {
-                List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimId);
+            ClaimsData claimsData = claimsDataRepository.findIdByPunchinId(id);
+            if(Objects.nonNull(claimsData)) {
+                List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());
                 ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
                 for (ClaimHistory claimHistory : claimHistories) {
                     ClaimHistoryDTO claimHistoryDTO = mapperService.map(claimHistory, ClaimHistoryDTO.class);
@@ -532,10 +533,13 @@ public class AgentServiceImpl implements AgentService {
                     oldClaimHistory = claimHistoryDTO;
                 }
             }
-            return claimHistoryDTOS;
+            map.put("claimHistoryDTOS", claimHistoryDTOS);
+            map.put("claimStatus", claimsData.getClaimStatus());
+            map.put("startedAt", claimsData.getCreatedAt());
+            return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimHistory e - {}", e);
-            return Collections.EMPTY_LIST;
+            return Collections.EMPTY_MAP;
         }
     }
 

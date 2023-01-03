@@ -526,7 +526,7 @@ public class AgentServiceImpl implements AgentService {
                 ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
                 for (ClaimHistory claimHistory : claimHistories) {
                     ClaimHistoryDTO claimHistoryDTO = mapperService.map(claimHistory, ClaimHistoryDTO.class);
-                    if (Objects.nonNull(oldClaimHistory) && !oldClaimHistory.getClaimStatus().equals(claimHistoryDTO.getClaimStatus())) {
+                    if (Objects.nonNull(oldClaimHistory) && !claimHistoryDTO.getClaimStatus().equals(oldClaimHistory.getClaimStatus())) {
                         claimHistoryDTOS.add(claimHistoryDTO);
                     }
                     oldClaimHistory = claimHistoryDTO;

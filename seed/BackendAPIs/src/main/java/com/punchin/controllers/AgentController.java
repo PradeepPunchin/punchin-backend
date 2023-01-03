@@ -109,17 +109,23 @@ public class AgentController {
     @Secured({"AGENT"})
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
     @PostMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
-    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile[] multipartFile) {
+    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable AgentDocType docType, @RequestBody MultipartFile[] multipartFile, @RequestParam(defaultValue = "true") boolean isDiscrepancy) {
         try {
             log.info("BankerController :: discrepancyDocumentUpload claimId {}, multipartFile {}, docType {}", id, multipartFile, docType);
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            if (!agentService.checkDocumentIsInDiscrepancy(id, docType) && !docType.equals(AgentDocType.OTHER.name())) {
+            if (!agentService.checkDocumentIsInDiscrepancy(id, docType) && !docType.equals(AgentDocType.OTHER) && isDiscrepancy) {
                 return ResponseHandler.response(null, MessageCode.documentInUnderVerification, false, HttpStatus.BAD_REQUEST);
             }
             Map<String, Object> result = agentService.discrepancyDocumentUpload(id, multipartFile, docType);
             if (result.get("message").equals(MessageCode.success)) {
+                if (!agentService.checkDocumentUploaded(id)) {
+                    String result2 = agentService.forwardToVerifier(id);
+                    if (result2.equals(MessageCode.success)) {
+                        return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
+                    }
+                }
                 return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
@@ -138,7 +144,7 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            if (!agentService.checkDocumentUploaded(id)) {
+            if (agentService.checkDocumentUploaded(id)) {
                 return ResponseHandler.response(null, MessageCode.documentNotUploaded, true, HttpStatus.OK);
             }
             String result = agentService.forwardToVerifier(id);
@@ -239,4 +245,19 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
+    @ApiOperation(value = "Claim history", notes = "This can be used to get Claim History")
+    @GetMapping(value = UrlMapping.GET_CLAIM_HISTORY)
+    public ResponseEntity<Object> getClaimHistory(@PathVariable Long id) {
+        try {
+            log.info("AgentController :: getClaimHistory claimId - {}", id);
+            if (!agentService.checkAccess(id)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            return ResponseHandler.response(agentService.getClaimHistory(id), MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: getClaimHistory e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

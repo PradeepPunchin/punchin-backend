@@ -1,6 +1,7 @@
 package com.punchin.service;
 
 import com.punchin.dto.BankerClaimDocumentationDTO;
+import com.punchin.dto.ClaimHistoryDTO;
 import com.punchin.dto.PageDTO;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
@@ -59,4 +60,6 @@ public interface BankerService {
     boolean requestForAdditionalDocument(ClaimsData claimsData, List<AgentDocType> docTypes, String remark);
 
     String downloadAllDocuments(Long id);
+
+    List<ClaimHistoryDTO> getClaimHistory(Long id);
 }

@@ -182,6 +182,7 @@ public class VerifierServiceImpl implements VerifierService {
             claimDetailForVerificationDTO.setNomineeName(claimsData.getNomineeName());
             claimDetailForVerificationDTO.setNomineeAddress(claimsData.getNomineeAddress());
             claimDetailForVerificationDTO.setNomineeRelationShip(claimsData.getNomineeRelationShip());
+            claimDetailForVerificationDTO.setClaimStatus(claimsData.getClaimStatus().name());
 
             //Agent
             List<ClaimDocumentsDTO> agentDocumentsListDTOs = new ArrayList<>();

@@ -85,7 +85,7 @@ public class BankerServiceImpl implements BankerService {
                     }
 
                 }
-                if (!claimsDataList.isEmpty()) {
+                if (!claimsData.isEmpty()) {
                     claimsDataList = claimDraftDataRepository.saveAll(claimsDataList);
                     map.put("data", claimsDataList);
                     map.put("status", true);

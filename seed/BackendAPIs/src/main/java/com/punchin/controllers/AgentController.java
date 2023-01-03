@@ -248,12 +248,12 @@ public class AgentController {
     @Secured({"AGENT"})
     @ApiOperation(value = "Claim history", notes = "This can be used to get Claim History")
     @GetMapping(value = UrlMapping.GET_CLAIM_HISTORY)
-    public ResponseEntity<Object> getClaimHistory(@PathVariable Long id) {
+    public ResponseEntity<Object> getClaimHistory(@PathVariable String id) {
         try {
             log.info("AgentController :: getClaimHistory claimId - {}", id);
-            if (!agentService.checkAccess(id)) {
+            /*if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
-            }
+            }*/
             return ResponseHandler.response(agentService.getClaimHistory(id), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentController :: getClaimHistory e - {}", e);

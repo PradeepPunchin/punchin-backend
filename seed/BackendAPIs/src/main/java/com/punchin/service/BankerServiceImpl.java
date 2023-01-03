@@ -1,10 +1,7 @@
 package com.punchin.service;
 
 import com.punchin.dto.*;
-import com.punchin.entity.ClaimDocuments;
-import com.punchin.entity.ClaimDraftData;
-import com.punchin.entity.ClaimsData;
-import com.punchin.entity.DocumentUrls;
+import com.punchin.entity.*;
 import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.*;
@@ -19,7 +16,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,9 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.io.*;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -66,6 +59,8 @@ public class BankerServiceImpl implements BankerService {
     private EntityManager entityManager;
     @Autowired
     private CommonUtilService commonUtilService;
+    @Autowired
+    private ClaimHistoryRepository claimHistoryRepository;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -219,13 +214,14 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());
-                /*User agent = userRepository.findByAgentAndState(RoleEnum.AGENT.name(), claimsData.getBorrowerState().toLowerCase());
-                if (Objects.nonNull(agent)) {
-                    claimsData.setAgentId(agent.getId());
-                }*/
                 claimsDataList.add(claimsData);
             }
-            claimsDataRepository.saveAll(claimsDataList);
+            claimsDataList = claimsDataRepository.saveAll(claimsDataList);
+            List<ClaimHistory> claimHistories = new ArrayList<>();
+            for (ClaimsData claimsData : claimsDataList) {
+                claimHistories.add(new ClaimHistory(claimsData.getId(), ClaimStatus.CLAIM_INTIMATED, "Claim Intimation"));
+            }
+            claimHistoryRepository.saveAll(claimHistories);
             claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
             return MessageCode.success;
         } catch (Exception e) {
@@ -650,6 +646,7 @@ public class BankerServiceImpl implements BankerService {
             if (claimsData.getClaimStatus().equals(ClaimStatus.CLAIM_INTIMATED)) {
                 claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
             }
+            claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.CLAIM_SUBMITTED, "Claim Submitted"));
             claimsData.setSubmittedAt(System.currentTimeMillis());
             claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getId());
             claimsDataRepository.save(claimsData);
@@ -1130,7 +1127,7 @@ public class BankerServiceImpl implements BankerService {
     public String downloadAllDocuments(Long claimId) {
         try {
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
-            log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
+            log.info("BankerServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
@@ -1149,8 +1146,24 @@ public class BankerServiceImpl implements BankerService {
             amazonS3FileManagers.cleanUp(file);
             return version;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE VerifierServiceImpl :: downloadAllDocuments ", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: downloadAllDocuments ", e);
             return null;
+        }
+    }
+
+    @Override
+    public List<ClaimHistoryDTO> getClaimHistory(Long id) {
+        try {
+            log.info("BankerServiceImpl :: getClaimHistory claimId - {}", id);
+            List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(id);
+            List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
+            for(ClaimHistory claimHistory : claimHistories){
+                claimHistoryDTOS.add(modelMapper.map(claimHistory, ClaimHistoryDTO.class));
+            }
+            return claimHistoryDTOS;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimHistory e - {}", e);
+            return Collections.EMPTY_LIST;
         }
     }
 

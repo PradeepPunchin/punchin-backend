@@ -16,6 +16,9 @@ public class ClaimDetailForVerificationDTO {
     private List<ClaimDocumentsDTO> agentClaimDocumentsDTOs;
     private List<ClaimDocumentsDTO> bankerClaimDocumentsDTOs;
     private String claimStatus;
+    private String agentName;
+    private String agentCity;
+    private String agentState;
 
 
 }

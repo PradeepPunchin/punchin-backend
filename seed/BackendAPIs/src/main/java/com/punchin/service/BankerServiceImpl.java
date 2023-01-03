@@ -82,8 +82,9 @@ public class BankerServiceImpl implements BankerService {
                         if (!existingLoanNumber) {
                             claimsDataList.add(claimDraftData);
                         }
+                        log.info("Loan number already exists :: {}",claimDraftData.getId());
                     }
-
+                    log.info("Mandatory fields are missing :: {}",claimDraftData.getId());
                 }
                 if (!claimsData.isEmpty()) {
                     claimsDataList = claimDraftDataRepository.saveAll(claimsDataList);

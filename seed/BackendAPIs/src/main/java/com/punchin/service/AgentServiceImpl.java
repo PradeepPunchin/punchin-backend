@@ -561,7 +561,7 @@ public class AgentServiceImpl implements AgentService {
             claimsData.add(page);
             List<VerifierClaimDataResponseDTO> dtos = new ArrayList<>();
             for (ClaimsData claimData : claimsData) {
-                category = claimData.getCategory();
+
                 VerifierClaimDataResponseDTO dto = new VerifierClaimDataResponseDTO();
                 dto.setId(claimData.getId());
                 dto.setPunchinClaimId(claimData.getPunchinClaimId());
@@ -572,6 +572,7 @@ public class AgentServiceImpl implements AgentService {
                 dto.setNomineeName(claimData.getNomineeName());
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
+                category = claimData.getCategory();
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderById(claimData.getId(), "agent", true);
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {

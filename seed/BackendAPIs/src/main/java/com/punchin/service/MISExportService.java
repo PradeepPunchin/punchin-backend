@@ -62,7 +62,7 @@ public class MISExportService {
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             }
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
             File file = new File(filePath);
@@ -197,7 +197,11 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getNomineeContactNumber(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeEmailId(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeAddress(), style, sheet);
-            createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
+            if(claimsData.getClaimStatus().equals(ClaimStatus.SUBMITTED_TO_LENDER)){
+                createCell(row, columnCount++, "Close", style, sheet);
+            } else {
+                createCell(row, columnCount++, "Open", style, sheet);
+            }
             createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
             createCell(row, columnCount++, format.format(new Date()), style, sheet);
             createCell(row, columnCount++, "", style, sheet);

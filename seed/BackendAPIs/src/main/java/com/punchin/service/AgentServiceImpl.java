@@ -375,7 +375,8 @@ public class AgentServiceImpl implements AgentService {
 
     public ClaimDocuments uploadDocumentOnS3(AgentDocType agentDocType, String docType, ClaimsData claimsData, MultipartFile[] multipartFiles) {
         try {
-            log.info("AgentServiceImpl :: uploadFiles claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
+            log.info("AgentServiceImpl :: uploadDocumentOnS3 claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
+            log.info("AgentServiceImpl :: uploadDocumentOnS3 uploading agentDocType - {}, ClaimId - {}, multipartFiles - {}", agentDocType, claimsData.getId(), multipartFiles.length);
             ClaimDocuments claimDocuments = new ClaimDocuments();
             claimDocuments.setAgentDocType(agentDocType);
             claimDocuments.setClaimsData(claimsData);
@@ -391,6 +392,7 @@ public class AgentServiceImpl implements AgentService {
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
+            log.info("AgentServiceImpl :: uploadDocumentOnS3 uploaded agentDocType - {}, ClaimId - {}, multipartFiles - {}", agentDocType, claimsData.getId(), multipartFiles.length);
             return claimDocumentsRepository.save(claimDocuments);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: uploadFiles ", e);

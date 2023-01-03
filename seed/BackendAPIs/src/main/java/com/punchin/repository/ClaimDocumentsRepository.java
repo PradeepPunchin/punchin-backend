@@ -75,4 +75,5 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
     ClaimDocuments findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(Long claimId, AgentDocType docType, String newRequirement);
 
     List<ClaimDocuments> findByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(Long claimId, AgentDocType docType, String newRequirement);
+    boolean existsByClaimsDataIdAndUploadSideByAndIsVerifiedAndIsApprovedAndIsActiveAndIsDeleted(Long claimId, String newRequirement, boolean b, boolean b1, boolean b2, boolean b3);
 }

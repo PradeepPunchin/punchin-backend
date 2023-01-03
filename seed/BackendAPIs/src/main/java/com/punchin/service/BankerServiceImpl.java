@@ -740,7 +740,7 @@ public class BankerServiceImpl implements BankerService {
         } catch (IOException e) {
             log.error("fail to store csv data: " + e.getMessage());
         }
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

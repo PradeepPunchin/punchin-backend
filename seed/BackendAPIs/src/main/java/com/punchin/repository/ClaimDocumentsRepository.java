@@ -37,6 +37,7 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     List<ClaimDocuments> findByClaimsDataIdAndAgentDocType(Long claimId, AgentDocType valueOf);
 
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =:id AND upload_side_by Ilike %:agent% AND is_active=:b")
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(Long id, String agent, boolean b);
 
     boolean existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(Long claimId, String agent, boolean b, boolean b1);
@@ -59,4 +60,19 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE is_deleted = false AND is_active = false AND is_verified = true AND is_approved = false AND upload_side_by = 'New Requirement' AND claims_data_id=:id")
     List<ClaimDocuments> getAdditionalDocumentRequestClaims(Long id);
+
+    boolean existsByClaimsDataIdAndUploadSideByAndIsVerifiedAndIsApprovedAndIsActive(Long claimId, String agent, boolean b, boolean b1, boolean b2);
+
+    @Query(nativeQuery = true, value = "SELECT DISTINCT agent_doc_type FROM claim_documents WHERE claims_data_id=:id AND upload_side_by=:agent AND is_active=:b ORDER BY agent_doc_type")
+    List<String> findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(Long id, String agent, boolean b);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id=:id AND upload_side_by=:agent AND is_active=:b AND agent_doc_type=:docType LIMIT 1")
+    List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(Long id, String agent, boolean b, String docType);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id=:id AND upload_side_by=:agent AND is_active=:b AND agent_doc_type=:docType")
+    List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(Long id, String agent, boolean b, String docType);
+
+    ClaimDocuments findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(Long claimId, AgentDocType docType, String newRequirement);
+
+    List<ClaimDocuments> findByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(Long claimId, AgentDocType docType, String newRequirement);
 }

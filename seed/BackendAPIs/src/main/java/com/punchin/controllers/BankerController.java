@@ -379,6 +379,9 @@ public class BankerController {
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
+            if(claimsData.getBankerId() < 1){
+                return ResponseHandler.response(null, MessageCode.AGENT_NOT_ALLOCATED, false, HttpStatus.FORBIDDEN);
+            }
             boolean claimDocumentsMAP = bankerService.requestForAdditionalDocument(claimsData, additionalDocumentRequestDTO.getDocTypes(), additionalDocumentRequestDTO.getRemark());
             if (claimDocumentsMAP) {
                 return ResponseHandler.response(claimDocumentsMAP, MessageCode.success, true, HttpStatus.OK);
@@ -395,12 +398,28 @@ public class BankerController {
     @GetMapping(value = UrlMapping.DOWNLOAD_CLAIM_DOCUMENT_DATA)
     public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {
         try {
-            log.info("VerifierController :: downloadAllDocuments");
+            log.info("BankerController :: downloadAllDocuments");
             String url = bankerService.downloadAllDocuments(id);
-            log.info("Verifier Dashboard count fetched Successfully");
+            log.info("Banker Dashboard count fetched Successfully");
             return ResponseHandler.response(url, MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE downloading claim documents::", e);
+            log.error("EXCEPTION WHILE BankerController downloading claim documents::", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"BANKER"})
+    @ApiOperation(value = "Claim history", notes = "This can be used to get Claim History")
+    @GetMapping(value = UrlMapping.GET_CLAIM_HISTORY)
+    public ResponseEntity<Object> getClaimHistory(@PathVariable Long id) {
+        try {
+            log.info("BankerController :: getClaimHistory claimId - {}", id);
+            if (Objects.isNull(bankerService.isClaimByBanker(id))) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            return ResponseHandler.response(bankerService.getClaimHistory(id), MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getClaimHistory e - {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

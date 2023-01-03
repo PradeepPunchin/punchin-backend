@@ -16,7 +16,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,22 +27,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
+import java.io.*;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
 @Transactional
 public class BankerServiceImpl implements BankerService {
-    @Value("${data.downloads.folder.url}")
-    String downloadFolderPath;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -68,6 +61,8 @@ public class BankerServiceImpl implements BankerService {
     private EntityManager entityManager;
     @Autowired
     private CommonUtilService commonUtilService;
+    @Autowired
+    private ClaimHistoryRepository claimHistoryRepository;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -79,9 +74,22 @@ public class BankerServiceImpl implements BankerService {
             for (MultipartFile file : files) {
                 Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
-                if (Objects.nonNull(claimsData)) {
-                    claimsData = claimDraftDataRepository.saveAll(claimsData);
-                    map.put("data", claimsData);
+                List<ClaimDraftData> claimsDataList = new ArrayList<>();
+                for (ClaimDraftData claimDraftData : claimsData) {
+                    if (!claimDraftData.getBorrowerName().isEmpty() && !claimDraftData.getBorrowerAddress().isEmpty() && !claimDraftData.getBorrowerCity().isEmpty() &&
+                            !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
+                            !claimDraftData.getLoanAccountNumber().isEmpty() && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
+                            !claimDraftData.getInsurerName().isEmpty() && claimDraftData.getPolicySumAssured() != null && !claimDraftData.getNomineeName().isEmpty() && !claimDraftData.getNomineeRelationShip().isEmpty()) {
+                        boolean existingLoanNumber = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
+                        if (!existingLoanNumber) {
+                            claimsDataList.add(claimDraftData);
+                        }
+                    }
+
+                }
+                if (!claimsData.isEmpty()) {
+                    claimsDataList = claimDraftDataRepository.saveAll(claimsDataList);
+                    map.put("data", claimsDataList);
                     map.put("status", true);
                     map.put("message", MessageCode.success);
                     return map;
@@ -114,7 +122,7 @@ public class BankerServiceImpl implements BankerService {
                     } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
                         page1 = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerId, pageable);
                     }
-                    if(page1.isEmpty()) {
+                    if (page1.isEmpty()) {
                         page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
                         pageDTO = commonService.convertPageToDTO(page1.getContent(), page1);
                         pageDTO.setMessage(MessageCode.CLAIM_NOT_FOUND);
@@ -136,13 +144,13 @@ public class BankerServiceImpl implements BankerService {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
@@ -178,6 +186,7 @@ public class BankerServiceImpl implements BankerService {
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
+            claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
             claimsStatus.removeAll(claimsStatus);
@@ -207,13 +216,14 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());
-                /*User agent = userRepository.findByAgentAndState(RoleEnum.AGENT.name(), claimsData.getBorrowerState().toLowerCase());
-                if (Objects.nonNull(agent)) {
-                    claimsData.setAgentId(agent.getId());
-                }*/
                 claimsDataList.add(claimsData);
             }
-            claimsDataRepository.saveAll(claimsDataList);
+            claimsDataList = claimsDataRepository.saveAll(claimsDataList);
+            List<ClaimHistory> claimHistories = new ArrayList<>();
+            for (ClaimsData claimsData : claimsDataList) {
+                claimHistories.add(new ClaimHistory(claimsData.getId(), ClaimStatus.CLAIM_INTIMATED, "Claim Intimation"));
+            }
+            claimHistoryRepository.saveAll(claimHistories);
             claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
             return MessageCode.success;
         } catch (Exception e) {
@@ -255,10 +265,10 @@ public class BankerServiceImpl implements BankerService {
                 dto.setOutstandingLoanAmount(claimsData.getLoanOutstandingAmount());
                 dto.setBalanceClaimAmount(0d);
                 dto.setLoanAmountPaidByBorrower(0d);
-                if(Objects.nonNull(claimsData.getPolicySumAssured()) && Objects.nonNull(claimsData.getLoanOutstandingAmount())){
+                if (Objects.nonNull(claimsData.getPolicySumAssured()) && Objects.nonNull(claimsData.getLoanOutstandingAmount())) {
                     double outStandingLoan = claimsData.getPolicySumAssured() - claimsData.getLoanOutstandingAmount();
                     dto.setLoanAmountPaidByBorrower(claimsData.getLoanAmount() - claimsData.getLoanOutstandingAmount());
-                    if(outStandingLoan > 0 ) {
+                    if (outStandingLoan > 0) {
                         dto.setBalanceClaimAmount(outStandingLoan);
                     }
                 }
@@ -404,8 +414,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 borrowPinCode = String.valueOf(cell.getStringCellValue());
                                 p.setBorrowerPinCode(borrowPinCode);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setBorrowerPinCode(borrowPinCode);
                             }
@@ -420,8 +429,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 borrowContactNumber = String.valueOf(cell.getStringCellValue());
                                 p.setBorrowerContactNumber(borrowContactNumber);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setBorrowerContactNumber(borrowContactNumber);
                             }
@@ -436,8 +444,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 borrowerAlternateNo = String.valueOf(cell.getStringCellValue());
                                 p.setBorrowerAlternateContactNumber(borrowerAlternateNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setBorrowerAlternateContactNumber(borrowerAlternateNo);
                             }
@@ -452,8 +459,7 @@ public class BankerServiceImpl implements BankerService {
                                 cell.setCellType(CellType.STRING);
                                 loanAccountNo = String.valueOf(cell.getStringCellValue());
                                 p.setLoanAccountNumber(loanAccountNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setLoanAccountNumber(loanAccountNo);
                             }
@@ -463,6 +469,10 @@ public class BankerServiceImpl implements BankerService {
                             p.setLoanType(cell.getStringCellValue());
                             break;
                         case 12:
+                            cell.setCellType(CellType.STRING);
+                            p.setCategory(cell.getStringCellValue());
+                            break;
+                        case 13:
                             if (cell.getCellType().equals(CellType.NUMERIC)) {
                                 if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
                                     p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
@@ -471,91 +481,87 @@ public class BankerServiceImpl implements BankerService {
                                 p.setLoanDisbursalDate(new Date(cell.getStringCellValue()));
                             }
                             break;
-                        case 13:
+                        case 14:
                             cell.setCellType(CellType.NUMERIC);
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setLoanAmount((double) cell.getNumericCellValue());
                             }
                             break;
-                        case 14:
+                        case 15:
                             cell.setCellType(CellType.NUMERIC);
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
                             }
                             break;
-                        case 15:
+                        case 16:
                             cell.setCellType(CellType.STRING);
                             p.setBranchCode(cell.getStringCellValue());
                             break;
-                        case 16:
+                        case 17:
                             cell.setCellType(CellType.STRING);
                             p.setBranchAddress(cell.getStringCellValue());
                             break;
-                        case 17:
+                        case 18:
                             cell.setCellType(CellType.STRING);
                             p.setBranchCity(cell.getStringCellValue());
                             break;
-                        case 18:
+                        case 19:
                             cell.setCellType(CellType.STRING);
                             p.setBranchPinCode(cell.getStringCellValue());
                             break;
-                        case 19:
+                        case 20:
                             cell.setCellType(CellType.STRING);
                             p.setBranchState(cell.getStringCellValue());
                             break;
-                        case 20:
+                        case 21:
                             String loanAccMangName = formatter.formatCellValue(cell);
                             if (loanAccMangName.contains("+")) {
                                 cell.setCellType(CellType.STRING);
                                 loanAccMangName = String.valueOf(cell.getStringCellValue());
                                 p.setLoanAccountManagerName(loanAccMangName);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setLoanAccountManagerName(loanAccMangName);
                             }
                             break;
-                        case 21:
+                        case 22:
                             String accMngContactNo = formatter.formatCellValue(cell);
                             if (accMngContactNo.contains("+")) {
                                 cell.setCellType(CellType.STRING);
                                 accMngContactNo = String.valueOf(cell.getStringCellValue());
                                 p.setAccountManagerContactNumber(accMngContactNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setAccountManagerContactNumber(accMngContactNo);
                             }
                             break;
-                        case 22:
+                        case 23:
                             cell.setCellType(CellType.STRING);
                             p.setInsurerName(cell.getStringCellValue());
                             break;
-                        case 23:
+                        case 24:
                             String policyNo = formatter.formatCellValue(cell);
                             if (policyNo.contains("+")) {
                                 cell.setCellType(CellType.STRING);
                                 policyNo = String.valueOf(cell.getStringCellValue());
                                 p.setPolicyNumber(policyNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setPolicyNumber(policyNo);
                             }
                             break;
-                        case 24:
+                        case 25:
                             String masterPolicyNo = formatter.formatCellValue(cell);
                             if (masterPolicyNo.contains("+")) {
                                 cell.setCellType(CellType.STRING);
                                 masterPolicyNo = String.valueOf(cell.getStringCellValue());
                                 p.setMasterPolNumber(masterPolicyNo);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setMasterPolNumber(masterPolicyNo);
                             }
                             break;
-                        case 25:
+                        case 26:
                             if (cell.getCellType().equals(CellType.NUMERIC)) {
                                 if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
                                     p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
@@ -568,43 +574,42 @@ public class BankerServiceImpl implements BankerService {
                                 p.setPolicyStartDate(date1);
                             }*/
                             break;
-                        case 26:
+                        case 27:
                             cell.setCellType(CellType.NUMERIC);
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicyCoverageDuration((int) cell.getNumericCellValue());
                             }
                             break;
-                        case 27:
+                        case 28:
                             cell.setCellType(CellType.NUMERIC);
                             if (Objects.nonNull(cell.getNumericCellValue())) {
                                 p.setPolicySumAssured((double) cell.getNumericCellValue());
                             }
                             break;
-                        case 28:
+                        case 29:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeName(cell.getStringCellValue());
                             break;
-                        case 29:
+                        case 30:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeRelationShip(cell.getStringCellValue());
                             break;
-                        case 30:
+                        case 31:
                             String nomineeContactNumber = formatter.formatCellValue(cell);
                             if (nomineeContactNumber.contains("+")) {
                                 cell.setCellType(CellType.STRING);
                                 nomineeContactNumber = String.valueOf(cell.getStringCellValue());
                                 p.setNomineeContactNumber(nomineeContactNumber);
-                            }
-                            else {
+                            } else {
                                 cell.setCellType(CellType.STRING);
                                 p.setNomineeContactNumber(nomineeContactNumber);
                             }
                             break;
-                        case 31:
+                        case 32:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeEmailId(cell.getStringCellValue());
                             break;
-                        case 32:
+                        case 33:
                             cell.setCellType(CellType.STRING);
                             p.setNomineeAddress(cell.getStringCellValue());
                             break;
@@ -644,9 +649,10 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 claimDocuments.setIsActive(true);
             }
-            if(claimsData.getClaimStatus().equals(ClaimStatus.CLAIM_INTIMATED)) {
+            if (claimsData.getClaimStatus().equals(ClaimStatus.CLAIM_INTIMATED)) {
                 claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
             }
+            claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.CLAIM_SUBMITTED, "Claim Submitted"));
             claimsData.setSubmittedAt(System.currentTimeMillis());
             claimsData.setSubmittedBy(GenericUtils.getLoggedInUser().getId());
             claimsDataRepository.save(claimsData);
@@ -944,7 +950,8 @@ public class BankerServiceImpl implements BankerService {
             }
         } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.SETTLED.toString());
-            statusList.add(ClaimStatus.SUBMITTED_TO_INSURER.toString());
+            statusList.add(ClaimStatus.SUBMITTED_TO_LENDER.toString());
+            statusList.add(ClaimStatus.SUBMITTED_TO_INSURER.name());
             if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findBankerClaimSearchedDataByClaimDataId(searchedKeyword, statusList, bankerId, pageable);
             } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
@@ -1101,7 +1108,7 @@ public class BankerServiceImpl implements BankerService {
             List<ClaimDocuments> claimDocumentsList = new ArrayList<>();
             claimsData.setClaimStatus(ClaimStatus.NEW_REQUIREMENT);
             claimsDataRepository.save(claimsData);
-            for(AgentDocType docType : docTypes){
+            for (AgentDocType docType : docTypes) {
                 ClaimDocuments documents = new ClaimDocuments();
                 documents.setIsActive(false);
                 documents.setIsDeleted(false);
@@ -1126,43 +1133,91 @@ public class BankerServiceImpl implements BankerService {
     public String downloadAllDocuments(Long claimId) {
         try {
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
-            log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
+            log.info("BankerServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
+            byte[] buffer = new byte[1024];
+            File zipfile = new File(filePath + punchinClaimId + ".zip");
+            FileOutputStream fileOutputStream = new FileOutputStream(zipfile);
+            ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "banker", true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
-                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    downloadDocumentInDirectory(documentUrls.getDocUrl(), claimId, filePath);
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
+                    ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
+                    zipOutputStream.putNextEntry(zipEntry);
+                    writeStreamToZip(buffer, zipOutputStream, inputStream);
+                    inputStream.close();
                 }
             }
-            ZipUtils appZip = new ZipUtils();
-            appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
-            appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
-            new File(filePath + claimId).deleteOnExit();
-            File file = new File(filePath + punchinClaimId + ".zip");
-            String fileName = file.getName();
-            String version = amazonS3FileManagers.uploadFileToAmazonS3("verifier/", new File(filePath + punchinClaimId + ".zip"), fileName);
-            amazonS3FileManagers.cleanUp(file);
+            zipOutputStream.closeEntry();
+            zipOutputStream.close();
+            String version = amazonS3FileManagers.uploadFileToAmazonS3("agent/", zipfile, punchinClaimId + ".zip");
+//            ZipUtils appZip = new ZipUtils();
+//            appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
+//            appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
+//            new File(filePath + claimId).deleteOnExit();
+//            File file = new File(filePath + punchinClaimId + ".zip");
+//            String fileName = file.getName();
+//            String version = amazonS3FileManagers.uploadFileToAmazonS3("banker/", new File(filePath + punchinClaimId + ".zip"), fileName);
+            amazonS3FileManagers.cleanUp(zipfile);
             return version;
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE VerifierServiceImpl :: downloadAllDocuments ", e);
+            log.error("EXCEPTION WHILE BankerServiceImpl :: downloadAllDocuments ", e);
             return null;
         }
     }
 
-    private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
+    private void writeStreamToZip(byte[] buffer, ZipOutputStream zipOutputStream,
+                                  InputStream inputStream) {
         try {
+            int len;
+            while ((len = inputStream.read(buffer)) > 0) {
+                zipOutputStream.write(buffer, 0, len);
+            }
+        } catch (IOException e) {
+
+        }
+    }
+
+    @Override
+    public Map<String, Object> getClaimHistory(Long id) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            log.info("BankerServiceImpl :: getClaimHistory claimId - {}", id);
+            List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
+            ClaimsData claimsData = claimsDataRepository.findById(id).get();
+            if(Objects.nonNull(claimsData)) {
+                List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());
+                ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
+                for (ClaimHistory claimHistory : claimHistories) {
+                    ClaimHistoryDTO claimHistoryDTO = modelMapper.map(claimHistory, ClaimHistoryDTO.class);
+                    if (Objects.nonNull(oldClaimHistory) && !claimHistoryDTO.getClaimStatus().equals(oldClaimHistory.getClaimStatus())) {
+                        claimHistoryDTOS.add(claimHistoryDTO);
+                    }
+                    oldClaimHistory = claimHistoryDTO;
+                }
+            }
+            map.put("claimHistoryDTOS", claimHistoryDTOS);
+            map.put("claimStatus", claimsData.getClaimStatus());
+            map.put("startedAt", claimsData.getCreatedAt());
+            return map;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimHistory e - {}", e);
+            return Collections.EMPTY_MAP;
+        }
+    }
+
+    private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
+        File file1 = new File(filePath + claimId);
+        file1.mkdirs();
+        log.info("Directory created");
+        try (FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);) {
             log.info("ready to download claim documents docUrl {}", docUrl);
-            URL url = new URL(docUrl);
-            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-            File file1 = new File(filePath + claimId);
-            file1.mkdirs();
-            log.info("Directory created");
-            FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);
-            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            ByteArrayOutputStream byteArrayOutputStream = amazonS3FileManagers.downloadFile("agent/" + FilenameUtils.getName(docUrl));
+            byteArrayOutputStream.writeTo(fos);
             log.info("File downloaded");
-            fos.close();
-            rbc.close();
+            byteArrayOutputStream.close();
         } catch (Exception e) {
             log.error("ERROR WHILE DOWNLOADING FILE FROM URL e {}", e);
         }

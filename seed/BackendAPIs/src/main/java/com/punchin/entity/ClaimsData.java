@@ -36,6 +36,7 @@ public class ClaimsData extends BasicEntity {
     private String borrowerAddress;
     private String lenderName;
     private String loanType;
+    private String category;
     private Date loanDisbursalDate;
     private Double loanOutstandingAmount;
     private Double loanAmount;
@@ -75,5 +76,5 @@ public class ClaimsData extends BasicEntity {
     //Field filled by Agent
     private CauseOfDeathEnum causeOfDeath;
     private Boolean isMinor;
-
+    private String agentRemark;
 }

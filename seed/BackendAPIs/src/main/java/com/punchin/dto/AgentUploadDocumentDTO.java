@@ -35,5 +35,5 @@ public class AgentUploadDocumentDTO {
     private AdditionalDocType additionalDocType;
     private MultipartFile additionalDoc;
     private Map<String, MultipartFile> isMinorDoc;
-
+    private String agentRemark;
 }

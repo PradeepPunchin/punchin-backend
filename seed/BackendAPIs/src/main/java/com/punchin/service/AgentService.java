@@ -23,9 +23,9 @@ public interface AgentService {
 
     Map<String, Object> getClaimDocuments(Long id);
 
-    Map<String, Object> discrepancyDocumentUpload(Long claimId, MultipartFile[] files, String docType);
+    Map<String, Object> discrepancyDocumentUpload(Long claimId, MultipartFile[] files, AgentDocType docType, boolean isDiscrepancy);
 
-    boolean checkDocumentIsInDiscrepancy(Long claimId, String docType);
+    boolean checkDocumentIsInDiscrepancy(Long claimId, AgentDocType docType, boolean isDiscrepancy);
 
     boolean checkDocumentUploaded(Long id);
 
@@ -38,4 +38,5 @@ public interface AgentService {
     List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType);
 
 
+    Map<String, Object> getClaimHistory(String id);
 }

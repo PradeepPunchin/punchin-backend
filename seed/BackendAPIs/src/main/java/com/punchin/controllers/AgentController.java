@@ -6,6 +6,7 @@ import com.punchin.entity.DocumentUrls;
 import com.punchin.enums.*;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.service.AgentService;
+import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ResponseHandler;
 import com.punchin.utility.constant.MessageCode;
 import com.punchin.utility.constant.UrlMapping;
@@ -108,17 +109,23 @@ public class AgentController {
     @Secured({"AGENT"})
     @ApiOperation(value = "Upload Discrepancy Document", notes = "This can be used to upload document regarding claim by agent")
     @PostMapping(value = UrlMapping.DISCREPANCY_DOCUMENT_UPLOAD)
-    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable String docType, @RequestBody MultipartFile multipartFile) {
+    public ResponseEntity<Object> discrepancyDocumentUpload(@PathVariable Long id, @PathVariable AgentDocType docType, @RequestBody MultipartFile[] multipartFile, @RequestParam(defaultValue = "true") boolean isDiscrepancy) {
         try {
             log.info("BankerController :: discrepancyDocumentUpload claimId {}, multipartFile {}, docType {}", id, multipartFile, docType);
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            if (!agentService.checkDocumentIsInDiscrepancy(id, docType) && !docType.equals(AgentDocType.OTHER.name())) {
+            if (!agentService.checkDocumentIsInDiscrepancy(id, docType, isDiscrepancy) && !docType.equals(AgentDocType.OTHER)) {
                 return ResponseHandler.response(null, MessageCode.documentInUnderVerification, false, HttpStatus.BAD_REQUEST);
             }
-            Map<String, Object> result = agentService.discrepancyDocumentUpload(id, new MultipartFile[]{multipartFile}, docType);
+            Map<String, Object> result = agentService.discrepancyDocumentUpload(id, multipartFile, docType, isDiscrepancy);
             if (result.get("message").equals(MessageCode.success)) {
+                if (!agentService.checkDocumentUploaded(id)) {
+                    String result2 = agentService.forwardToVerifier(id);
+                    if (result2.equals(MessageCode.success)) {
+                        return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
+                    }
+                }
                 return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, result.get("message").toString(), false, HttpStatus.BAD_REQUEST);
@@ -137,7 +144,7 @@ public class AgentController {
             if (!agentService.checkAccess(id)) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
-            if (!agentService.checkDocumentUploaded(id)) {
+            if (agentService.checkDocumentUploaded(id)) {
                 return ResponseHandler.response(null, MessageCode.documentNotUploaded, true, HttpStatus.OK);
             }
             String result = agentService.forwardToVerifier(id);
@@ -154,8 +161,7 @@ public class AgentController {
     @Secured({"AGENT"})
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor,
-                                                  @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc) {
+    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false) CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor, @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc, @RequestParam(required = false) String agentRemark) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", id);
             if (!agentService.checkAccess(id)) {
@@ -165,10 +171,8 @@ public class AgentController {
             documentDTO.setClaimsData(agentService.getClaimsData(id));
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
-            if(Objects.isNull(isMinorDoc) || isMinorDoc.isEmpty()){
-                //return ResponseHandler.response(null, MessageCode.DOCUMENT_NOT_FOUND, false, HttpStatus.BAD_REQUEST);
-            }
             documentDTO.setIsMinorDoc(isMinorDoc);
+            documentDTO.setAgentRemark(agentRemark);
             Map<String, Object> result = agentService.uploadDocument(documentDTO);
             if (Boolean.parseBoolean(result.get("status").toString())) {
                 return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
@@ -241,4 +245,19 @@ public class AgentController {
         }
     }
 
+    @Secured({"AGENT"})
+    @ApiOperation(value = "Claim history", notes = "This can be used to get Claim History")
+    @GetMapping(value = UrlMapping.GET_CLAIM_HISTORY)
+    public ResponseEntity<Object> getClaimHistory(@PathVariable String id) {
+        try {
+            log.info("AgentController :: getClaimHistory claimId - {}", id);
+            /*if (!agentService.checkAccess(id)) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }*/
+            return ResponseHandler.response(agentService.getClaimHistory(id), MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentController :: getClaimHistory e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

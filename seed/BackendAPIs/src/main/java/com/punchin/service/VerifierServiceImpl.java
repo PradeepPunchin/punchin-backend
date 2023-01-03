@@ -25,21 +25,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
 public class VerifierServiceImpl implements VerifierService {
-
-    @Value("${data.downloads.folder.url}")
-    String downloadFolderUrl;
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
     @Autowired
@@ -56,7 +53,8 @@ public class VerifierServiceImpl implements VerifierService {
     private AmazonS3FileManagers amazonS3FileManagers;
     @Autowired
     private DocumentUrlsRepository documentUrlsRepository;
-
+    @Autowired
+    private ClaimHistoryRepository claimHistoryRepository;
     @Autowired
     private UserRepository userRepository;
 
@@ -85,10 +83,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
@@ -97,6 +92,7 @@ public class VerifierServiceImpl implements VerifierService {
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
@@ -133,6 +129,7 @@ public class VerifierServiceImpl implements VerifierService {
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
+            claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
             return map;
@@ -185,52 +182,83 @@ public class VerifierServiceImpl implements VerifierService {
             claimDetailForVerificationDTO.setNomineeName(claimsData.getNomineeName());
             claimDetailForVerificationDTO.setNomineeAddress(claimsData.getNomineeAddress());
             claimDetailForVerificationDTO.setNomineeRelationShip(claimsData.getNomineeRelationShip());
+            claimDetailForVerificationDTO.setClaimStatus(claimsData.getClaimStatus().name());
 
             //Agent
-            List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent", true);
             List<ClaimDocumentsDTO> agentDocumentsListDTOs = new ArrayList<>();
-            for (ClaimDocuments claimDocuments : agentDocumentsList) {
-                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
-                claimDocumentsDTO.setId(claimDocuments.getId());
-                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
-                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
-                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
-                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
-                List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
-                for (DocumentUrls documentUrls : documentUrlsList) {
-                    DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
-                    documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
-                    documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
-                    documentUrlDTOS.add(documentUrlListDTO);
+            List<String> uploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent", true);
+            for(String docTypes : uploadedDocTypes) {
+                List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(claimsData.getId(), "agent", true, docTypes);
+                for (ClaimDocuments claimDocuments : agentDocumentsList) {
+                    ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                    claimDocumentsDTO.setId(claimDocuments.getId());
+                    claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                    claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                    claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                    claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+                    List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                    for (DocumentUrls documentUrls : documentUrlsList) {
+                        DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                        documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
+                        documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
+                        documentUrlDTOS.add(documentUrlListDTO);
+                    }
+                    claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                    agentDocumentsListDTOs.add(claimDocumentsDTO);
                 }
-                claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
-                agentDocumentsListDTOs.add(claimDocumentsDTO);
             }
             claimDetailForVerificationDTO.setAgentClaimDocumentsDTOs(agentDocumentsListDTOs);
-
             //Banker
-            List<ClaimDocuments> bankerDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "banker", true);
             List<ClaimDocumentsDTO> bankerDocumentsListDTOs = new ArrayList<>();
-            for (ClaimDocuments claimDocuments : bankerDocumentsList) {
-                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
-                claimDocumentsDTO.setId(claimDocuments.getId());
-                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
-                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
-                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
-                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
-                List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
-                for (DocumentUrls documentUrls : documentUrlsList) {
-                    DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
-                    documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
-                    documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
-                    documentUrlDTOS.add(documentUrlListDTO);
+            List<String> bankerUploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "banker", true);
+            for(String docTypes : bankerUploadedDocTypes) {
+                List<ClaimDocuments> bankerDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(claimsData.getId(), "banker", true, docTypes);
+                for (ClaimDocuments claimDocuments : bankerDocumentsList) {
+                    ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                    claimDocumentsDTO.setId(claimDocuments.getId());
+                    claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                    claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                    claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                    claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+                    List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                    for (DocumentUrls documentUrls : documentUrlsList) {
+                        DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                        documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
+                        documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
+                        documentUrlDTOS.add(documentUrlListDTO);
+                    }
+                    claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                    bankerDocumentsListDTOs.add(claimDocumentsDTO);
                 }
-                claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
-                bankerDocumentsListDTOs.add(claimDocumentsDTO);
             }
             claimDetailForVerificationDTO.setBankerClaimDocumentsDTOs(bankerDocumentsListDTOs);
+            //Additional Requirement
+            List<ClaimDocumentsDTO> newDocumentsListDTOs = new ArrayList<>();
+            List<String> newUploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent New Requirement", true);
+            for(String docTypes : newUploadedDocTypes) {
+                List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(claimsData.getId(), "agent New Requirement", true, docTypes);
+                for (ClaimDocuments claimDocuments : agentDocumentsList) {
+                    ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                    claimDocumentsDTO.setId(claimDocuments.getId());
+                    claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                    claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                    claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                    claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+                    List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                    for (DocumentUrls documentUrls : documentUrlsList) {
+                        DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                        documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
+                        documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
+                        documentUrlDTOS.add(documentUrlListDTO);
+                    }
+                    claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                    newDocumentsListDTOs.add(claimDocumentsDTO);
+                }
+            }
+            claimDetailForVerificationDTO.setNewDocumentRequestDTOs(newDocumentsListDTOs);
             return claimDetailForVerificationDTO;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierController :: getDocumentDetails e {}", e);
@@ -241,24 +269,30 @@ public class VerifierServiceImpl implements VerifierService {
     public String acceptAndRejectDocument(ClaimsData claimsData, ClaimDocuments claimDocuments, DocumentApproveRejectPayloadDTO approveRejectPayloadDTO) {
         log.info("VerifierController :: acceptAndRejectDocuments claimsData {}, claimDocuments {}, approveRejectPayloadDTO {}", claimsData, claimDocuments, approveRejectPayloadDTO);
         try {
-            claimDocuments.setIsVerified(true);
-            claimDocuments.setIsApproved(approveRejectPayloadDTO.isApproved());
-            claimDocuments.setReason(approveRejectPayloadDTO.getReason());
-            claimDocuments.setRejectRemark(approveRejectPayloadDTO.getRemark());
-            claimDocuments.setVerifierId(GenericUtils.getLoggedInUser().getUserId());
-            claimDocuments.setVerifyTime(System.currentTimeMillis());
-            claimDocumentsRepository.save(claimDocuments);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(claimsData.getId(), "agent", true, claimDocuments.getAgentDocType().name());
+            claimDocumentsList.forEach(claimDocuments1 -> {
+                claimDocuments1.setIsVerified(true);
+                claimDocuments1.setIsApproved(approveRejectPayloadDTO.isApproved());
+                claimDocuments1.setReason(approveRejectPayloadDTO.getReason());
+                claimDocuments1.setRejectRemark(approveRejectPayloadDTO.getRemark());
+                claimDocuments1.setVerifierId(GenericUtils.getLoggedInUser().getUserId());
+                claimDocuments1.setVerifyTime(System.currentTimeMillis());
+            });
+            claimDocumentsRepository.saveAll(claimDocumentsList);
             if (claimDocuments.getUploadSideBy().equalsIgnoreCase("agent")) {
                 if (!approveRejectPayloadDTO.isApproved()) {
                     claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
+                    claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.VERIFIER_DISCREPENCY, "Verifier Discrepancy"));
                 } else {
                     if (!claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(claimsData.getId(), "agent", true, false)) {
-                        claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_INSURER);
+                        claimsData.setClaimStatus(ClaimStatus.SUBMITTED_TO_LENDER);
+                        claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.SUBMITTED_TO_LENDER, "Submitted to Lender"));
                     }
                 }
             } else if (claimDocuments.getUploadSideBy().equalsIgnoreCase("banker")) {
                 if (!approveRejectPayloadDTO.isApproved()) {
                     claimsData.setClaimBankerStatus(ClaimStatus.BANKER_DISCREPANCY);
+                    claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.BANKER_DISCREPANCY, "Banker Discrepancy"));
                 }
             }
             claimsDataRepository.save(claimsData);
@@ -300,21 +334,32 @@ public class VerifierServiceImpl implements VerifierService {
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
             log.info("VerifierServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
+            byte[] buffer = new byte[1024];
+            File zipfile = new File(filePath + punchinClaimId + ".zip");
+            FileOutputStream fileOutputStream = new FileOutputStream(zipfile);
+            ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
-                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    downloadDocumentInDirectory(documentUrls.getDocUrl(), claimId, filePath);
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
+                    ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
+                    zipOutputStream.putNextEntry(zipEntry);
+                    writeStreamToZip(buffer, zipOutputStream, inputStream);
+                    inputStream.close();
                 }
             }
-            ZipUtils appZip = new ZipUtils();
-            appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
-            appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
-            new File(filePath + claimId).deleteOnExit();
-            File file = new File(filePath + punchinClaimId + ".zip");
-            String fileName = file.getName();
-            String version = amazonS3FileManagers.uploadFileToAmazonS3("verifier/", new File(filePath + punchinClaimId + ".zip"), fileName);
-            amazonS3FileManagers.cleanUp(file);
+            zipOutputStream.closeEntry();
+            zipOutputStream.close();
+            String version = amazonS3FileManagers.uploadFileToAmazonS3("agent/", zipfile, punchinClaimId + ".zip");
+//            ZipUtils appZip = new ZipUtils();
+//            appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
+//            appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
+//            new File(filePath + claimId).deleteOnExit();
+//            File file = new File(filePath + punchinClaimId + ".zip");
+//            String fileName = file.getName();
+//            String version = amazonS3FileManagers.uploadFileToAmazonS3("agent/", new File(filePath + punchinClaimId + ".zip"), fileName);
+            amazonS3FileManagers.cleanUp(zipfile);
             return version;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: downloadAllDocuments ", e);
@@ -322,24 +367,32 @@ public class VerifierServiceImpl implements VerifierService {
         }
     }
 
-    private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
+    private void writeStreamToZip(byte[] buffer, ZipOutputStream zipOutputStream,
+                                  InputStream inputStream) {
         try {
+            int len;
+            while ((len = inputStream.read(buffer)) > 0) {
+                zipOutputStream.write(buffer, 0, len);
+            }
+        } catch (IOException e) {
+
+        }
+    }
+
+    private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
+        File file1 = new File(filePath + claimId);
+        file1.mkdirs();
+        log.info("Directory created");
+        try(FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);) {
             log.info("ready to download claim documents docUrl {}", docUrl);
-            URL url = new URL(docUrl);
-            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-            File file1 = new File(filePath + claimId);
-            file1.mkdirs();
-            log.info("Directory created");
-            FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);
-            fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            ByteArrayOutputStream byteArrayOutputStream = amazonS3FileManagers.downloadFile("agent/" + FilenameUtils.getName(docUrl));
+            byteArrayOutputStream.writeTo(fos);
             log.info("File downloaded");
-            fos.close();
-            rbc.close();
+            byteArrayOutputStream.close();
         } catch (Exception e) {
             log.error("ERROR WHILE DOWNLOADING FILE FROM URL e {}", e);
         }
     }
-
 
     private PageDTO convertInDocumentStatusDTO(Page page) {
         try {
@@ -358,6 +411,9 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 dto.setBorrowerContactNumber(claimData.getBorrowerContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
+                if(claimData.getAgentId() > 0){
+                    dto.setAgentAllocated(true);
+                }
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "agent");
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
@@ -607,8 +663,38 @@ public class VerifierServiceImpl implements VerifierService {
         }
         ClaimsData claimsData = optionalClaimsData.get();
         claimsData.setAgentId(agentId);
+        claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
+        claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.AGENT_ALLOCATED, "Agent Allocation"));
         claimsDataRepository.save(claimsData);
         return MessageCode.AGENT_ALLOCATED_SAVED_SUCCESS;
+    }
+
+    @Override
+    public Map<String, Object> getClaimHistory(Long id) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            log.info("VerifierServiceImpl :: getClaimHistory claimId - {}", id);
+            List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
+            ClaimsData claimsData = claimsDataRepository.findById(id).get();
+            if(Objects.nonNull(claimsData)) {
+                List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());
+                ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
+                for (ClaimHistory claimHistory : claimHistories) {
+                    ClaimHistoryDTO claimHistoryDTO = modelMapperService.map(claimHistory, ClaimHistoryDTO.class);
+                    if (Objects.nonNull(oldClaimHistory) && !claimHistoryDTO.getClaimStatus().equals(oldClaimHistory.getClaimStatus())) {
+                        claimHistoryDTOS.add(claimHistoryDTO);
+                    }
+                    oldClaimHistory = claimHistoryDTO;
+                }
+            }
+            map.put("claimHistoryDTOS", claimHistoryDTOS);
+            map.put("claimStatus", claimsData.getClaimStatus());
+            map.put("startedAt", claimsData.getCreatedAt());
+            return map;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: getClaimHistory e - {}", e);
+            return Collections.EMPTY_MAP;
+        }
     }
 
 }

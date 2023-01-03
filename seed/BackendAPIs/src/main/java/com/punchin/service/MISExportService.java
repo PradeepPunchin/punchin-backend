@@ -24,10 +24,6 @@ import java.util.List;
 
 @Service
 public class MISExportService {
-
-    @Value("${data.downloads.folder.url}")
-    String downloadFolderPath;
-
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
     @Autowired
@@ -50,7 +46,6 @@ public class MISExportService {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
@@ -58,10 +53,16 @@ public class MISExportService {
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
+            } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId());
             }
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
             File file = new File(filePath);
@@ -196,7 +197,11 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getNomineeContactNumber(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeEmailId(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeAddress(), style, sheet);
-            createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
+            if(claimsData.getClaimStatus().equals(ClaimStatus.SUBMITTED_TO_LENDER)){
+                createCell(row, columnCount++, "Close", style, sheet);
+            } else {
+                createCell(row, columnCount++, "Open", style, sheet);
+            }
             createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
             createCell(row, columnCount++, format.format(new Date()), style, sheet);
             createCell(row, columnCount++, "", style, sheet);
@@ -214,7 +219,7 @@ public class MISExportService {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
@@ -224,13 +229,17 @@ public class MISExportService {
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
+                claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
             }
-            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+            SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
             File file = new File(filePath);

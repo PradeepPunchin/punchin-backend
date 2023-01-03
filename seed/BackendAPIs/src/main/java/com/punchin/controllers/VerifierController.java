@@ -193,7 +193,7 @@ public class VerifierController {
     }
 
     @Secured({"VERIFIER"})
-    @ApiOperation(value = "Download All file", notes = "This can be used to donwload all document on claim.")
+    @ApiOperation(value = "Download All file", notes = "This can be used to download all document on claim.")
     @GetMapping(value = UrlMapping.DOWNLOAD_CLAIM_DOCUMENT_DATA)
     public ResponseEntity<Object> downloadAllDocuments(@PathVariable Long id) {
         try {
@@ -286,4 +286,16 @@ public class VerifierController {
         }
     }
 
+    @Secured({"VERIFIER"})
+    @ApiOperation(value = "Claim history", notes = "This can be used to get Claim History")
+    @GetMapping(value = UrlMapping.GET_CLAIM_HISTORY)
+    public ResponseEntity<Object> getClaimHistory(@PathVariable Long id) {
+        try {
+            log.info("BankerController :: getClaimHistory claimId - {}", id);
+            return ResponseHandler.response(verifierService.getClaimHistory(id), MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getClaimHistory e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -38,5 +38,5 @@ public interface AgentService {
     List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType);
 
 
-    List<ClaimHistoryDTO> getClaimHistory(Long id);
+    List<ClaimHistoryDTO> getClaimHistory(String id);
 }

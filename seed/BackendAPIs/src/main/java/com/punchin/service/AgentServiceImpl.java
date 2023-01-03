@@ -498,10 +498,10 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public List<ClaimHistoryDTO> getClaimHistory(Long id) {
+    public List<ClaimHistoryDTO> getClaimHistory(String id) {
         try {
             log.info("AgentServiceImpl :: getClaimHistory claimId - {}", id);
-            List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(id);
+            List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsDataRepository.findIdByPunchinId(id));
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
             ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
             for(ClaimHistory claimHistory : claimHistories){

@@ -360,6 +360,9 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 dto.setBorrowerContactNumber(claimData.getBorrowerContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
+                if(claimData.getAgentId() > 0){
+                    dto.setAgentAllocated(true);
+                }
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "agent");
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {

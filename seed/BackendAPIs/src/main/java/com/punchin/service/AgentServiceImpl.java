@@ -109,8 +109,8 @@ public class AgentServiceImpl implements AgentService {
             map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
             statusList.add(ClaimStatus.ACTION_PENDING);
-            statusList.add(ClaimStatus.CLAIM_SUBMITTED);
             statusList.add(ClaimStatus.CLAIM_INTIMATED);
+            statusList.add(ClaimStatus.CLAIM_SUBMITTED);
             statusList.add(ClaimStatus.AGENT_ALLOCATED);
             map.put(ClaimStatus.ACTION_PENDING.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
             statusList.removeAll(statusList);
@@ -503,8 +503,13 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: getClaimHistory claimId - {}", id);
             List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(id);
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
+            ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
             for(ClaimHistory claimHistory : claimHistories){
-                claimHistoryDTOS.add(mapperService.map(claimHistory, ClaimHistoryDTO.class));
+                ClaimHistoryDTO claimHistoryDTO = mapperService.map(claimHistory, ClaimHistoryDTO.class);
+                if(!oldClaimHistory.getClaimStatus().equals(claimHistoryDTO.getClaimStatus())) {
+                    claimHistoryDTOS.add(claimHistoryDTO);
+                }
+                oldClaimHistory = claimHistoryDTO;
             }
             return claimHistoryDTOS;
         } catch (Exception e) {

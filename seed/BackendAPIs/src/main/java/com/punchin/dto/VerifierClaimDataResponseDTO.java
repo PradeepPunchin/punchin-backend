@@ -28,6 +28,7 @@ public class VerifierClaimDataResponseDTO {
     private String guardianAddressProof = "NOT_UPLOADED";
     private String nomineeKycProof = "NOT_UPLOADED";
     private String borrowerKycProof = "NOT_UPLOADED";
+    private boolean isAgentAllocated = false;
 }
 
 

@@ -30,6 +30,8 @@ import javax.persistence.Query;
 import java.io.*;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
@@ -1133,25 +1135,48 @@ public class BankerServiceImpl implements BankerService {
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/";
             log.info("BankerServiceImpl :: downloadAllDocuments docId {}, Path {}", claimId, filePath);
             String punchinClaimId = claimsDataRepository.findPunchinClaimIdById(claimId);
+            byte[] buffer = new byte[1024];
+            File zipfile = new File(filePath + punchinClaimId + ".zip");
+            FileOutputStream fileOutputStream = new FileOutputStream(zipfile);
+            ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "banker", true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
-                List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    downloadDocumentInDirectory(documentUrls.getDocUrl(), claimId, filePath);
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
+                    ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
+                    zipOutputStream.putNextEntry(zipEntry);
+                    writeStreamToZip(buffer, zipOutputStream, inputStream);
+                    inputStream.close();
                 }
             }
-            ZipUtils appZip = new ZipUtils();
-            appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
-            appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
-            new File(filePath + claimId).deleteOnExit();
-            File file = new File(filePath + punchinClaimId + ".zip");
-            String fileName = file.getName();
-            String version = amazonS3FileManagers.uploadFileToAmazonS3("banker/", new File(filePath + punchinClaimId + ".zip"), fileName);
-            amazonS3FileManagers.cleanUp(file);
+            zipOutputStream.closeEntry();
+            zipOutputStream.close();
+            String version = amazonS3FileManagers.uploadFileToAmazonS3("agent/", zipfile, punchinClaimId + ".zip");
+//            ZipUtils appZip = new ZipUtils();
+//            appZip.generateFileList(new File(filePath + claimId), filePath + claimId);
+//            appZip.zipIt(filePath + punchinClaimId + ".zip", filePath + claimId);
+//            new File(filePath + claimId).deleteOnExit();
+//            File file = new File(filePath + punchinClaimId + ".zip");
+//            String fileName = file.getName();
+//            String version = amazonS3FileManagers.uploadFileToAmazonS3("banker/", new File(filePath + punchinClaimId + ".zip"), fileName);
+            amazonS3FileManagers.cleanUp(zipfile);
             return version;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: downloadAllDocuments ", e);
             return null;
+        }
+    }
+
+    private void writeStreamToZip(byte[] buffer, ZipOutputStream zipOutputStream,
+                                  InputStream inputStream) {
+        try {
+            int len;
+            while ((len = inputStream.read(buffer)) > 0) {
+                zipOutputStream.write(buffer, 0, len);
+            }
+        } catch (IOException e) {
+
         }
     }
 

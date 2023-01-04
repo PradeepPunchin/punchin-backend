@@ -206,7 +206,7 @@ public class VerifierServiceImpl implements VerifierService {
                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
                     for (DocumentUrls documentUrls : documentUrlsList) {
                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
@@ -231,7 +231,7 @@ public class VerifierServiceImpl implements VerifierService {
                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
                     for (DocumentUrls documentUrls : documentUrlsList) {
                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
@@ -256,7 +256,8 @@ public class VerifierServiceImpl implements VerifierService {
                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
                     for (DocumentUrls documentUrls : documentUrlsList) {
                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();

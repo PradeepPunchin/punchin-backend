@@ -44,7 +44,7 @@ public class GenericUtils {
         if (contentType.equalsIgnoreCase("text/csv")) {
             return "csv";
         }
-        return null;
+        return "xlSheet";
     }
 
 }

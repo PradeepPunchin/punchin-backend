@@ -183,11 +183,21 @@ public class VerifierServiceImpl implements VerifierService {
             claimDetailForVerificationDTO.setNomineeAddress(claimsData.getNomineeAddress());
             claimDetailForVerificationDTO.setNomineeRelationShip(claimsData.getNomineeRelationShip());
             claimDetailForVerificationDTO.setClaimStatus(claimsData.getClaimStatus().name());
+            Long agentId = claimsData.getAgentId();
+            Optional<User> optionalAgent = userRepository.findById(agentId);
+            if (optionalAgent.isPresent()) {
+                User agent = optionalAgent.get();
+                claimDetailForVerificationDTO.setAgentName(agent.getFirstName());
+                claimDetailForVerificationDTO.setAgentCity(agent.getCity());
+                if (agent.getState() != null) {
+                    claimDetailForVerificationDTO.setAgentState(agent.getState());
+                }
+            }
 
             //Agent
             List<ClaimDocumentsDTO> agentDocumentsListDTOs = new ArrayList<>();
             List<String> uploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent", true);
-            for(String docTypes : uploadedDocTypes) {
+            for (String docTypes : uploadedDocTypes) {
                 List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(claimsData.getId(), "agent", true, docTypes);
                 for (ClaimDocuments claimDocuments : agentDocumentsList) {
                     ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
@@ -269,7 +279,7 @@ public class VerifierServiceImpl implements VerifierService {
     public String acceptAndRejectDocument(ClaimsData claimsData, ClaimDocuments claimDocuments, DocumentApproveRejectPayloadDTO approveRejectPayloadDTO) {
         log.info("VerifierController :: acceptAndRejectDocuments claimsData {}, claimDocuments {}, approveRejectPayloadDTO {}", claimsData, claimDocuments, approveRejectPayloadDTO);
         try {
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(claimsData.getId(), "agent", true, claimDocuments.getAgentDocType().name());
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(claimsData.getId(), claimDocuments.getUploadSideBy(), true, claimDocuments.getAgentDocType().name());
             claimDocumentsList.forEach(claimDocuments1 -> {
                 claimDocuments1.setIsVerified(true);
                 claimDocuments1.setIsApproved(approveRejectPayloadDTO.isApproved());
@@ -385,7 +395,7 @@ public class VerifierServiceImpl implements VerifierService {
         File file1 = new File(filePath + claimId);
         file1.mkdirs();
         log.info("Directory created");
-        try(FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);) {
+        try (FileOutputStream fos = new FileOutputStream(file1.getAbsolutePath() + "/" + FilenameUtils.getName(docUrl), true);) {
             log.info("ready to download claim documents docUrl {}", docUrl);
             ByteArrayOutputStream byteArrayOutputStream = amazonS3FileManagers.downloadFile("agent/" + FilenameUtils.getName(docUrl));
             byteArrayOutputStream.writeTo(fos);
@@ -413,7 +423,7 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 dto.setBorrowerContactNumber(claimData.getBorrowerContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
-                if(claimData.getAgentId() > 0){
+                if (claimData.getAgentId() > 0) {
                     dto.setAgentAllocated(true);
                 }
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "agent");
@@ -677,6 +687,7 @@ public class VerifierServiceImpl implements VerifierService {
             Map<String, Object> map = new HashMap<>();
             log.info("VerifierServiceImpl :: getClaimHistory claimId - {}", id);
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
+
             ClaimsData claimsData = claimsDataRepository.findById(id).get();
             if(Objects.nonNull(claimsData)) {
                 List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());

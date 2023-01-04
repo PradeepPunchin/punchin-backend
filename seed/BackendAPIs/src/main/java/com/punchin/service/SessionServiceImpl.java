@@ -1,5 +1,6 @@
 package com.punchin.service;
 
+import com.punchin.dto.LoginRequestDTO;
 import com.punchin.entity.Session;
 import com.punchin.entity.User;
 import com.punchin.enums.Platform;
@@ -28,7 +29,7 @@ public class SessionServiceImpl implements SessionService{
     }
 
     @Override
-    public Session createSession(User user, Platform platform) {
+    public Session createSession(User user, LoginRequestDTO credentials) {
         Session session = new Session();
         final long currentTimeMillis = System.currentTimeMillis();
         session.setStartTime(new Date(currentTimeMillis));
@@ -36,7 +37,8 @@ public class SessionServiceImpl implements SessionService{
 
         //Change when it is required.
         session.setMobile(false);
-        session.setPlatform(platform);
+        session.setPlatform(credentials.getPlatform());
+        session.setDeviceInfo(credentials.getDeviceInfo());
         session.setDeviceId("test");
 
         session.setLastActiveTime(currentTimeMillis);

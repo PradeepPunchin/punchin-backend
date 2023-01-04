@@ -28,11 +28,11 @@ public class CSVHelper {
     }
 
     public static List<ClaimDraftData> csvToClaimsData(InputStream is) {
-        CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("Borrower Name", " Borrower Address", "Borrower City", " Borrower Pincode", " Borrower State", "Borrower Contact Number",
-                "Borrower EmailId", " Borrower Alternate Contact Number", " Borrower Alternate Contact Details", " Loan Account Number", "Loan Category/Type", " Loan Disbursal Date", "Loan Disbursal Amount",
-                "Branch Code", "Branch Address", "Branch City", " Lender Branch Pin code", " Lender Branch State", " Lenders Contact Name",  "Insurer Name",
-                "Borrower Policy Number", " Master Policy Number", " Policy StartDate", " Policy Tenure", " Policy SumAssured", " Nominee Name", "Nominee Relationship", " Nominee Contact Number",
-                "Nominee EmailId", " Nominee Address", "Claim Status", "Loan Outstanding Amount", "Account Manager Contact Number", "Loan Account Manager Name", "Loan Amount Balance", "Loan Amount PaidBy Borrower", "Borrower Dob");
+        CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("Borrower Name", " Borrower Address", "Borrower City", " Borrower Pincode", " Borrower State", " Borrower Contact Number",
+                "Borrower Email-Id", " Alternate Mobile No.", " Alternate contact details if any", " Loan Account number", " Loan Type / Category ", " Loan Disbursal Date", "Loan Disbursal Amount",
+                "Lender Branch code ", "Lender Branch Address", "Lender Branch City", " Lender Branch Pin Code ", " Lender Branch State", " Lenders Local Contact Name", "Lenders Local Contact Mob Number" , "Insurer Name",
+                "Borrower Policy Number", " Master Pol number", " Policy Start Date ", " Policy Tenure", "  Policy Sum Assured", " Nominee Name", "Nominee relationship ", " Nominee contact number",
+                "Nominee email id ", " Nominee Address ", "Claim Status", "Loan o/s amt", "Account Manager Contact Number", "Loan Account Manager Name", "Loan Amount Balance", "Loan Amount PaidBy Borrower", "Borrower Dob", "Loan Disbursal Amount");
         try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 
              CSVParser csvParser = new CSVParser(fileReader, csvFormat.withFirstRecordAsHeader().withTrim())) {
@@ -40,38 +40,46 @@ public class CSVHelper {
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
             for (CSVRecord csvRecord : csvRecords) {
                 ClaimDraftData claimsData = new ClaimDraftData();
-                String disbursalDate = csvRecord.get("Loan Disbursal Date");
-                Date date1 = new SimpleDateFormat("yyyy-MM-dd").parse(disbursalDate);
-                String policyStartDate = csvRecord.get("Policy StartDate");
-                Date date2 = new SimpleDateFormat("yyyy-MM-dd").parse(policyStartDate);
-                claimsData.setBorrowerName(csvRecord.get("Borrower Name"));
-                claimsData.setBorrowerAddress(csvRecord.get("Borrower Address"));
-                claimsData.setBorrowerCity(csvRecord.get("Borrower City"));
-                claimsData.setBorrowerPinCode(csvRecord.get("Borrower Pincode"));
-                claimsData.setBorrowerState(csvRecord.get("Borrower State"));
-                claimsData.setBorrowerContactNumber(csvRecord.get("Borrower Contact Number"));
-                claimsData.setBorrowerContactNumber(csvRecord.get("Borrower Alternate Contact Number"));
-                claimsData.setBorrowerContactNumber(csvRecord.get("Borrower Alternate Contact Details"));
-                claimsData.setLoanType(csvRecord.get("Loan Category/Type"));
-                claimsData.setLoanAccountNumber(csvRecord.get("Loan Account Number"));
-                claimsData.setBorrowerEmailId(csvRecord.get("Borrower EmailId"));
-                claimsData.setLoanDisbursalDate(date1);
-                claimsData.setBranchCode(csvRecord.get("Lender Branch Code"));
-                claimsData.setBranchAddress(csvRecord.get("Lender Branch Address"));
-                claimsData.setBranchPinCode(csvRecord.get("Lender Branch Pin code"));
-                claimsData.setBranchState(csvRecord.get("Lender Branch State"));
-                claimsData.setBranchCity(csvRecord.get("Lender Branch City"));
-                claimsData.setInsurerName(csvRecord.get("Insurer Name"));
-                claimsData.setMasterPolNumber(csvRecord.get("Master Policy Number"));
-                claimsData.setPolicyNumber(csvRecord.get("Borrower Policy Number"));
-                claimsData.setPolicyStartDate(date2);
-                claimsData.setPolicyCoverageDuration(Integer.valueOf(csvRecord.get("Policy Tenure")));
-                claimsData.setPolicySumAssured(Double.parseDouble(csvRecord.get("Policy SumAssured")));
-                claimsData.setNomineeName(csvRecord.get("Nominee Name"));
-                claimsData.setNomineeRelationShip(csvRecord.get("Nominee Relationship"));
-                claimsData.setNomineeContactNumber(csvRecord.get("Nominee Contact Number"));
-                claimsData.setNomineeEmailId(csvRecord.get("Nominee EmailId"));
-                claimsData.setNomineeAddress(csvRecord.get("Nominee Address"));
+                SimpleDateFormat formatter1=new SimpleDateFormat("dd/MM/yyyy");
+                claimsData.setBorrowerName(csvRecord.get(1));
+                claimsData.setBorrowerAddress(csvRecord.get(2));
+                claimsData.setBorrowerCity(csvRecord.get(3));
+                claimsData.setBorrowerPinCode(csvRecord.get(4));
+                claimsData.setBorrowerState(csvRecord.get(5));
+                claimsData.setBorrowerContactNumber(csvRecord.get(6));
+                claimsData.setBorrowerEmailId(csvRecord.get(7));
+                claimsData.setBorrowerAlternateContactNumber(csvRecord.get(8));
+                claimsData.setBorrowerAlternateContactDetails(csvRecord.get(9));
+                claimsData.setLoanAccountNumber(csvRecord.get(10));
+                claimsData.setLoanType(csvRecord.get(11));
+                String date = csvRecord.get(12);
+                claimsData.setLoanDisbursalDate(formatter1.parse(date));
+                String loanAmount = csvRecord.get(13);
+                claimsData.setLoanAmount(Double.parseDouble(loanAmount));
+                String loanOs = csvRecord.get(14);
+                claimsData.setLoanOutstandingAmount(Double.parseDouble(loanOs));
+                claimsData.setBranchCode(csvRecord.get(15));
+                claimsData.setBranchAddress(csvRecord.get(16));
+                claimsData.setBranchCity(csvRecord.get(17));
+                claimsData.setBranchPinCode(csvRecord.get(18));
+                claimsData.setBranchState(csvRecord.get(19));
+                claimsData.setLoanAccountManagerName(csvRecord.get(20));
+                claimsData.setAccountManagerContactNumber(csvRecord.get(21));
+                claimsData.setInsurerName(csvRecord.get(22));
+                claimsData.setPolicyNumber(csvRecord.get(23));
+                claimsData.setMasterPolNumber(csvRecord.get(24));
+                String date1 = csvRecord.get(25);
+                claimsData.setPolicyStartDate(formatter1.parse(date1));
+                String polDuration = csvRecord.get(26);
+                claimsData.setPolicyCoverageDuration(Integer.parseInt(polDuration));
+                String polSum = csvRecord.get(27);
+                claimsData.setPolicySumAssured(Double.parseDouble(polSum));
+                claimsData.setNomineeName(csvRecord.get(28));
+                claimsData.setNomineeRelationShip(csvRecord.get(29));
+                claimsData.setNomineeContactNumber(csvRecord.get(30));
+                claimsData.setNomineeEmailId(csvRecord.get(31));
+                claimsData.setNomineeAddress(csvRecord.get(32));
+
                 claims.add(claimsData);
             }
             return claims;

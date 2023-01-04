@@ -80,13 +80,17 @@ public class BankerServiceImpl implements BankerService {
                             !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
                             !claimDraftData.getLoanAccountNumber().isEmpty() && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
                             !claimDraftData.getInsurerName().isEmpty() && claimDraftData.getPolicySumAssured() != null && !claimDraftData.getNomineeName().isEmpty() && !claimDraftData.getNomineeRelationShip().isEmpty()) {
-                        boolean existingLoanNumber = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
-                        if (!existingLoanNumber) {
+                        List<Long> claimId = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
+                        if (claimId.isEmpty()) {
                             claimsDataList.add(claimDraftData);
                         }
-                        log.info("Loan number already exists :: {}",claimDraftData.getId());
+                        else{
+                            log.info("Loan number already exists :: {}",claimId);
+                        }
                     }
+                    else{
                     log.info("Mandatory fields are missing :: {}",claimDraftData.getId());
+                    }
                 }
                 if (!claimsData.isEmpty()) {
                     claimsDataList = claimDraftDataRepository.saveAll(claimsDataList);
@@ -726,16 +730,18 @@ public class BankerServiceImpl implements BankerService {
                         !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
                         !claimDraftData.getLoanAccountNumber().isEmpty() && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
                         !claimDraftData.getInsurerName().isEmpty() && claimDraftData.getPolicySumAssured() != null && !claimDraftData.getNomineeName().isEmpty() && !claimDraftData.getNomineeRelationShip().isEmpty()) {
-                    boolean existingLoanNumber = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
-                    if (!existingLoanNumber) {
+                    List<Long> claimId = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
+                    if (claimId.isEmpty()) {
                         claimsDraftDataList.add(claimDraftData);
                     }
-                    log.info("Loan number already exists :: {}",claimDraftData.getId());
+                    else{
+                        log.info("Loan number already exists :: {}",claimId);
+                    }
                 }
-                log.info("Mandatory fields are missing :: {}",claimDraftData.getId());
+                else{
+                    log.info("Mandatory fields are missing :: {}",claimDraftData);
+                }
             }
-
-
             if (!claimsDataList.isEmpty()) {
                 return claimDraftDataRepository.saveAll(claimsDraftDataList);
             }

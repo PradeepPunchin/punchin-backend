@@ -83,13 +83,13 @@ public class BankerController {
                         return ResponseHandler.response(null, MessageCode.invalidFormat, false, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
                     }
                 }
-
                 String fileFormat = GenericUtils.checkCSV(multipartFile);
-                assert fileFormat != null;
-                if (fileFormat.equalsIgnoreCase("csv")){
+                if (fileFormat == null) {
+                    return ResponseHandler.response(null, MessageCode.invalidFormat, false, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+                }
+               else if (fileFormat.equalsIgnoreCase("csv")){
                   return  bankerService.saveUploadCSVData(multipartFile);
                 }
-
                 map = bankerService.saveUploadExcelData(files);
                 if (Boolean.parseBoolean(map.get("status").toString())) {
                     return ResponseHandler.response(map.get("data"), MessageCode.success, true, HttpStatus.CREATED);

@@ -18,7 +18,7 @@ public class GenericUtils {
     public static boolean checkExcelFormat(MultipartFile file) {
         String contentType = file.getContentType();
         if (contentType != null) {
-            if(contentType.equalsIgnoreCase("csv")){
+            if(contentType.equalsIgnoreCase("text/csv")){
                 return true;
             }
             if(contentType.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")){
@@ -36,4 +36,15 @@ public class GenericUtils {
     public static boolean hasMatchingSubstring1(String str, List<String> substrings) {
         return substrings.stream().anyMatch(str::contains);
     }
+    public static String checkCSV(MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType == null) {
+            return null;
+        }
+        if (contentType.equalsIgnoreCase("text/csv")) {
+            return "csv";
+        }
+        return "xlSheet";
+    }
+
 }

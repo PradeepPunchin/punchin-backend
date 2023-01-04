@@ -15,4 +15,7 @@ public class LoginRequestDTO {
 
     @ApiModelProperty(value = "This is used to describe which platform used for login")
     private Platform platform;
+
+    @ApiModelProperty(value = "This is used to describe which platform used for login")
+    private String deviceInfo;
 }

@@ -41,6 +41,9 @@ public class Session{
 
     private Long lastActiveTime;
 
+    @Column(columnDefinition = "Text")
+    private String deviceInfo;
+
     @CreationTimestamp
     private Date createdAt;
 

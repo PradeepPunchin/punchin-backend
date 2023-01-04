@@ -269,7 +269,7 @@ public class VerifierServiceImpl implements VerifierService {
     public String acceptAndRejectDocument(ClaimsData claimsData, ClaimDocuments claimDocuments, DocumentApproveRejectPayloadDTO approveRejectPayloadDTO) {
         log.info("VerifierController :: acceptAndRejectDocuments claimsData {}, claimDocuments {}, approveRejectPayloadDTO {}", claimsData, claimDocuments, approveRejectPayloadDTO);
         try {
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(claimsData.getId(), "agent", true, claimDocuments.getAgentDocType().name());
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(claimsData.getId(), claimDocuments.getUploadSideBy(), true, claimDocuments.getAgentDocType().name());
             claimDocumentsList.forEach(claimDocuments1 -> {
                 claimDocuments1.setIsVerified(true);
                 claimDocuments1.setIsApproved(approveRejectPayloadDTO.isApproved());

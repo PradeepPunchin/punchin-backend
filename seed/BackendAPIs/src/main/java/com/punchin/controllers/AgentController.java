@@ -96,7 +96,7 @@ public class AgentController {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             Map<String, Object> claimDocumentsMAP = agentService.getClaimDocuments(id);
-            if (claimDocumentsMAP.get("message").equals(MessageCode.success)) {
+            if (MessageCode.success.equals(claimDocumentsMAP.get("message"))) {
                 return ResponseHandler.response(claimDocumentsMAP, MessageCode.success, true, HttpStatus.OK);
             }
             return ResponseHandler.response(null, claimDocumentsMAP.get("message").toString(), false, HttpStatus.BAD_REQUEST);
@@ -120,7 +120,7 @@ public class AgentController {
             }
             Map<String, Object> result = agentService.discrepancyDocumentUpload(id, multipartFile, docType, isDiscrepancy);
             if (result.get("message").equals(MessageCode.success)) {
-                if (!agentService.checkDocumentUploaded(id)) {
+                if (!agentService.checkDocumentUploaded(id, isDiscrepancy)) {
                     String result2 = agentService.forwardToVerifier(id);
                     if (result2.equals(MessageCode.success)) {
                         return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
@@ -161,7 +161,7 @@ public class AgentController {
     @Secured({"AGENT"})
     @ApiOperation(value = "Upload claim document", notes = "This can be used to upload document regarding claim by verifier")
     @PutMapping(value = UrlMapping.AGENT_UPLOAD_DOCUMENT)
-    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false)  CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor, @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc, @RequestParam(required = false) String agentRemark) {
+    public ResponseEntity<Object> uploadDocuments(@PathVariable Long id, @RequestParam(required = false) CauseOfDeathEnum causeOfDeath, @RequestParam(required = false) boolean isMinor, @RequestParam(required = false) Map<String, MultipartFile> isMinorDoc, @RequestParam(required = false) String agentRemark) {
         try {
             log.info("AgentController :: uploadDocument claimId {}, multipartFiles {}", id);
             if (!agentService.checkAccess(id)) {

@@ -37,6 +37,7 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
 
     List<ClaimDocuments> findByClaimsDataIdAndAgentDocType(Long claimId, AgentDocType valueOf);
 
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_documents WHERE claims_data_id =:id AND upload_side_by Ilike %:agent% AND is_active=:b")
     List<ClaimDocuments> findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(Long id, String agent, boolean b);
 
     boolean existsByClaimsDataIdAndUploadSideByAndIsActiveAndIsApproved(Long claimId, String agent, boolean b, boolean b1);
@@ -74,4 +75,5 @@ public interface ClaimDocumentsRepository extends JpaRepository<ClaimDocuments, 
     ClaimDocuments findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(Long claimId, AgentDocType docType, String newRequirement);
 
     List<ClaimDocuments> findByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(Long claimId, AgentDocType docType, String newRequirement);
+    boolean existsByClaimsDataIdAndUploadSideByAndIsVerifiedAndIsApprovedAndIsActiveAndIsDeleted(Long claimId, String newRequirement, boolean b, boolean b1, boolean b2, boolean b3);
 }

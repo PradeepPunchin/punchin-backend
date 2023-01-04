@@ -71,7 +71,6 @@ public class AmazonS3FileManagers {
         return client.getUrl(bucketName, key + name).toString();
     }
 
-
     public String uploadFile(String claimId, MultipartFile multipartFile, String folderName) {
         try {
             String versionId = null;
@@ -155,5 +154,16 @@ public class AmazonS3FileManagers {
         }
 
         return null;
+    }
+
+    public InputStream getStreamFromS3(String docUrl) {
+        try {
+            AmazonS3 client = getAmazonConnection();
+            S3Object s3object = client.getObject(new GetObjectRequest(bucketName,
+                    "agent/" + FilenameUtils.getName(docUrl)));
+            return s3object.getObjectContent();
+        }  catch (Exception e) {
+            return null;
+        }
     }
 }

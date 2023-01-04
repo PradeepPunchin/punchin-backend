@@ -28,6 +28,7 @@ public interface AgentService {
     boolean checkDocumentIsInDiscrepancy(Long claimId, AgentDocType docType, boolean isDiscrepancy);
 
     boolean checkDocumentUploaded(Long id);
+    boolean checkDocumentUploaded(Long id, boolean isDiscrepancy);
 
     String forwardToVerifier(Long id);
 

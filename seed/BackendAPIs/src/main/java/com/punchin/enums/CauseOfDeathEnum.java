@@ -6,7 +6,10 @@ public enum CauseOfDeathEnum {
     SUICIDE(3, "SUICIDE"),
     ILLNESS_MEDICAL_REASON(4, "ILLNESS_MEDICAL_REASON"),
     DUE_TO_NATURAL_CALAMITY(5, "DUE_TO_NATURAL_CALAMITY"),
-    OTHER(6, "OTHER");
+    CRITICAL(6, "CRITICAL"),
+    JOB_LOSS(7, "JOB_LOSS"),
+    DISABILITY(8, "DISABILITY"),
+    OTHER(9, "OTHER");
 
     private String value;
     private int key;

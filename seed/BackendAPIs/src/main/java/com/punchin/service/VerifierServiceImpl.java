@@ -290,7 +290,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimDocuments1.setVerifyTime(System.currentTimeMillis());
             });
             claimDocumentsRepository.saveAll(claimDocumentsList);
-            if (claimDocuments.getUploadSideBy().equalsIgnoreCase("agent")) {
+            if (claimDocuments.getUploadSideBy().toLowerCase().contains("agent")) {
                 if (!approveRejectPayloadDTO.isApproved()) {
                     claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
                     claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.VERIFIER_DISCREPENCY, "Verifier Discrepancy"));

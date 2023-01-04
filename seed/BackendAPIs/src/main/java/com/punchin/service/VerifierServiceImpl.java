@@ -206,7 +206,7 @@ public class VerifierServiceImpl implements VerifierService {
                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
                     for (DocumentUrls documentUrls : documentUrlsList) {
                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
@@ -231,7 +231,7 @@ public class VerifierServiceImpl implements VerifierService {
                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
                     for (DocumentUrls documentUrls : documentUrlsList) {
                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
@@ -256,7 +256,8 @@ public class VerifierServiceImpl implements VerifierService {
                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(claimsData.getId(), "agent", true, docTypes);
+
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
                     for (DocumentUrls documentUrls : documentUrlsList) {
                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
@@ -279,7 +280,7 @@ public class VerifierServiceImpl implements VerifierService {
     public String acceptAndRejectDocument(ClaimsData claimsData, ClaimDocuments claimDocuments, DocumentApproveRejectPayloadDTO approveRejectPayloadDTO) {
         log.info("VerifierController :: acceptAndRejectDocuments claimsData {}, claimDocuments {}, approveRejectPayloadDTO {}", claimsData, claimDocuments, approveRejectPayloadDTO);
         try {
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(claimsData.getId(), "agent", true, claimDocuments.getAgentDocType().name());
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocType(claimsData.getId(), claimDocuments.getUploadSideBy(), true, claimDocuments.getAgentDocType().name());
             claimDocumentsList.forEach(claimDocuments1 -> {
                 claimDocuments1.setIsVerified(true);
                 claimDocuments1.setIsApproved(approveRejectPayloadDTO.isApproved());
@@ -289,7 +290,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimDocuments1.setVerifyTime(System.currentTimeMillis());
             });
             claimDocumentsRepository.saveAll(claimDocumentsList);
-            if (claimDocuments.getUploadSideBy().equalsIgnoreCase("agent")) {
+            if (claimDocuments.getUploadSideBy().toLowerCase().contains("agent")) {
                 if (!approveRejectPayloadDTO.isApproved()) {
                     claimsData.setClaimStatus(ClaimStatus.VERIFIER_DISCREPENCY);
                     claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.VERIFIER_DISCREPENCY, "Verifier Discrepancy"));

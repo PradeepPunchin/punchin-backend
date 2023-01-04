@@ -49,7 +49,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
             if(user.getRole().equals(RoleEnum.AGENT) && credentials.getPlatform().equals(Platform.WEB)){
                 mapResult.put("message", MessageCode.unauthorized);
             }else {
-                mapResult.put("session", modelMapper.map(sessionService.createSession(user, credentials.getPlatform()), SessionDTO.class));
+                mapResult.put("session", modelMapper.map(sessionService.createSession(user, credentials), SessionDTO.class));
                 mapResult.put("message", MessageCode.success);
             }
         }else{

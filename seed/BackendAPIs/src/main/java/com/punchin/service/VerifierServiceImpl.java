@@ -425,6 +425,15 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setClaimStatus(claimData.getClaimStatus());
                 if (claimData.getAgentId() > 0) {
                     dto.setAgentAllocated(true);
+                    Optional<User> optionalUser = userRepository.findById(claimData.getAgentId());
+                    if (optionalUser.isPresent()) {
+                        User agent = optionalUser.get();
+                        dto.setAgentName(agent.getFirstName());
+                        dto.setAgentCity(agent.getCity());
+                        if (agent.getState() != null) {
+                            dto.setAgentState(agent.getState());
+                        }
+                    }
                 }
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "agent");
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {

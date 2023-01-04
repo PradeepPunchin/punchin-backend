@@ -29,6 +29,9 @@ public class VerifierClaimDataResponseDTO {
     private String nomineeKycProof = "NOT_UPLOADED";
     private String borrowerKycProof = "NOT_UPLOADED";
     private boolean isAgentAllocated = false;
+    private String agentName;
+    private String agentCity;
+    private String agentState;
 }
 
 

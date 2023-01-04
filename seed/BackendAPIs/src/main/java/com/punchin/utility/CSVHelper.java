@@ -27,7 +27,7 @@ public class CSVHelper {
         return true;
     }
 
-    public static List<ClaimDraftData> csvToClaimsData(InputStream is) {
+    public static List<ClaimDraftData> csvToClaimsData(InputStream is, String banker) {
         CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("Borrower Name", " Borrower Address", "Borrower City", " Borrower Pincode", " Borrower State", " Borrower Contact Number",
                 "Borrower Email-Id", " Alternate Mobile No.", " Alternate contact details if any", " Loan Account number", " Loan Type / Category ", " Loan Disbursal Date", "Loan Disbursal Amount",
                 "Lender Branch code ", "Lender Branch Address", "Lender Branch City", " Lender Branch Pin Code ", " Lender Branch State", " Lenders Local Contact Name", "Lenders Local Contact Mob Number" , "Insurer Name",
@@ -79,7 +79,7 @@ public class CSVHelper {
                 claimsData.setNomineeContactNumber(csvRecord.get(30));
                 claimsData.setNomineeEmailId(csvRecord.get(31));
                 claimsData.setNomineeAddress(csvRecord.get(32));
-
+                claimsData.setPunchinBankerId(banker);
                 claims.add(claimsData);
             }
             return claims;

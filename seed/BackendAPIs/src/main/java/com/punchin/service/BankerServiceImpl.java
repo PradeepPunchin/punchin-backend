@@ -721,7 +721,8 @@ public class BankerServiceImpl implements BankerService {
 
     public List<ClaimDraftData> save(MultipartFile file) {
         try {
-            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream());
+            String bankerId = GenericUtils.getLoggedInUser().getUserId();
+            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream(),bankerId);
 
             List<ClaimDraftData> claimsDraftDataList = new ArrayList<>();
 

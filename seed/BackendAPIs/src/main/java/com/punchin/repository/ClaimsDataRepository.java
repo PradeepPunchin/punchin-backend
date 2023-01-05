@@ -84,11 +84,11 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     Long countByClaimStatusInAndPunchinBankerId(List<ClaimStatus> claimsStatus, String userId);
 
-    Page findAllByPunchinBankerIdOrderByCreatedAtDesc(String userId, Pageable pageable);
+    Page<ClaimsData> findAllByPunchinBankerIdOrderByCreatedAtDesc(String userId, Pageable pageable);
 
     Page findByIsForwardToVerifierAndPunchinBankerId(boolean b, String userId, Pageable pageable);
 
-    Page findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
+    Page<ClaimsData> findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
 
     Long countByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state);
 
@@ -149,7 +149,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.borrower_state=:state and (cd.borrower_name Ilike %:searchedKeyword%) ORDER BY cd.borrower_name")
     Page<ClaimsData> findAllVerifierClaimDataBySearchName(String searchedKeyword, String state, Pageable pageable);
 
-    Page findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, List<ClaimStatus> claimsStatus1, String userId, Pageable pageable);
+    Page<ClaimsData> findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, List<ClaimStatus> claimsStatus1, String userId, Pageable pageable);
 
     @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE punchin_banker_id=:userId AND submitted_by is not null")
     Page<ClaimsData> findBySubmittedClaims(String userId, Pageable pageable);

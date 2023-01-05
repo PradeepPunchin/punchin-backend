@@ -77,4 +77,5 @@ public class ClaimsData extends BasicEntity {
     private CauseOfDeathEnum causeOfDeath;
     private Boolean isMinor;
     private String agentRemark;
+    private String agentComment;
 }

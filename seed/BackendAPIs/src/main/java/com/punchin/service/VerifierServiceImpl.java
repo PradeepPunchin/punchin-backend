@@ -57,6 +57,8 @@ public class VerifierServiceImpl implements VerifierService {
     private ClaimHistoryRepository claimHistoryRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ClaimsRemarksRepository remarksRepository;
 
     @Override
     public PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize, SearchCaseEnum searchCaseEnum, String searchedKeyword) {
@@ -697,7 +699,7 @@ public class VerifierServiceImpl implements VerifierService {
             Map<String, Object> map = new HashMap<>();
             log.info("VerifierServiceImpl :: getClaimHistory claimId - {}", id);
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
-
+            Long lastActionTime = 0L;
             ClaimsData claimsData = claimsDataRepository.findById(id).get();
             if(Objects.nonNull(claimsData)) {
                 List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());
@@ -705,6 +707,7 @@ public class VerifierServiceImpl implements VerifierService {
                 for (ClaimHistory claimHistory : claimHistories) {
                     ClaimHistoryDTO claimHistoryDTO = modelMapperService.map(claimHistory, ClaimHistoryDTO.class);
                     if (Objects.nonNull(oldClaimHistory) && !claimHistoryDTO.getClaimStatus().equals(oldClaimHistory.getClaimStatus())) {
+                        lastActionTime = claimHistory.getCreatedAt();
                         claimHistoryDTOS.add(claimHistoryDTO);
                     }
                     oldClaimHistory = claimHistoryDTO;
@@ -712,10 +715,35 @@ public class VerifierServiceImpl implements VerifierService {
             }
             map.put("claimHistoryDTOS", claimHistoryDTOS);
             map.put("claimStatus", claimsData.getClaimStatus());
-            map.put("startedAt", claimsData.getCreatedAt());
+            map.put("startedAt", lastActionTime);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getClaimHistory e - {}", e);
+            return Collections.EMPTY_MAP;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getRemarkHistory(Long id) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            log.info("VerifierServiceImpl :: getRemarkHistory claimId - {}", id);
+            List<ClaimsRemarksDTO> claimHistoryDTOS = new ArrayList<>();
+            ClaimsData claimsData = claimsDataRepository.findById(id).get();
+            Long lastRemarkTime = 0L;
+            if(Objects.nonNull(claimsData)) {
+                List<ClaimsRemarks> claimsRemarksList = remarksRepository.findByClaimIdOrderById(claimsData.getId());
+                for (ClaimsRemarks claimsRemarks : claimsRemarksList) {
+                    lastRemarkTime = claimsRemarks.getCreatedAt();
+                    claimHistoryDTOS.add(modelMapperService.map(claimsRemarks, ClaimsRemarksDTO.class));
+                }
+            }
+            map.put("claimRemarkDTOS", claimHistoryDTOS);
+            map.put("claimStatus", claimsData.getClaimStatus());
+            map.put("lastRemarkTime", lastRemarkTime);
+            return map;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: getRemarkHistory e - {}", e);
             return Collections.EMPTY_MAP;
         }
     }

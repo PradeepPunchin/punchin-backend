@@ -298,4 +298,17 @@ public class VerifierController {
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Secured({"VERIFIER"})
+    @ApiOperation(value = "Claim history", notes = "This can be used to get remark History")
+    @GetMapping(value = UrlMapping.GET_CLAIM_REMARK)
+    public ResponseEntity<Object> getRemarkHistory(@PathVariable Long id) {
+        try {
+            log.info("BankerController :: getRemarkHistory claimId - {}", id);
+            return ResponseHandler.response(verifierService.getRemarkHistory(id), MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getRemarkHistory e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

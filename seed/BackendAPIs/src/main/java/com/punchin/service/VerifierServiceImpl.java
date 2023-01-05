@@ -429,7 +429,7 @@ public class VerifierServiceImpl implements VerifierService {
                     Optional<User> optionalUser = userRepository.findById(claimData.getAgentId());
                     if (optionalUser.isPresent()) {
                         User agent = optionalUser.get();
-                        dto.setAgentName(agent.getFirstName());
+                        dto.setAgentName((agent.getFirstName() + "-" + agent.getCity() + "-" + agent.getState()));
                         dto.setAgentCity(agent.getCity());
                         if (agent.getState() != null) {
                             dto.setAgentState(agent.getState());

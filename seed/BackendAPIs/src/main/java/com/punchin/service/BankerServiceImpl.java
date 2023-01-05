@@ -63,6 +63,8 @@ public class BankerServiceImpl implements BankerService {
     private CommonUtilService commonUtilService;
     @Autowired
     private ClaimHistoryRepository claimHistoryRepository;
+    @Autowired
+    private InvalidClaimsDataRepository invalidClaimsDataRepository;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -75,6 +77,7 @@ public class BankerServiceImpl implements BankerService {
                 Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 List<ClaimDraftData> claimsDataList = new ArrayList<>();
+                List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
                 for (ClaimDraftData claimDraftData : claimsData) {
                     if (!claimDraftData.getBorrowerName().isEmpty() && !claimDraftData.getBorrowerAddress().isEmpty() && !claimDraftData.getBorrowerCity().isEmpty() &&
                             !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
@@ -87,14 +90,27 @@ public class BankerServiceImpl implements BankerService {
                             claimDraftData.setValidClaimData(false);
                             claimsDataList.add(claimDraftData);
                             log.info("Loan number already exists :: {}", claimId);
+                            InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                            invalidClaimsData.setValidClaimData(false);
+                            invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
+                            invalidClaimsDataList.add(invalidClaimsData);
+
                         }
                     } else {
                         claimDraftData.setValidClaimData(false);
                         claimsDataList.add(claimDraftData);
                         log.info("Mandatory fields are missing :: {}", claimDraftData.getId());
+                        InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                        invalidClaimsData.setValidClaimData(false);
+                        invalidClaimsData.setInvalidClaimDataReason("Mandatory fields are missing");
+                        invalidClaimsDataList.add(invalidClaimsData);
                     }
                 }
                 if (!claimsData.isEmpty()) {
+                    if (!invalidClaimsDataList.isEmpty()) {
+                        log.info("Invalid claimsData Saved successfully");
+                        invalidClaimsDataRepository.saveAll(invalidClaimsDataList);
+                    }
                     claimsDataList = claimDraftDataRepository.saveAll(claimsDataList);
                     map.put("data", claimsDataList);
                     map.put("status", true);
@@ -727,9 +743,8 @@ public class BankerServiceImpl implements BankerService {
         try {
             String bankerId = GenericUtils.getLoggedInUser().getUserId();
             List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream(), bankerId);
-
             List<ClaimDraftData> claimsDraftDataList = new ArrayList<>();
-
+            List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimsDataList) {
                 if (!claimDraftData.getBorrowerName().isEmpty() && !claimDraftData.getBorrowerAddress().isEmpty() && !claimDraftData.getBorrowerCity().isEmpty() &&
                         !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
@@ -742,14 +757,26 @@ public class BankerServiceImpl implements BankerService {
                         claimDraftData.setValidClaimData(false);
                         claimsDraftDataList.add(claimDraftData);
                         log.info("Loan number already exists :: {}", claimId);
+                        InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                        invalidClaimsData.setValidClaimData(false);
+                        invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
+                        invalidClaimsDataList.add(invalidClaimsData);
                     }
                 } else {
                     claimDraftData.setValidClaimData(false);
                     claimsDraftDataList.add(claimDraftData);
                     log.info("Mandatory fields are missing :: {}", claimDraftData);
+                    InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                    invalidClaimsData.setValidClaimData(false);
+                    invalidClaimsData.setInvalidClaimDataReason("Mandatory fields are missing");
+                    invalidClaimsDataList.add(invalidClaimsData);
                 }
             }
             if (!claimsDataList.isEmpty()) {
+                if (!invalidClaimsDataList.isEmpty()) {
+                    log.info("Invalid claimsData Saved successfully");
+                    invalidClaimsDataRepository.saveAll(invalidClaimsDataList);
+                }
                 return claimDraftDataRepository.saveAll(claimsDraftDataList);
             }
         } catch (IOException e) {
@@ -1345,7 +1372,6 @@ public class BankerServiceImpl implements BankerService {
         }
     }
 
-
     private List<BankerClaimListResponseDTO> mappedAgentDetails(Page<ClaimsData> page1) {
         List<ClaimsData> claimsDataList = page1.getContent();
         List<BankerClaimListResponseDTO> bankerClaimListResponseDTOS = new ArrayList<>();
@@ -1361,7 +1387,7 @@ public class BankerServiceImpl implements BankerService {
             bankerClaimListResponseDTOS.add(bankerClaimListResponseDTO);
         }
         return bankerClaimListResponseDTOS;
-
     }
+
 
 }

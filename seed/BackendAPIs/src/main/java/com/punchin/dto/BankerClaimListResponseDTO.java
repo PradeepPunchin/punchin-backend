@@ -1,21 +1,13 @@
-package com.punchin.entity;
+package com.punchin.dto;
 
 import com.punchin.enums.CauseOfDeathEnum;
 import com.punchin.enums.ClaimStatus;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import javax.persistence.*;
 import java.util.Date;
 
 @Data
-@Entity
-@EqualsAndHashCode(callSuper = true)
-public class ClaimsData extends BasicEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(updatable = false, unique = true)
+public class BankerClaimListResponseDTO {
     private Long id;
     private Date uploadDate;
     private String punchinClaimId;
@@ -32,7 +24,6 @@ public class ClaimsData extends BasicEntity {
     private String borrowerAlternateContactDetails;
     private Date borrowerDob;
     private String loanAccountNumber;
-    @Column(columnDefinition = "Text")
     private String borrowerAddress;
     private String lenderName;
     private String loanType;
@@ -44,7 +35,6 @@ public class ClaimsData extends BasicEntity {
     private Double loanAmountBalance;
     private String branchCode;
     private String branchName;
-    @Column(columnDefinition = "Text")
     private String branchAddress;
     private String branchPinCode;
     private String branchCity;
@@ -61,21 +51,20 @@ public class ClaimsData extends BasicEntity {
     private String nomineeRelationShip;
     private String nomineeContactNumber;
     private String nomineeEmailId;
-    @Column(columnDefinition = "Text")
     private String nomineeAddress;
-    @Enumerated(EnumType.STRING)
     private ClaimStatus claimStatus;
-    @Enumerated(EnumType.STRING)
     private ClaimStatus claimBankerStatus;
-    private Long agentId = 0L;
-    private Long bankerId = 0L;
+    private Long agentId;
+    private Long bankerId;
     private Long submittedBy;
     private Long submittedAt;
-    private Boolean isForwardToVerifier = false;
+    private Boolean isForwardToVerifier;
 
     //Field filled by Agent
     private CauseOfDeathEnum causeOfDeath;
     private Boolean isMinor;
     private String agentRemark;
     private String agentComment;
+    private String agentName;
+
 }

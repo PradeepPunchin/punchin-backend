@@ -190,8 +190,10 @@ public class AgentServiceImpl implements AgentService {
             if(Objects.nonNull(documentDTO.getAgentRemark())) {
                 ClaimsRemarks claimsRemarks = new ClaimsRemarks();
                 claimsRemarks.setRemark(documentDTO.getAgentRemark());
+                claimsRemarks.setComment(documentDTO.getAgentComment());
                 remarksRepository.save(claimsRemarks);
                 claimsData.setAgentRemark(documentDTO.getAgentRemark());
+                claimsData.setAgentComment(documentDTO.getAgentComment());
             }
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
             claimDataDTO.setClaimDocuments(claimDocuments);

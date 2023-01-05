@@ -14,4 +14,5 @@ public class ClaimsRemarks extends BasicEntity{
     @Column(updatable = false, unique = true)
     private Long id;
     private String remark;
+    private String comment;
 }

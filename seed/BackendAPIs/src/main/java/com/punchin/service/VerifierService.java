@@ -39,4 +39,6 @@ public interface VerifierService {
     String claimDataAgentAllocation(Long agentId, Long claimDataId);
 
     Map<String, Object> getClaimHistory(Long id);
+
+    Map<String, Object> getRemarkHistory(Long id);
 }

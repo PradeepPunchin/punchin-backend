@@ -25,6 +25,7 @@ public class UrlMapping {
     public static final String DELETE_CLAIM_DOCUMENT = "/claim/document/delete/{docId}";
     public static final String REQUEST_ADDITIONAL_DOCUMENT = "/claim/document/additional-request";
     public static final String GET_CLAIM_HISTORY = "/claim/{id}/history";
+    public static final String GET_CLAIM_REMARK = "/claim/{id}/remarks";
 
 
     //Authentication Endpoints

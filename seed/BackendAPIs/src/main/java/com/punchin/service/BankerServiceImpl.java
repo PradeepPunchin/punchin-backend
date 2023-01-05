@@ -85,10 +85,14 @@ public class BankerServiceImpl implements BankerService {
                             claimsDataList.add(claimDraftData);
                         }
                         else{
+                            claimDraftData.setValidClaimData(false);
+                            claimsDataList.add(claimDraftData);
                             log.info("Loan number already exists :: {}",claimId);
                         }
                     }
                     else{
+                        claimDraftData.setValidClaimData(false);
+                        claimsDataList.add(claimDraftData);
                     log.info("Mandatory fields are missing :: {}",claimDraftData.getId());
                     }
                 }
@@ -736,10 +740,14 @@ public class BankerServiceImpl implements BankerService {
                         claimsDraftDataList.add(claimDraftData);
                     }
                     else{
+                        claimDraftData.setValidClaimData(false);
+                        claimsDraftDataList.add(claimDraftData);
                         log.info("Loan number already exists :: {}",claimId);
                     }
                 }
                 else{
+                    claimDraftData.setValidClaimData(false);
+                    claimsDraftDataList.add(claimDraftData);
                     log.info("Mandatory fields are missing :: {}",claimDraftData);
                 }
             }

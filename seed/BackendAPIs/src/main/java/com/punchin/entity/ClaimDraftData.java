@@ -56,4 +56,5 @@ public class ClaimDraftData extends BasicEntity {
     private String nomineeEmailId;
     @Column(columnDefinition = "Text")
     private String nomineeAddress;
+    private boolean validClaimData = true;
 }

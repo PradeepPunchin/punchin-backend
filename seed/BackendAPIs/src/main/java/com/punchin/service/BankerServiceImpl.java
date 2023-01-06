@@ -51,8 +51,6 @@ public class BankerServiceImpl implements BankerService {
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
     @Autowired
-    private ClaimAllocatedRepository claimAllocatedRepository;
-    @Autowired
     private AmazonS3FileManagers amazonS3FileManagers;
     @Autowired
     private AmazonClient amazonClient;

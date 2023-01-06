@@ -41,4 +41,6 @@ public interface VerifierService {
     Map<String, Object> getClaimHistory(Long id);
 
     Map<String, Object> getRemarkHistory(Long id);
+
+    ClaimsRemarksDTO addClaimRemark(ClaimsData claimsData, ClaimRemarkRequestDTO requestDTO);
 }

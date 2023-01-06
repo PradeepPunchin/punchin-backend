@@ -28,8 +28,6 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private ClaimsDataRepository claimsDataRepository;
     @Autowired
-    private ClaimAllocatedRepository claimAllocatedRepository;
-    @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
     @Autowired
     private DocumentUrlsRepository documentUrlsRepository;
@@ -40,7 +38,7 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private CommonUtilService commonUtilService;
     @Autowired
-    private ClaimsRemarksRepository remarksRepository;
+    private AgentVerifierRemarkRepository agentVerifierRemarkRepository;
     @Autowired
     private ClaimHistoryRepository claimHistoryRepository;
 
@@ -68,6 +66,8 @@ public class AgentServiceImpl implements AgentService {
                 page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 statusList.add(ClaimStatus.UNDER_VERIFICATION);
+                statusList.add(ClaimStatus.SUBMITTED_TO_LENDER);
+                statusList.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(statusList, GenericUtils.getLoggedInUser().getId(), pageable);
             }
             if (!page1.isEmpty()) {
@@ -84,6 +84,12 @@ public class AgentServiceImpl implements AgentService {
                     agentClaimListDTO.setNomineeName(claimsData.getNomineeName());
                     agentClaimListDTO.setNomineeContactNumber(claimsData.getNomineeContactNumber());
                     agentClaimListDTO.setClaimStatus(claimsData.getClaimStatus());
+                    List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
+                    List<ClaimsRemarksDTO> claimsRemarksDTOS = new ArrayList<>();
+                    for(AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks){
+                        claimsRemarksDTOS.add(mapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
+                    }
+                    agentClaimListDTO.setClaimsRemarksDTOs(claimsRemarksDTOS);
                     agentClaimListDTOS.add(agentClaimListDTO);
                 }
                 return commonService.convertPageToDTO(agentClaimListDTOS, page1);
@@ -188,7 +194,10 @@ public class AgentServiceImpl implements AgentService {
             claimsData.setClaimStatus(ClaimStatus.IN_PROGRESS);
             //claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.IN_PROGRESS, "In Progress"));
             if(Objects.nonNull(documentDTO.getAgentRemark())) {
-                remarksRepository.save(new ClaimsRemarks(claimsData.getId(), documentDTO.getAgentRemark(), documentDTO.getAgentComment(), GenericUtils.getLoggedInUser().getId()));
+                if(documentDTO.getAgentRemark().equalsIgnoreCase("other")){
+                    documentDTO.setAgentRemark(documentDTO.getAgentComment());
+                }
+                agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name()));
                 claimsData.setAgentRemark(documentDTO.getAgentRemark());
                 claimsData.setAgentComment(documentDTO.getAgentComment());
             }

@@ -1,9 +1,6 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.AgentListResponseDTO;
-import com.punchin.dto.ClaimDetailForVerificationDTO;
-import com.punchin.dto.DocumentApproveRejectPayloadDTO;
-import com.punchin.dto.PageDTO;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
@@ -308,6 +305,27 @@ public class VerifierController {
             return ResponseHandler.response(verifierService.getRemarkHistory(id), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getRemarkHistory e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"VERIFIER"})
+    @ApiOperation(value = "Add remark", notes = "This can be used to add remark")
+    @PostMapping(value = UrlMapping.ADD_CLAIM_REMARK)
+    public ResponseEntity<Object> addClaimRemark(@PathVariable Long id, @RequestBody ClaimRemarkRequestDTO requestDTO) {
+        try {
+            log.info("BankerController :: addClaimRemark claimId - {}", id);
+            ClaimsData claimsData = verifierService.getClaimData(id);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+            ClaimsRemarksDTO claimsRemarksDTO = verifierService.addClaimRemark(claimsData, requestDTO);
+            if(Objects.nonNull(claimsRemarksDTO)) {
+                return ResponseHandler.response(claimsRemarksDTO, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: addClaimRemark e - {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

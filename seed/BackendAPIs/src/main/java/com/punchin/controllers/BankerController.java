@@ -461,7 +461,7 @@ public class BankerController {
     }
 
     @Secured({"BANKER"})
-    @ApiOperation(value = "Add remark", notes = "This can be used to add remark")
+    @ApiOperation(value = "Update claim data", notes = "This can be used to update claim data")
     @PostMapping(value = UrlMapping.UPDATE_CLAIM_DATA)
     public ResponseEntity<Object> updateClaimData(@PathVariable Long id, @RequestBody ClaimUpdateRequestDTO requestDTO) {
         try {

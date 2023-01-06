@@ -66,6 +66,8 @@ public class BankerServiceImpl implements BankerService {
     private InvalidClaimsDataRepository invalidClaimsDataRepository;
     @Autowired
     private BankerVerifierRemarkRepository bankerVerifierRemarkRepository;
+    @Autowired
+    private ClaimsDataAuditRepository claimsDataAuditRepository;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -1444,8 +1446,28 @@ public class BankerServiceImpl implements BankerService {
     public ClaimDataDTO updateClaimData(ClaimsData claimsData, ClaimUpdateRequestDTO requestDTO) {
         try {
             log.info("BankerServiceImpl :: updateClaimData claimsData {}, requestDTO {}", claimsData, requestDTO);
-
-            return null;
+            ClaimsDataAudit claimsDataAudit = modelMapper.map(claimsData, ClaimsDataAudit.class);
+            if(Objects.nonNull(requestDTO.getBorrowerName())){
+                claimsData.setBorrowerName(requestDTO.getBorrowerName());
+            }
+            if(Objects.nonNull(requestDTO.getBorrowerAddress())){
+                claimsData.setBorrowerAddress(requestDTO.getBorrowerAddress());
+            }
+            if(Objects.nonNull(requestDTO.getBorrowerContactNumber())){
+                claimsData.setBorrowerContactNumber(requestDTO.getBorrowerContactNumber());
+            }
+            if(Objects.nonNull(requestDTO.getNomineeName())){
+                claimsData.setNomineeName(requestDTO.getNomineeName());
+            }
+            if(Objects.nonNull(requestDTO.getNomineeAddress())){
+                claimsData.setNomineeAddress(requestDTO.getNomineeAddress());
+            }
+            if(Objects.nonNull(requestDTO.getNomineeContactNumber())){
+                claimsData.setNomineeContactNumber(requestDTO.getNomineeContactNumber());
+            }
+            claimsDataRepository.save(claimsData);
+            claimsDataAuditRepository.save(claimsDataAudit);
+            return modelMapper.map(claimsData, ClaimDataDTO.class);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: updateClaimData", e);
             return null;

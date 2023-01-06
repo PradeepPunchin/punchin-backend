@@ -26,6 +26,7 @@ public class UrlMapping {
     public static final String REQUEST_ADDITIONAL_DOCUMENT = "/claim/document/additional-request";
     public static final String GET_CLAIM_HISTORY = "/claim/{id}/history";
     public static final String GET_CLAIM_REMARK = "/claim/{id}/remarks";
+    public static final String ADD_CLAIM_REMARK = "/claim/{id}/remarks";
 
 
     //Authentication Endpoints

@@ -6,11 +6,13 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,11 +47,26 @@ public class CSVHelper {
                 claimsData.setBorrowerCity(csvRecord.get(3));
                 claimsData.setBorrowerPinCode(csvRecord.get(4));
                 claimsData.setBorrowerState(csvRecord.get(5));
-                claimsData.setBorrowerContactNumber(csvRecord.get(6));
+                if (csvRecord.get(6).contains("+")) {
+                    String borrowerContactNum = new BigDecimal(csvRecord.get(6)).toPlainString();
+                    claimsData.setBorrowerContactNumber(borrowerContactNum);
+                } else {
+                    claimsData.setBorrowerContactNumber(csvRecord.get(6));
+                }
                 claimsData.setBorrowerEmailId(csvRecord.get(7));
-                claimsData.setBorrowerAlternateContactNumber(csvRecord.get(8));
+                if (csvRecord.get(8).contains("+")) {
+                    String borrowerAlternateNum = new BigDecimal(csvRecord.get(8)).toPlainString();
+                    claimsData.setBorrowerAlternateContactNumber(borrowerAlternateNum);
+                } else {
+                    claimsData.setBorrowerAlternateContactNumber(csvRecord.get(8));
+                }
                 claimsData.setBorrowerAlternateContactDetails(csvRecord.get(9));
-                claimsData.setLoanAccountNumber(csvRecord.get(10));
+                if (csvRecord.get(10).contains("+")) {
+                    String loanNumber = new BigDecimal(csvRecord.get(10)).toPlainString();
+                    claimsData.setLoanAccountNumber(loanNumber);
+                } else {
+                    claimsData.setLoanAccountNumber(csvRecord.get(10));
+                }
                 claimsData.setLoanType(csvRecord.get(11));
                 String date = csvRecord.get(12);
                 if (StringUtils.isNotBlank(date)) {
@@ -69,10 +86,25 @@ public class CSVHelper {
                 claimsData.setBranchPinCode(csvRecord.get(18));
                 claimsData.setBranchState(csvRecord.get(19));
                 claimsData.setLoanAccountManagerName(csvRecord.get(20));
-                claimsData.setAccountManagerContactNumber(csvRecord.get(21));
+                if (csvRecord.get(21).contains("+")) {
+                    String accManConNum = new BigDecimal(csvRecord.get(21)).toPlainString();
+                    claimsData.setAccountManagerContactNumber(accManConNum);
+                } else {
+                    claimsData.setAccountManagerContactNumber(csvRecord.get(21));
+                }
                 claimsData.setInsurerName(csvRecord.get(22));
-                claimsData.setPolicyNumber(csvRecord.get(23));
-                claimsData.setMasterPolNumber(csvRecord.get(24));
+                if (csvRecord.get(23).contains("+")) {
+                    String polNum = new BigDecimal(csvRecord.get(23)).toPlainString();
+                    claimsData.setPolicyNumber(polNum);
+                } else {
+                    claimsData.setPolicyNumber(csvRecord.get(23));
+                }
+                if (csvRecord.get(24).contains("+")) {
+                    String masPolNum = new BigDecimal(csvRecord.get(24)).toPlainString();
+                    claimsData.setMasterPolNumber(masPolNum);
+                } else {
+                    claimsData.setMasterPolNumber(csvRecord.get(24));
+                }
                 String date1 = csvRecord.get(25);
                 if (StringUtils.isNotBlank(date1)) {
                     claimsData.setPolicyStartDate(formatter1.parse(date1));
@@ -87,7 +119,12 @@ public class CSVHelper {
                 }
                 claimsData.setNomineeName(csvRecord.get(28));
                 claimsData.setNomineeRelationShip(csvRecord.get(29));
-                claimsData.setNomineeContactNumber(csvRecord.get(30));
+                if (csvRecord.get(30).contains("+")) {
+                    String nomContNum = new BigDecimal(csvRecord.get(30)).toPlainString();
+                    claimsData.setNomineeContactNumber(nomContNum);
+                } else {
+                    claimsData.setNomineeContactNumber(csvRecord.get(30));
+                }
                 claimsData.setNomineeEmailId(csvRecord.get(31));
                 claimsData.setNomineeAddress(csvRecord.get(32));
                 claimsData.setPunchinBankerId(banker);

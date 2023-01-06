@@ -9,6 +9,7 @@ import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -79,10 +80,10 @@ public class BankerServiceImpl implements BankerService {
                 List<ClaimDraftData> claimsDataList = new ArrayList<>();
                 List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
                 for (ClaimDraftData claimDraftData : claimsData) {
-                    if (!claimDraftData.getBorrowerName().isEmpty() && !claimDraftData.getBorrowerAddress().isEmpty() && !claimDraftData.getBorrowerCity().isEmpty() &&
-                            !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
-                            !claimDraftData.getLoanAccountNumber().isEmpty() && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
-                            !claimDraftData.getInsurerName().isEmpty() && claimDraftData.getPolicySumAssured() != null && !claimDraftData.getNomineeName().isEmpty() && !claimDraftData.getNomineeRelationShip().isEmpty()) {
+                    if (StringUtils.isNotBlank(claimDraftData.getBorrowerName()) && StringUtils.isNotBlank(claimDraftData.getBorrowerAddress()) && StringUtils.isNotBlank(claimDraftData.getBorrowerCity()) &&
+                            StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
+                            StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
+                            StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip())) {
                         List<Long> claimId = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
                         if (claimId.isEmpty()) {
                             claimsDataList.add(claimDraftData);
@@ -747,10 +748,10 @@ public class BankerServiceImpl implements BankerService {
             List<ClaimDraftData> claimsDraftDataList = new ArrayList<>();
             List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimsDataList) {
-                if (!claimDraftData.getBorrowerName().isEmpty() && !claimDraftData.getBorrowerAddress().isEmpty() && !claimDraftData.getBorrowerCity().isEmpty() &&
-                        !claimDraftData.getBorrowerPinCode().isEmpty() && !claimDraftData.getBorrowerState().isEmpty() && !claimDraftData.getBorrowerContactNumber().isEmpty() &&
-                        !claimDraftData.getLoanAccountNumber().isEmpty() && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
-                        !claimDraftData.getInsurerName().isEmpty() && claimDraftData.getPolicySumAssured() != null && !claimDraftData.getNomineeName().isEmpty() && !claimDraftData.getNomineeRelationShip().isEmpty()) {
+                if (StringUtils.isNotBlank(claimDraftData.getBorrowerName()) && StringUtils.isNotBlank(claimDraftData.getBorrowerAddress()) && StringUtils.isNotBlank(claimDraftData.getBorrowerCity()) &&
+                        StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
+                        StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
+                        StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip())) {
                     List<Long> claimId = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
                     if (claimId.isEmpty()) {
                         claimsDraftDataList.add(claimDraftData);

@@ -64,4 +64,6 @@ public interface BankerService {
     Map<String, Object> getRemarkHistory(Long id);
 
     ClaimsRemarksDTO addClaimRemark(ClaimsData claimsData, ClaimRemarkRequestDTO requestDTO);
+
+    ClaimDataDTO updateClaimData(ClaimsData claimsData, ClaimUpdateRequestDTO requestDTO);
 }

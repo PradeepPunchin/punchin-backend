@@ -459,4 +459,25 @@ public class BankerController {
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Secured({"BANKER"})
+    @ApiOperation(value = "Add remark", notes = "This can be used to add remark")
+    @PostMapping(value = UrlMapping.UPDATE_CLAIM_DATA)
+    public ResponseEntity<Object> updateClaimData(@PathVariable Long id, @RequestBody ClaimUpdateRequestDTO requestDTO) {
+        try {
+            log.info("VerifierController :: addClaimRemark claimId - {}", id);
+            ClaimsData claimsData = bankerService.getClaimData(id);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+            ClaimDataDTO claimDataDTO = bankerService.updateClaimData(claimsData, requestDTO);
+            if(Objects.nonNull(claimDataDTO)) {
+                return ResponseHandler.response(claimDataDTO, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierController :: addClaimRemark e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

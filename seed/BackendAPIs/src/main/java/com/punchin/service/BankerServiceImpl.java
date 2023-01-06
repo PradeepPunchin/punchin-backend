@@ -292,6 +292,9 @@ public class BankerServiceImpl implements BankerService {
                 dto.setOutstandingLoanAmount(claimsData.getLoanOutstandingAmount());
                 dto.setBalanceClaimAmount(0d);
                 dto.setLoanAmountPaidByBorrower(0d);
+                if(Objects.nonNull(claimsData.getSubmittedBy())){
+                    dto.setSubmitted(true);
+                }
                 if (Objects.nonNull(claimsData.getPolicySumAssured()) && Objects.nonNull(claimsData.getLoanOutstandingAmount())) {
                     double outStandingLoan = claimsData.getPolicySumAssured() - claimsData.getLoanOutstandingAmount();
                     dto.setLoanAmountPaidByBorrower(claimsData.getLoanAmount() - claimsData.getLoanOutstandingAmount());
@@ -1433,6 +1436,18 @@ public class BankerServiceImpl implements BankerService {
             return claimsRemarksDTO;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: addClaimRemark", e);
+            return null;
+        }
+    }
+
+    @Override
+    public ClaimDataDTO updateClaimData(ClaimsData claimsData, ClaimUpdateRequestDTO requestDTO) {
+        try {
+            log.info("BankerServiceImpl :: updateClaimData claimsData {}, requestDTO {}", claimsData, requestDTO);
+
+            return null;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: updateClaimData", e);
             return null;
         }
     }

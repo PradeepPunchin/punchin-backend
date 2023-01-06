@@ -721,7 +721,7 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     @Override
-    public Map<String, Object> getRemarkHistory(Long id) {
+    public Map<String, Object> getRemarkHistory(Long id, RemarkForEnum remarkBy) {
         try {
             Map<String, Object> map = new HashMap<>();
             log.info("VerifierServiceImpl :: getRemarkHistory claimId - {}", id);
@@ -732,10 +732,18 @@ public class VerifierServiceImpl implements VerifierService {
             if(optionalClaimsData.isPresent()) {
                 ClaimsData claimsData = optionalClaimsData.get();
                 claimStatus = claimsData.getClaimStatus().name();
-                List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
-                for (AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks) {
-                    lastRemarkTime = agentVerifierRemark.getCreatedAt();
-                    claimHistoryDTOS.add(modelMapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
+                if(RemarkForEnum.AGENT.equals(remarkBy)) {
+                    List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
+                    for (AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks) {
+                        lastRemarkTime = agentVerifierRemark.getCreatedAt();
+                        claimHistoryDTOS.add(modelMapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
+                    }
+                } else if(RemarkForEnum.BANKER.equals(remarkBy)){
+                    List<BankerVerifierRemark> bankerVerifierRemarks = bankerVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
+                    for (BankerVerifierRemark bankerVerifierRemark : bankerVerifierRemarks) {
+                        lastRemarkTime = bankerVerifierRemark.getCreatedAt();
+                        claimHistoryDTOS.add(modelMapperService.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
+                    }
                 }
             }
             map.put("claimRemarkDTOS", claimHistoryDTOS);

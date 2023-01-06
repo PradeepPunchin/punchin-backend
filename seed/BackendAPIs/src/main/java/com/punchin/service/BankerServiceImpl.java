@@ -64,6 +64,8 @@ public class BankerServiceImpl implements BankerService {
     private ClaimHistoryRepository claimHistoryRepository;
     @Autowired
     private InvalidClaimsDataRepository invalidClaimsDataRepository;
+    @Autowired
+    private BankerVerifierRemarkRepository bankerVerifierRemarkRepository;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -1269,6 +1271,34 @@ public class BankerServiceImpl implements BankerService {
         }
     }
 
+    @Override
+    public Map<String, Object> getRemarkHistory(Long id) {
+        try {
+            Map<String, Object> map = new HashMap<>();
+            log.info("BankerServiceImpl :: getRemarkHistory claimId - {}", id);
+            List<ClaimsRemarksDTO> claimHistoryDTOS = new ArrayList<>();
+            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
+            Long lastRemarkTime = 0L;
+            String claimStatus = null;
+            if(optionalClaimsData.isPresent()) {
+                ClaimsData claimsData = optionalClaimsData.get();
+                claimStatus = claimsData.getClaimStatus().name();
+                List<BankerVerifierRemark> bankerVerifierRemarks = bankerVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
+                    for (BankerVerifierRemark bankerVerifierRemark : bankerVerifierRemarks) {
+                        lastRemarkTime = bankerVerifierRemark.getCreatedAt();
+                        claimHistoryDTOS.add(modelMapper.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
+                    }
+            }
+            map.put("claimRemarkDTOS", claimHistoryDTOS);
+            map.put("claimStatus", claimStatus);
+            map.put("lastRemarkTime", lastRemarkTime);
+            return map;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: getRemarkHistory e - {}", e);
+            return Collections.EMPTY_MAP;
+        }
+    }
+
     private void downloadDocumentInDirectory(String docUrl, Long claimId, String filePath) {
         File file1 = new File(filePath + claimId);
         file1.mkdirs();
@@ -1389,5 +1419,21 @@ public class BankerServiceImpl implements BankerService {
         return bankerClaimListResponseDTOS;
     }
 
-
+    @Override
+    public ClaimsRemarksDTO addClaimRemark(ClaimsData claimsData, ClaimRemarkRequestDTO requestDTO) {
+        try {
+            log.info("BankerServiceImpl :: addClaimRemark claimsData {}, requestDTO {}", claimsData, requestDTO);
+            ClaimsRemarksDTO claimsRemarksDTO = new ClaimsRemarksDTO();
+                BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
+                bankerVerifierRemark.setClaimId(claimsData.getId());
+                bankerVerifierRemark.setRole(RoleEnum.VERIFIER.name());
+                bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
+                bankerVerifierRemark.setRemark(requestDTO.getRemark());
+                claimsRemarksDTO = modelMapper.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
+            return claimsRemarksDTO;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: addClaimRemark", e);
+            return null;
+        }
+    }
 }

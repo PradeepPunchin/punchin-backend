@@ -5,6 +5,7 @@ import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.RemarkForEnum;
 import com.punchin.enums.SearchCaseEnum;
 import com.punchin.repository.UserRepository;
 import com.punchin.service.MISExportService;
@@ -229,7 +230,7 @@ public class VerifierController {
     @GetMapping(value = UrlMapping.DOWNLOAD_MIS_REPORT)
     public ResponseEntity<Object> downloadMISReport(@RequestParam ClaimDataFilter claimDataFilter) {
         try {
-            log.info("BankerController :: downloadMISReport");
+            log.info("VerifierController :: downloadMISReport");
             return ResponseHandler.response(misExportService.downloadVerifierMISReport(claimDataFilter), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
@@ -288,23 +289,23 @@ public class VerifierController {
     @GetMapping(value = UrlMapping.GET_CLAIM_HISTORY)
     public ResponseEntity<Object> getClaimHistory(@PathVariable Long id) {
         try {
-            log.info("BankerController :: getClaimHistory claimId - {}", id);
+            log.info("VerifierController :: getClaimHistory claimId - {}", id);
             return ResponseHandler.response(verifierService.getClaimHistory(id), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerController :: getClaimHistory e - {}", e);
+            log.error("EXCEPTION WHILE VerifierController :: getClaimHistory e - {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Secured({"VERIFIER"})
-    @ApiOperation(value = "Claim history", notes = "This can be used to get remark History")
+    @ApiOperation(value = "Claim Remark", notes = "This can be used to get remark History")
     @GetMapping(value = UrlMapping.GET_CLAIM_REMARK)
-    public ResponseEntity<Object> getRemarkHistory(@PathVariable Long id) {
+    public ResponseEntity<Object> getRemarkHistory(@PathVariable Long id, RemarkForEnum remarkBy) {
         try {
-            log.info("BankerController :: getRemarkHistory claimId - {}", id);
-            return ResponseHandler.response(verifierService.getRemarkHistory(id), MessageCode.success, true, HttpStatus.OK);
+            log.info("VerifierController :: getRemarkHistory claimId - {}", id);
+            return ResponseHandler.response(verifierService.getRemarkHistory(id, remarkBy), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerController :: getRemarkHistory e - {}", e);
+            log.error("EXCEPTION WHILE VerifierController :: getRemarkHistory e - {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -314,7 +315,7 @@ public class VerifierController {
     @PostMapping(value = UrlMapping.ADD_CLAIM_REMARK)
     public ResponseEntity<Object> addClaimRemark(@PathVariable Long id, @RequestBody ClaimRemarkRequestDTO requestDTO) {
         try {
-            log.info("BankerController :: addClaimRemark claimId - {}", id);
+            log.info("VerifierController :: addClaimRemark claimId - {}", id);
             ClaimsData claimsData = verifierService.getClaimData(id);
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
@@ -325,7 +326,7 @@ public class VerifierController {
             }
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE BankerController :: addClaimRemark e - {}", e);
+            log.error("EXCEPTION WHILE VerifierController :: addClaimRemark e - {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

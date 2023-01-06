@@ -1,12 +1,11 @@
 package com.punchin.utility;
 
 import com.punchin.entity.ClaimDraftData;
-import com.punchin.entity.ClaimsData;
-import com.punchin.enums.ClaimStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
@@ -15,12 +14,12 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j
 public class CSVHelper {
     public static final String TYPE = "text/csv";
+
     public static boolean hasCSVFormat(MultipartFile file) {
         if (!TYPE.equals(file.getContentType()))
             return false;
@@ -30,7 +29,7 @@ public class CSVHelper {
     public static List<ClaimDraftData> csvToClaimsData(InputStream is, String banker) {
         CSVFormat csvFormat = CSVFormat.EXCEL.withHeader("Borrower Name", " Borrower Address", "Borrower City", " Borrower Pincode", " Borrower State", " Borrower Contact Number",
                 "Borrower Email-Id", " Alternate Mobile No.", " Alternate contact details if any", " Loan Account number", " Loan Type / Category ", " Loan Disbursal Date", "Loan Disbursal Amount",
-                "Lender Branch code ", "Lender Branch Address", "Lender Branch City", " Lender Branch Pin Code ", " Lender Branch State", " Lenders Local Contact Name", "Lenders Local Contact Mob Number" , "Insurer Name",
+                "Lender Branch code ", "Lender Branch Address", "Lender Branch City", " Lender Branch Pin Code ", " Lender Branch State", " Lenders Local Contact Name", "Lenders Local Contact Mob Number", "Insurer Name",
                 "Borrower Policy Number", " Master Pol number", " Policy Start Date ", " Policy Tenure", "  Policy Sum Assured", " Nominee Name", "Nominee relationship ", " Nominee contact number",
                 "Nominee email id ", " Nominee Address ", "Claim Status", "Loan o/s amt", "Account Manager Contact Number", "Loan Account Manager Name", "Loan Amount Balance", "Loan Amount PaidBy Borrower", "Borrower Dob", "Loan Disbursal Amount");
         try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
@@ -40,7 +39,7 @@ public class CSVHelper {
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
             for (CSVRecord csvRecord : csvRecords) {
                 ClaimDraftData claimsData = new ClaimDraftData();
-                SimpleDateFormat formatter1=new SimpleDateFormat("dd/MM/yyyy");
+                SimpleDateFormat formatter1 = new SimpleDateFormat("dd/MM/yyyy");
                 claimsData.setBorrowerName(csvRecord.get(1));
                 claimsData.setBorrowerAddress(csvRecord.get(2));
                 claimsData.setBorrowerCity(csvRecord.get(3));
@@ -53,11 +52,17 @@ public class CSVHelper {
                 claimsData.setLoanAccountNumber(csvRecord.get(10));
                 claimsData.setLoanType(csvRecord.get(11));
                 String date = csvRecord.get(12);
-                claimsData.setLoanDisbursalDate(formatter1.parse(date));
+                if (StringUtils.isNotBlank(date)) {
+                    claimsData.setLoanDisbursalDate(formatter1.parse(date));
+                }
                 String loanAmount = csvRecord.get(13);
-                claimsData.setLoanAmount(Double.parseDouble(loanAmount));
+                if (StringUtils.isNotBlank(loanAmount)) {
+                    claimsData.setLoanAmount(Double.parseDouble(loanAmount));
+                }
                 String loanOs = csvRecord.get(14);
-                claimsData.setLoanOutstandingAmount(Double.parseDouble(loanOs));
+                if (StringUtils.isNotBlank(loanOs)) {
+                    claimsData.setLoanOutstandingAmount(Double.parseDouble(loanOs));
+                }
                 claimsData.setBranchCode(csvRecord.get(15));
                 claimsData.setBranchAddress(csvRecord.get(16));
                 claimsData.setBranchCity(csvRecord.get(17));
@@ -69,11 +74,17 @@ public class CSVHelper {
                 claimsData.setPolicyNumber(csvRecord.get(23));
                 claimsData.setMasterPolNumber(csvRecord.get(24));
                 String date1 = csvRecord.get(25);
-                claimsData.setPolicyStartDate(formatter1.parse(date1));
+                if (StringUtils.isNotBlank(date1)) {
+                    claimsData.setPolicyStartDate(formatter1.parse(date1));
+                }
                 String polDuration = csvRecord.get(26);
-                claimsData.setPolicyCoverageDuration(Integer.parseInt(polDuration));
+                if (StringUtils.isNotBlank(polDuration)) {
+                    claimsData.setPolicyCoverageDuration(Integer.parseInt(polDuration));
+                }
                 String polSum = csvRecord.get(27);
-                claimsData.setPolicySumAssured(Double.parseDouble(polSum));
+                if (StringUtils.isNotBlank(polSum)) {
+                    claimsData.setPolicySumAssured(Double.parseDouble(polSum));
+                }
                 claimsData.setNomineeName(csvRecord.get(28));
                 claimsData.setNomineeRelationShip(csvRecord.get(29));
                 claimsData.setNomineeContactNumber(csvRecord.get(30));

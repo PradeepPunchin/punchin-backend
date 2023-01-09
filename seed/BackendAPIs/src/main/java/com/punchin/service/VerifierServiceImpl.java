@@ -478,7 +478,7 @@ public class VerifierServiceImpl implements VerifierService {
                         }
                     }
                     for(AdditionalDocType docType : AdditionalDocType.values()){
-                        if (claimDocuments.getAgentDocType().equals(docType)) {
+                        if (claimDocuments.getAgentDocType().name().equalsIgnoreCase(docType.name())) {
                             dto.setAdditionalDoc("UPLOADED");
                             if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
                                 dto.setAdditionalDoc("APPROVED");

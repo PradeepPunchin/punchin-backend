@@ -1,6 +1,5 @@
 package com.punchin.dto;
 
-import com.punchin.entity.ClaimDocuments;
 import lombok.Data;
 
 import java.util.List;
@@ -24,4 +23,8 @@ public class BankerClaimDocumentationDTO {
     private Double balanceClaimAmount = 0D;
     private boolean isSubmitted = false;
     private List<ClaimDocumentsDTO> claimDocumentsDTOS;
+    private String borrowerContactNumber;
+    private String nomineeAddress;
+    private String nomineeContactNumber;
+    private String nomineeName;
 }

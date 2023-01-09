@@ -10,4 +10,5 @@ public class ClaimUpdateRequestDTO {
     private String nomineeName;
     private String nomineeAddress;
     private String nomineeContactNumber;
+    private String borrowerPinCode;
 }

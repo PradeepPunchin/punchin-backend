@@ -162,11 +162,9 @@ public class BankerServiceImpl implements BankerService {
                 Page page2 = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
                 return commonService.convertPageToDTO(page2.getContent(), page2);
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
-                claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findClaimPendingForBakerDocumentPending(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
-                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-                page1 = claimsDataRepository.findBySubmittedClaims(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findClaimPendingForBakerDocument(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
@@ -187,7 +185,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.BANKER_DRAFT.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(GenericUtils.getLoggedInUser().getId(), pageable);
             }
             List<BankerClaimListResponseDTO> bankerClaimListResponseDTOS = mappedAgentDetails(page1);
             return commonService.convertPageToDTO(bankerClaimListResponseDTOS, page1);

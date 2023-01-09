@@ -156,12 +156,18 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     String findClaimStatusById(Long id);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE id IN (SELECT DISTINCT claims_data_id FROM claim_documents WHERE is_active = true AND upload_side_by = 'banker') AND punchin_banker_id=:userId AND submitted_by is null")
-    Page<ClaimsData> findByClaimStatusByDraftSavedByBanker(String userId, Pageable pageable);
+    @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE id IN (SELECT DISTINCT claims_data_id FROM claim_documents WHERE is_active = true AND upload_side_by = 'banker') AND banker_id=:userId AND submitted_by is null AND is_forward_to_verifier=false ORDER BY id DESC")
+    Page<ClaimsData> findByClaimStatusByDraftSavedByBanker(Long userId, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select cd.id from  claims_data cd where cd.loan_account_number =:loanAccountNumber")
     List<Long> findExistingLoanNumber(@Param("loanAccountNumber") String loanAccountNumber);
 
     @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE LOWER(punchin_claim_id)=:id")
     ClaimsData findIdByPunchinId(String id);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE banker_id=:bankerId AND submitted_by is not null ORDER BY id DESC")
+    Page<ClaimsData> findClaimPendingForBakerDocument(Long bankerId, Pageable pageable);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE banker_id=:bankerId AND submitted_by is null ORDER BY id DESC")
+    Page<ClaimsData> findClaimPendingForBakerDocumentPending(Long bankerId, Pageable pageable);
 }

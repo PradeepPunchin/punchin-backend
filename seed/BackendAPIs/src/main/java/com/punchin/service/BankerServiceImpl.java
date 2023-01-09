@@ -298,6 +298,7 @@ public class BankerServiceImpl implements BankerService {
                 dto.setNomineeAddress(claimsData.getNomineeAddress());
                 dto.setNomineeContactNumber(claimsData.getNomineeContactNumber());
                 dto.setNomineeName(claimsData.getNomineeName());
+                dto.setBorrowerPinCode(claimsData.getBorrowerPinCode());
                 if (Objects.nonNull(claimsData.getSubmittedBy())) {
                     dto.setSubmitted(true);
                 }
@@ -1468,6 +1469,9 @@ public class BankerServiceImpl implements BankerService {
             }
             if (Objects.nonNull(requestDTO.getNomineeContactNumber())) {
                 claimsData.setNomineeContactNumber(requestDTO.getNomineeContactNumber());
+            }
+            if (Objects.nonNull(requestDTO.getBorrowerPinCode())) {
+                claimsData.setBorrowerPinCode(requestDTO.getBorrowerPinCode());
             }
             claimsDataRepository.save(claimsData);
             claimsDataAuditRepository.save(claimsDataAudit);

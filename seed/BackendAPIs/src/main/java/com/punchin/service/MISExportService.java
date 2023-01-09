@@ -1,10 +1,12 @@
 package com.punchin.service;
 
+import com.punchin.dto.DownloadVerifierMisResponse;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.utility.GenericUtils;
+import com.punchin.utility.ObjectMapperUtils;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
@@ -12,7 +14,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -142,8 +143,7 @@ public class MISExportService {
         Cell cell = row.createCell(columnCount);
         if (value == null) {
             cell.setCellValue("");
-        }
-        else if (value instanceof Integer) {
+        } else if (value instanceof Integer) {
             cell.setCellValue((Integer) value);
         } else if (value instanceof Boolean) {
             cell.setCellValue((Boolean) value);
@@ -197,7 +197,7 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getNomineeContactNumber(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeEmailId(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeAddress(), style, sheet);
-            if(claimsData.getClaimStatus().equals(ClaimStatus.SUBMITTED_TO_LENDER)){
+            if (claimsData.getClaimStatus().equals(ClaimStatus.SUBMITTED_TO_LENDER)) {
                 createCell(row, columnCount++, "Close", style, sheet);
             } else {
                 createCell(row, columnCount++, "Open", style, sheet);
@@ -239,6 +239,12 @@ public class MISExportService {
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState());
             }
+            List<DownloadVerifierMisResponse> downloadVerifierMisResponseList = ObjectMapperUtils.mapAll(claimsDataList, DownloadVerifierMisResponse.class);
+            for (DownloadVerifierMisResponse downloadVerifierMisResponse : downloadVerifierMisResponseList) {
+                if (downloadVerifierMisResponse.getAgentId() > 0) {
+                    downloadVerifierMisResponse.setAgentMapped(true);
+                }
+            }
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
             String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
@@ -246,7 +252,7 @@ public class MISExportService {
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Sheet1");
             writeHeaderLine(workbook, sheet);
-            writeDataLines(workbook, sheet, claimsDataList, format);
+            writeDataLinesDownloadMis(workbook, sheet, downloadVerifierMisResponseList, format);
             FileOutputStream outputStream = new FileOutputStream(filePath);
             workbook.write(outputStream);
             workbook.close();
@@ -255,6 +261,43 @@ public class MISExportService {
             return versionId;
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    private void writeDataLinesDownloadMis(Workbook workbook, Sheet sheet, List<DownloadVerifierMisResponse> claimsDataList, SimpleDateFormat format) {
+        int rowCount = 1;
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        style.setFont(font);
+        int sno = 1;
+        for (DownloadVerifierMisResponse claimsData : claimsDataList) {
+            Row row = sheet.createRow(rowCount++);
+            int columnCount = 0;
+            createCell(row, columnCount++, sno, style, sheet);
+            createCell(row, columnCount++, claimsData.getPunchinClaimId(), style, sheet);
+            createCell(row, columnCount++, format.format(claimsData.getClaimInwardDate()).toString(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerName(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerAddress(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerCity(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerPinCode(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerState(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerContactNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerAlternateContactNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getInsurerName(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeName(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeRelationShip(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeContactNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeAddress(), style, sheet);
+            createCell(row, columnCount++, claimsData.getAgentMapped(), style, sheet);
+            if (claimsData.getClaimStatus().equals(ClaimStatus.SUBMITTED_TO_LENDER)) {
+                createCell(row, columnCount++, "Close", style, sheet);
+            } else {
+                createCell(row, columnCount++, "Open", style, sheet);
+            }
+            createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
+            createCell(row, columnCount++, format.format(new Date()), style, sheet);
+            createCell(row, columnCount++, "", style, sheet);
+            sno++;
         }
     }
 

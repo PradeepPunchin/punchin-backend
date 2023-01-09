@@ -27,4 +27,5 @@ public class BankerClaimDocumentationDTO {
     private String nomineeAddress;
     private String nomineeContactNumber;
     private String nomineeName;
+    private String borrowerPinCode;
 }

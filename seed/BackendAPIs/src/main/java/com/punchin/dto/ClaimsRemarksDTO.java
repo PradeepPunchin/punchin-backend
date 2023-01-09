@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class ClaimsRemarksDTO {
     private Long claimId;
-    private Long agentId;
+    private Long remarkDoneBy;
     private String remark;
-    private String comment;
+    private String role;
+    private Long createdAt;
 }

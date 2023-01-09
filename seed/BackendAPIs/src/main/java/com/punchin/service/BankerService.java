@@ -1,14 +1,9 @@
 package com.punchin.service;
 
-import com.punchin.dto.BankerClaimDocumentationDTO;
-import com.punchin.dto.ClaimHistoryDTO;
-import com.punchin.dto.PageDTO;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.AgentDocType;
-import com.punchin.enums.BankerDocType;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.SearchCaseEnum;
+import com.punchin.enums.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -65,4 +60,10 @@ public interface BankerService {
     String downloadAllDocuments(Long id);
 
     Map<String, Object> getClaimHistory(Long id);
+
+    Map<String, Object> getRemarkHistory(Long id);
+
+    ClaimsRemarksDTO addClaimRemark(ClaimsData claimsData, ClaimRemarkRequestDTO requestDTO);
+
+    ClaimDataDTO updateClaimData(ClaimsData claimsData, ClaimUpdateRequestDTO requestDTO);
 }

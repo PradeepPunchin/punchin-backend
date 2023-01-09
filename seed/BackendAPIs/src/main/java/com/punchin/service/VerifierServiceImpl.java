@@ -2,10 +2,7 @@ package com.punchin.service;
 
 import com.punchin.dto.*;
 import com.punchin.entity.*;
-import com.punchin.enums.AgentDocType;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.SearchCaseEnum;
+import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.BASE64DecodedMultipartFile;
 import com.punchin.utility.GenericUtils;
@@ -46,8 +43,6 @@ public class VerifierServiceImpl implements VerifierService {
     @Autowired
     private ClaimDocumentsRepository claimDocumentsRepository;
     @Autowired
-    private ClaimAllocatedRepository claimAllocatedRepository;
-    @Autowired
     private AmazonClient amazonClient;
     @Autowired
     private AmazonS3FileManagers amazonS3FileManagers;
@@ -58,7 +53,9 @@ public class VerifierServiceImpl implements VerifierService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private ClaimsRemarksRepository remarksRepository;
+    private AgentVerifierRemarkRepository agentVerifierRemarkRepository;
+    @Autowired
+    private BankerVerifierRemarkRepository bankerVerifierRemarkRepository;
 
     @Override
     public PageDTO getAllClaimsData(ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize, SearchCaseEnum searchCaseEnum, String searchedKeyword) {
@@ -160,12 +157,12 @@ public class VerifierServiceImpl implements VerifierService {
     public boolean allocateClaimToAgent(ClaimsData claimsData, User user) {
         try {
             log.info("VerifierServiceImpl :: allocateClaimToAgent");
-            ClaimAllocated claimAllocated = new ClaimAllocated();
+            /*ClaimAllocated claimAllocated = new ClaimAllocated();
             claimAllocated.setClaimsData(claimsData);
             claimAllocated.setUser(user);
             claimAllocatedRepository.save(claimAllocated);
             claimsData.setClaimStatus(ClaimStatus.AGENT_ALLOCATED);
-            claimsDataRepository.save(claimsData);
+            claimsDataRepository.save(claimsData);*/
             return true;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: allocateClaimToAgent ", e);
@@ -331,7 +328,7 @@ public class VerifierServiceImpl implements VerifierService {
     @Override
     public PageDTO getClaimDataWithDocumentStatus(Integer page, Integer limit) {
         try {
-            log.info("BankerController :: getClaimDataWithDocumentStatus page {}, limit {}", page, limit);
+            log.info("VerifierServiceImpl :: getClaimDataWithDocumentStatus page {}, limit {}", page, limit);
             Pageable pageable = PageRequest.of(page, limit);
             Page page1 = claimsDataRepository.findByClaimStatusAndBorrowerStateIgnoreCase(ClaimStatus.UNDER_VERIFICATION, GenericUtils.getLoggedInUser().getState(), pageable);
             return convertInDocumentStatusDTO(page1);
@@ -724,27 +721,65 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     @Override
-    public Map<String, Object> getRemarkHistory(Long id) {
+    public Map<String, Object> getRemarkHistory(Long id, RemarkForEnum remarkBy) {
         try {
             Map<String, Object> map = new HashMap<>();
             log.info("VerifierServiceImpl :: getRemarkHistory claimId - {}", id);
             List<ClaimsRemarksDTO> claimHistoryDTOS = new ArrayList<>();
-            ClaimsData claimsData = claimsDataRepository.findById(id).get();
+            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
             Long lastRemarkTime = 0L;
-            if(Objects.nonNull(claimsData)) {
-                List<ClaimsRemarks> claimsRemarksList = remarksRepository.findByClaimIdOrderById(claimsData.getId());
-                for (ClaimsRemarks claimsRemarks : claimsRemarksList) {
-                    lastRemarkTime = claimsRemarks.getCreatedAt();
-                    claimHistoryDTOS.add(modelMapperService.map(claimsRemarks, ClaimsRemarksDTO.class));
+            String claimStatus = null;
+            if(optionalClaimsData.isPresent()) {
+                ClaimsData claimsData = optionalClaimsData.get();
+                claimStatus = claimsData.getClaimStatus().name();
+                if(RemarkForEnum.AGENT.equals(remarkBy)) {
+                    List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
+                    for (AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks) {
+                        lastRemarkTime = agentVerifierRemark.getCreatedAt();
+                        claimHistoryDTOS.add(modelMapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
+                    }
+                } else if(RemarkForEnum.BANKER.equals(remarkBy)){
+                    List<BankerVerifierRemark> bankerVerifierRemarks = bankerVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
+                    for (BankerVerifierRemark bankerVerifierRemark : bankerVerifierRemarks) {
+                        lastRemarkTime = bankerVerifierRemark.getCreatedAt();
+                        claimHistoryDTOS.add(modelMapperService.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
+                    }
                 }
             }
             map.put("claimRemarkDTOS", claimHistoryDTOS);
-            map.put("claimStatus", claimsData.getClaimStatus());
+            map.put("claimStatus", claimStatus);
             map.put("lastRemarkTime", lastRemarkTime);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getRemarkHistory e - {}", e);
             return Collections.EMPTY_MAP;
+        }
+    }
+
+    @Override
+    public ClaimsRemarksDTO addClaimRemark(ClaimsData claimsData, ClaimRemarkRequestDTO requestDTO) {
+        try {
+            log.info("VerifierServiceImpl :: addClaimRemark claimsData {}, requestDTO {}", claimsData, requestDTO);
+            ClaimsRemarksDTO claimsRemarksDTO = new ClaimsRemarksDTO();
+            if(RemarkForEnum.AGENT.equals(requestDTO.getRemarkFor())){
+                AgentVerifierRemark agentVerifierRemark = new AgentVerifierRemark();
+                agentVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
+                agentVerifierRemark.setRole(RoleEnum.VERIFIER.name());
+                agentVerifierRemark.setRemark(requestDTO.getRemark());
+                agentVerifierRemark.setClaimId(claimsData.getId());
+                claimsRemarksDTO = modelMapperService.map(agentVerifierRemarkRepository.save(agentVerifierRemark), ClaimsRemarksDTO.class);
+            } else if(RemarkForEnum.BANKER.equals(requestDTO.getRemarkFor())){
+                BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
+                bankerVerifierRemark.setClaimId(claimsData.getId());
+                bankerVerifierRemark.setRole(RoleEnum.VERIFIER.name());
+                bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
+                bankerVerifierRemark.setRemark(requestDTO.getRemark());
+                claimsRemarksDTO = modelMapperService.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
+            }
+            return claimsRemarksDTO;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: addClaimRemark", e);
+            return null;
         }
     }
 

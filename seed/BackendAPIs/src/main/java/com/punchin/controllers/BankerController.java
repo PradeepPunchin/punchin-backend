@@ -1,14 +1,9 @@
 package com.punchin.controllers;
 
-import com.punchin.dto.AdditionalDocumentRequestDTO;
-import com.punchin.dto.BankerClaimDocumentationDTO;
-import com.punchin.dto.PageDTO;
+import com.punchin.dto.*;
 import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
-import com.punchin.enums.AgentDocType;
-import com.punchin.enums.BankerDocType;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.SearchCaseEnum;
+import com.punchin.enums.*;
 import com.punchin.repository.ClaimDocumentsRepository;
 import com.punchin.service.BankerService;
 import com.punchin.service.MISExportService;
@@ -427,6 +422,61 @@ public class BankerController {
             return ResponseHandler.response(bankerService.getClaimHistory(id), MessageCode.success, true, HttpStatus.OK);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerController :: getClaimHistory e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"BANKER"})
+    @ApiOperation(value = "Claim Remark", notes = "This can be used to get remark History")
+    @GetMapping(value = UrlMapping.GET_CLAIM_REMARK)
+    public ResponseEntity<Object> getRemarkHistory(@PathVariable Long id) {
+        try {
+            log.info("BankerController :: getRemarkHistory claimId - {}", id);
+            return ResponseHandler.response(bankerService.getRemarkHistory(id), MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerController :: getRemarkHistory e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"BANKER"})
+    @ApiOperation(value = "Add remark", notes = "This can be used to add remark")
+    @PostMapping(value = UrlMapping.ADD_CLAIM_REMARK)
+    public ResponseEntity<Object> addClaimRemark(@PathVariable Long id, @RequestBody ClaimRemarkRequestDTO requestDTO) {
+        try {
+            log.info("VerifierController :: addClaimRemark claimId - {}", id);
+            ClaimsData claimsData = bankerService.getClaimData(id);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+            ClaimsRemarksDTO claimsRemarksDTO = bankerService.addClaimRemark(claimsData, requestDTO);
+            if(Objects.nonNull(claimsRemarksDTO)) {
+                return ResponseHandler.response(claimsRemarksDTO, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierController :: addClaimRemark e - {}", e);
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Secured({"BANKER"})
+    @ApiOperation(value = "Update claim data", notes = "This can be used to update claim data")
+    @PutMapping(value = UrlMapping.UPDATE_CLAIM_DATA)
+    public ResponseEntity<Object> updateClaimData(@PathVariable Long id, @RequestBody ClaimUpdateRequestDTO requestDTO) {
+        try {
+            log.info("VerifierController :: addClaimRemark claimId - {}", id);
+            ClaimsData claimsData = bankerService.getClaimData(id);
+            if (Objects.isNull(claimsData)) {
+                return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
+            }
+            ClaimDataDTO claimDataDTO = bankerService.updateClaimData(claimsData, requestDTO);
+            if(Objects.nonNull(claimDataDTO)) {
+                return ResponseHandler.response(claimDataDTO, MessageCode.success, true, HttpStatus.OK);
+            }
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierController :: addClaimRemark e - {}", e);
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

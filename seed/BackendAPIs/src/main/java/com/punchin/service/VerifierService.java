@@ -5,6 +5,7 @@ import com.punchin.entity.ClaimDocuments;
 import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.RemarkForEnum;
 import com.punchin.enums.SearchCaseEnum;
 
 import java.util.List;
@@ -40,5 +41,7 @@ public interface VerifierService {
 
     Map<String, Object> getClaimHistory(Long id);
 
-    Map<String, Object> getRemarkHistory(Long id);
+    Map<String, Object> getRemarkHistory(Long id, RemarkForEnum remarkBy);
+
+    ClaimsRemarksDTO addClaimRemark(ClaimsData claimsData, ClaimRemarkRequestDTO requestDTO);
 }

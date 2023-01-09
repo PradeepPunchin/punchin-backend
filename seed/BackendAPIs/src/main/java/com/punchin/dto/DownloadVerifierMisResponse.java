@@ -24,5 +24,5 @@ public class DownloadVerifierMisResponse {
     private String nomineeAddress;
     private ClaimStatus claimStatus;
     private Long agentId = 0L;
-    private Boolean agentMapped = false;
+    private String agentMapped;
 }

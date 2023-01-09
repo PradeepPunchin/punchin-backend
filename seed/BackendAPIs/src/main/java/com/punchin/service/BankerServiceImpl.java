@@ -681,7 +681,7 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 claimDocuments.setIsActive(true);
             }
-            if (claimsData.getClaimStatus().equals(ClaimStatus.CLAIM_INTIMATED)) {
+            if (ClaimStatus.CLAIM_INTIMATED.equals(claimsData.getClaimStatus())) {
                 claimsData.setClaimBankerStatus(ClaimStatus.CLAIM_SUBMITTED);
             }
             claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.CLAIM_SUBMITTED, "Claim Submitted"));

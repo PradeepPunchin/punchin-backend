@@ -172,8 +172,10 @@ public class AgentController {
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
             documentDTO.setIsMinorDoc(isMinorDoc);
-            documentDTO.setAgentRemark(agentRemark);
-            documentDTO.setAgentComment(agentComment);
+            if(isMinorDoc.isEmpty()) {
+                documentDTO.setAgentRemark(agentRemark);
+                documentDTO.setAgentComment(agentComment);
+            }
             Map<String, Object> result = agentService.uploadDocument(documentDTO);
             if (Boolean.parseBoolean(result.get("status").toString())) {
                 return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);

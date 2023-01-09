@@ -1210,7 +1210,7 @@ public class BankerServiceImpl implements BankerService {
             File zipfile = new File(filePath + punchinClaimId + ".zip");
             FileOutputStream fileOutputStream = new FileOutputStream(zipfile);
             ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "banker", true);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndIsActiveOrderByAgentDocType(claimId, true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {

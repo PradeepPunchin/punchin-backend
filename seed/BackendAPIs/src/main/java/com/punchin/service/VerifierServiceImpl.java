@@ -477,14 +477,17 @@ public class VerifierServiceImpl implements VerifierService {
                             dto.setBankAccountProof("REJECTED");
                         }
                     }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.ADDITIONAL)) {
-                        dto.setAdditionalDoc("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setAdditionalDoc("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setAdditionalDoc("REJECTED");
+                    for(AdditionalDocType docType : AdditionalDocType.values()){
+                        if (claimDocuments.getAgentDocType().equals(docType)) {
+                            dto.setAdditionalDoc("UPLOADED");
+                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("APPROVED");
+                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("REJECTED");
+                            }
                         }
                     }
+
                 }
                 dtos.add(dto);
             }

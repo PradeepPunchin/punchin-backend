@@ -242,9 +242,9 @@ public class MISExportService {
             List<DownloadVerifierMisResponse> downloadVerifierMisResponseList = ObjectMapperUtils.mapAll(claimsDataList, DownloadVerifierMisResponse.class);
             for (DownloadVerifierMisResponse downloadVerifierMisResponse : downloadVerifierMisResponseList) {
                 if (downloadVerifierMisResponse.getAgentId() > 0) {
-                    downloadVerifierMisResponse.setAgentMapped("YES");
+                    downloadVerifierMisResponse.setAgentMapped("Yes");
                 } else {
-                    downloadVerifierMisResponse.setAgentMapped("NO");
+                    downloadVerifierMisResponse.setAgentMapped("No");
                 }
             }
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");

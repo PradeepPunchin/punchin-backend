@@ -294,7 +294,11 @@ public class BankerServiceImpl implements BankerService {
                 dto.setOutstandingLoanAmount(claimsData.getLoanOutstandingAmount());
                 dto.setBalanceClaimAmount(0d);
                 dto.setLoanAmountPaidByBorrower(0d);
-                if(Objects.nonNull(claimsData.getSubmittedBy())){
+                dto.setBorrowerContactNumber(claimsData.getBorrowerContactNumber());
+                dto.setNomineeAddress(claimsData.getNomineeAddress());
+                dto.setNomineeContactNumber(claimsData.getNomineeContactNumber());
+                dto.setNomineeName(claimsData.getNomineeName());
+                if (Objects.nonNull(claimsData.getSubmittedBy())) {
                     dto.setSubmitted(true);
                 }
                 if (Objects.nonNull(claimsData.getPolicySumAssured()) && Objects.nonNull(claimsData.getLoanOutstandingAmount())) {
@@ -1285,14 +1289,14 @@ public class BankerServiceImpl implements BankerService {
             Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
             Long lastRemarkTime = 0L;
             String claimStatus = null;
-            if(optionalClaimsData.isPresent()) {
+            if (optionalClaimsData.isPresent()) {
                 ClaimsData claimsData = optionalClaimsData.get();
                 claimStatus = claimsData.getClaimStatus().name();
                 List<BankerVerifierRemark> bankerVerifierRemarks = bankerVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
-                    for (BankerVerifierRemark bankerVerifierRemark : bankerVerifierRemarks) {
-                        lastRemarkTime = bankerVerifierRemark.getCreatedAt();
-                        claimHistoryDTOS.add(modelMapper.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
-                    }
+                for (BankerVerifierRemark bankerVerifierRemark : bankerVerifierRemarks) {
+                    lastRemarkTime = bankerVerifierRemark.getCreatedAt();
+                    claimHistoryDTOS.add(modelMapper.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
+                }
             }
             map.put("claimRemarkDTOS", claimHistoryDTOS);
             map.put("claimStatus", claimStatus);
@@ -1429,12 +1433,12 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerServiceImpl :: addClaimRemark claimsData {}, requestDTO {}", claimsData, requestDTO);
             ClaimsRemarksDTO claimsRemarksDTO = new ClaimsRemarksDTO();
-                BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
-                bankerVerifierRemark.setClaimId(claimsData.getId());
-                bankerVerifierRemark.setRole(RoleEnum.BANKER.name());
-                bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
-                bankerVerifierRemark.setRemark(requestDTO.getRemark());
-                claimsRemarksDTO = modelMapper.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
+            BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
+            bankerVerifierRemark.setClaimId(claimsData.getId());
+            bankerVerifierRemark.setRole(RoleEnum.BANKER.name());
+            bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
+            bankerVerifierRemark.setRemark(requestDTO.getRemark());
+            claimsRemarksDTO = modelMapper.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
             return claimsRemarksDTO;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: addClaimRemark", e);
@@ -1447,22 +1451,22 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerServiceImpl :: updateClaimData claimsData {}, requestDTO {}", claimsData, requestDTO);
             ClaimsDataAudit claimsDataAudit = modelMapper.map(claimsData, ClaimsDataAudit.class);
-            if(Objects.nonNull(requestDTO.getBorrowerName())){
+            if (Objects.nonNull(requestDTO.getBorrowerName())) {
                 claimsData.setBorrowerName(requestDTO.getBorrowerName());
             }
-            if(Objects.nonNull(requestDTO.getBorrowerAddress())){
+            if (Objects.nonNull(requestDTO.getBorrowerAddress())) {
                 claimsData.setBorrowerAddress(requestDTO.getBorrowerAddress());
             }
-            if(Objects.nonNull(requestDTO.getBorrowerContactNumber())){
+            if (Objects.nonNull(requestDTO.getBorrowerContactNumber())) {
                 claimsData.setBorrowerContactNumber(requestDTO.getBorrowerContactNumber());
             }
-            if(Objects.nonNull(requestDTO.getNomineeName())){
+            if (Objects.nonNull(requestDTO.getNomineeName())) {
                 claimsData.setNomineeName(requestDTO.getNomineeName());
             }
-            if(Objects.nonNull(requestDTO.getNomineeAddress())){
+            if (Objects.nonNull(requestDTO.getNomineeAddress())) {
                 claimsData.setNomineeAddress(requestDTO.getNomineeAddress());
             }
-            if(Objects.nonNull(requestDTO.getNomineeContactNumber())){
+            if (Objects.nonNull(requestDTO.getNomineeContactNumber())) {
                 claimsData.setNomineeContactNumber(requestDTO.getNomineeContactNumber());
             }
             claimsDataRepository.save(claimsData);

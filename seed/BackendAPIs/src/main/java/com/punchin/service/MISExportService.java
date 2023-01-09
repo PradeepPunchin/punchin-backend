@@ -242,7 +242,9 @@ public class MISExportService {
             List<DownloadVerifierMisResponse> downloadVerifierMisResponseList = ObjectMapperUtils.mapAll(claimsDataList, DownloadVerifierMisResponse.class);
             for (DownloadVerifierMisResponse downloadVerifierMisResponse : downloadVerifierMisResponseList) {
                 if (downloadVerifierMisResponse.getAgentId() > 0) {
-                    downloadVerifierMisResponse.setAgentMapped(true);
+                    downloadVerifierMisResponse.setAgentMapped("Yes");
+                } else {
+                    downloadVerifierMisResponse.setAgentMapped("No");
                 }
             }
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
@@ -251,7 +253,7 @@ public class MISExportService {
             File file = new File(filePath);
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Sheet1");
-            writeHeaderLine(workbook, sheet);
+            writeHeaderLineDownloadMIS(workbook, sheet);
             writeDataLinesDownloadMis(workbook, sheet, downloadVerifierMisResponseList, format);
             FileOutputStream outputStream = new FileOutputStream(filePath);
             workbook.write(outputStream);
@@ -288,7 +290,6 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getNomineeRelationShip(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeContactNumber(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeAddress(), style, sheet);
-            createCell(row, columnCount++, claimsData.getAgentMapped(), style, sheet);
             if (claimsData.getClaimStatus().equals(ClaimStatus.SUBMITTED_TO_LENDER)) {
                 createCell(row, columnCount++, "Close", style, sheet);
             } else {
@@ -296,9 +297,44 @@ public class MISExportService {
             }
             createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
             createCell(row, columnCount++, format.format(new Date()), style, sheet);
+            createCell(row, columnCount++, claimsData.getAgentMapped(), style, sheet);
             createCell(row, columnCount++, "", style, sheet);
             sno++;
         }
+    }
+
+    private void writeHeaderLineDownloadMIS(Workbook workbook, Sheet sheet) {
+        Row row = sheet.createRow(0);
+        HSSFWorkbook hwb = new HSSFWorkbook();
+        HSSFPalette palette = hwb.getCustomPalette();
+        HSSFColor headerBackgroundColor = palette.findSimilarColor(222, 234, 246);
+        CellStyle style = workbook.createCellStyle();
+        style.setFillForegroundColor(headerBackgroundColor.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        XSSFFont font = ((XSSFWorkbook) workbook).createFont();
+        font.setFontName("Calibri");
+        font.setFontHeightInPoints((short) 12);
+        font.setBold(true);
+        style.setFont(font);
+        createCell(row, 0, "S.No", style, sheet);
+        createCell(row, 1, "PunchIn Ref Id", style, sheet);
+        createCell(row, 2, "Case Inward date", style, sheet);
+        createCell(row, 3, "Borrower Name", style, sheet);
+        createCell(row, 4, "Borrower Address", style, sheet);
+        createCell(row, 5, "Borrower City", style, sheet);
+        createCell(row, 6, "Borrower Pin Code", style, sheet);
+        createCell(row, 7, "Borrower State", style, sheet);
+        createCell(row, 8, "Borrower Contact Number", style, sheet);
+        createCell(row, 9, "Alternate Mobile No.", style, sheet);
+        createCell(row, 10, "Insurer Name", style, sheet);
+        createCell(row, 11, "Nominee Name", style, sheet);
+        createCell(row, 12, "Nominee Relationship", style, sheet);
+        createCell(row, 13, "Nominee Contact Number", style, sheet);
+        createCell(row, 14, "Nominee Address", style, sheet);
+        createCell(row, 15, "Claim Action", style, sheet);
+        createCell(row, 16, "Claim Status", style, sheet);
+        createCell(row, 17, "Claim Status Date", style, sheet);
+        createCell(row, 18, "Agent Mapped", style, sheet);
     }
 
 }

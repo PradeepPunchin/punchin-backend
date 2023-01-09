@@ -66,6 +66,8 @@ public class BankerServiceImpl implements BankerService {
     private InvalidClaimsDataRepository invalidClaimsDataRepository;
     @Autowired
     private BankerVerifierRemarkRepository bankerVerifierRemarkRepository;
+    @Autowired
+    private ClaimsDataAuditRepository claimsDataAuditRepository;
 
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
@@ -292,6 +294,9 @@ public class BankerServiceImpl implements BankerService {
                 dto.setOutstandingLoanAmount(claimsData.getLoanOutstandingAmount());
                 dto.setBalanceClaimAmount(0d);
                 dto.setLoanAmountPaidByBorrower(0d);
+                if(Objects.nonNull(claimsData.getSubmittedBy())){
+                    dto.setSubmitted(true);
+                }
                 if (Objects.nonNull(claimsData.getPolicySumAssured()) && Objects.nonNull(claimsData.getLoanOutstandingAmount())) {
                     double outStandingLoan = claimsData.getPolicySumAssured() - claimsData.getLoanOutstandingAmount();
                     dto.setLoanAmountPaidByBorrower(claimsData.getLoanAmount() - claimsData.getLoanOutstandingAmount());
@@ -1426,13 +1431,45 @@ public class BankerServiceImpl implements BankerService {
             ClaimsRemarksDTO claimsRemarksDTO = new ClaimsRemarksDTO();
                 BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
                 bankerVerifierRemark.setClaimId(claimsData.getId());
-                bankerVerifierRemark.setRole(RoleEnum.VERIFIER.name());
+                bankerVerifierRemark.setRole(RoleEnum.BANKER.name());
                 bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
                 bankerVerifierRemark.setRemark(requestDTO.getRemark());
                 claimsRemarksDTO = modelMapper.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
             return claimsRemarksDTO;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: addClaimRemark", e);
+            return null;
+        }
+    }
+
+    @Override
+    public ClaimDataDTO updateClaimData(ClaimsData claimsData, ClaimUpdateRequestDTO requestDTO) {
+        try {
+            log.info("BankerServiceImpl :: updateClaimData claimsData {}, requestDTO {}", claimsData, requestDTO);
+            ClaimsDataAudit claimsDataAudit = modelMapper.map(claimsData, ClaimsDataAudit.class);
+            if(Objects.nonNull(requestDTO.getBorrowerName())){
+                claimsData.setBorrowerName(requestDTO.getBorrowerName());
+            }
+            if(Objects.nonNull(requestDTO.getBorrowerAddress())){
+                claimsData.setBorrowerAddress(requestDTO.getBorrowerAddress());
+            }
+            if(Objects.nonNull(requestDTO.getBorrowerContactNumber())){
+                claimsData.setBorrowerContactNumber(requestDTO.getBorrowerContactNumber());
+            }
+            if(Objects.nonNull(requestDTO.getNomineeName())){
+                claimsData.setNomineeName(requestDTO.getNomineeName());
+            }
+            if(Objects.nonNull(requestDTO.getNomineeAddress())){
+                claimsData.setNomineeAddress(requestDTO.getNomineeAddress());
+            }
+            if(Objects.nonNull(requestDTO.getNomineeContactNumber())){
+                claimsData.setNomineeContactNumber(requestDTO.getNomineeContactNumber());
+            }
+            claimsDataRepository.save(claimsData);
+            claimsDataAuditRepository.save(claimsDataAudit);
+            return modelMapper.map(claimsData, ClaimDataDTO.class);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: updateClaimData", e);
             return null;
         }
     }

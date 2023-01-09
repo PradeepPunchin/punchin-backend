@@ -8,4 +8,5 @@ public class ClaimsRemarksDTO {
     private Long remarkDoneBy;
     private String remark;
     private String role;
+    private Long createdAt;
 }

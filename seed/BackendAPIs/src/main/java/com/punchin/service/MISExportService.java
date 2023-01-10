@@ -1,9 +1,11 @@
 package com.punchin.service;
 
 import com.punchin.dto.DownloadVerifierMisResponse;
+import com.punchin.entity.ClaimDraftData;
 import com.punchin.entity.ClaimsData;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
+import com.punchin.repository.ClaimDraftDataRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ObjectMapperUtils;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,6 +32,9 @@ public class MISExportService {
     private ClaimsDataRepository claimsDataRepository;
     @Autowired
     AmazonS3FileManagers amazonS3FileManagers;
+
+    @Autowired
+    ClaimDraftDataRepository claimDraftDataRepository;
 
 
     public String downloadBankerExcelFile(ClaimDataFilter claimDataFilter) {
@@ -335,6 +341,129 @@ public class MISExportService {
         createCell(row, 16, "Claim Status", style, sheet);
         createCell(row, 17, "Claim Status Date", style, sheet);
         createCell(row, 18, "Agent Mapped", style, sheet);
+    }
+
+    public String exportRejectedClaimsData(String banker) throws IOException {
+        List<ClaimDraftData> claimDraftDataList =claimDraftDataRepository.findRejectedClaimDataByBankerId(banker);
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+        String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
+//        String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
+        String filePath = System.getProperty("/home/sukesh/Downloads/data") + filename;
+        File file = new File(filePath);
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Sheet1");
+        writeHeaderLineExportRejected(workbook, sheet);
+        writeDataLinesExportReject(workbook, sheet, claimDraftDataList, format);
+        FileOutputStream outputStream = new FileOutputStream(filePath);
+        workbook.write(outputStream);
+        workbook.close();
+        String versionId = amazonS3FileManagers.uploadFileToAmazonS3("mis_upload/", file, filename);
+        amazonS3FileManagers.cleanUp(file);
+        return versionId;
+    }
+
+    private void writeDataLinesExportReject(Workbook workbook, Sheet sheet, List<ClaimDraftData> claimDraftDataList, SimpleDateFormat format) {
+        int rowCount = 1;
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        style.setFont(font);
+        int sno = 1;
+        for (ClaimDraftData claimsData : claimDraftDataList) {
+            Row row = sheet.createRow(rowCount++);
+            int columnCount = 0;
+            createCell(row, columnCount++, sno, style, sheet);
+            if (claimsData.getClaimInwardDate() != null) {
+                createCell(row, columnCount++, format.format(claimsData.getClaimInwardDate()).toString(), style, sheet);
+            }else {
+                createCell(row, columnCount++, "", style, sheet);
+
+            }
+            createCell(row, columnCount++, claimsData.getBorrowerName(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerAddress(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerCity(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerPinCode(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerState(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerContactNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerEmailId(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerAlternateContactNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBorrowerAlternateContactDetails(), style, sheet);
+            createCell(row, columnCount++, claimsData.getLoanAccountNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getLoanType(), style, sheet);
+            createCell(row, columnCount++, format.format(claimsData.getLoanDisbursalDate()), style, sheet);
+            createCell(row, columnCount++, claimsData.getLoanAmount(), style, sheet);
+            createCell(row, columnCount++, claimsData.getLoanOutstandingAmount(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBranchCode(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBranchAddress(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBranchCity(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBranchPinCode(), style, sheet);
+            createCell(row, columnCount++, claimsData.getBranchState(), style, sheet);
+            createCell(row, columnCount++, claimsData.getLoanAccountManagerName(), style, sheet);
+            createCell(row, columnCount++, claimsData.getAccountManagerContactNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getInsurerName(), style, sheet);
+            createCell(row, columnCount++, claimsData.getPolicyNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getMasterPolNumber(), style, sheet);
+            createCell(row, columnCount++, format.format(claimsData.getPolicyStartDate()), style, sheet);
+            createCell(row, columnCount++, claimsData.getPolicyCoverageDuration(), style, sheet);
+            createCell(row, columnCount++, claimsData.getPolicySumAssured(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeName(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeRelationShip(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeContactNumber(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeEmailId(), style, sheet);
+            createCell(row, columnCount++, claimsData.getNomineeAddress(), style, sheet);
+            createCell(row, columnCount++, claimsData.getInvalidClaimDataReason(), style, sheet);
+            createCell(row, columnCount++, "", style, sheet);
+            sno++;
+        }
+    }
+
+    private void writeHeaderLineExportRejected(Workbook workbook, Sheet sheet) {
+        Row row = sheet.createRow(0);
+        HSSFWorkbook hwb = new HSSFWorkbook();
+        HSSFPalette palette = hwb.getCustomPalette();
+        HSSFColor headerBackgroundColor = palette.findSimilarColor(222, 234, 246);
+        CellStyle style = workbook.createCellStyle();
+        style.setFillForegroundColor(headerBackgroundColor.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        XSSFFont font = ((XSSFWorkbook) workbook).createFont();
+        font.setFontName("Calibri");
+        font.setFontHeightInPoints((short) 12);
+        font.setBold(true);
+        style.setFont(font);
+        createCell(row, 0, "S.No", style, sheet);
+        createCell(row, 1, "Case Inward date", style, sheet);
+        createCell(row, 2, "Borrower Name", style, sheet);
+        createCell(row, 3, "Borrower Address", style, sheet);
+        createCell(row, 4, "Borrower City", style, sheet);
+        createCell(row, 5, "Borrower Pin Code", style, sheet);
+        createCell(row, 6, "Borrower State", style, sheet);
+        createCell(row, 7, "Borrower Contact Number", style, sheet);
+        createCell(row, 8, "Borrower Email id", style, sheet);
+        createCell(row, 9, "Alternate Mobile No.", style, sheet);
+        createCell(row, 10, "Alternate Contact Details", style, sheet);
+        createCell(row, 11, "Loan Account Number", style, sheet);
+        createCell(row, 12, "Loan Category/Type", style, sheet);
+        createCell(row, 13, "Loan Disbursal Date", style, sheet);
+        createCell(row, 14, "Loan Disbursal Amount", style, sheet);
+        createCell(row, 15, "Loan O/S Amount", style, sheet);
+        createCell(row, 16, "Lender Branch Code", style, sheet);
+        createCell(row, 17, "Lender Branch Address", style, sheet);
+        createCell(row, 18, "Lender Branch City", style, sheet);
+        createCell(row, 19, "Lender Branch Pin code", style, sheet);
+        createCell(row, 20, "Lender Branch State", style, sheet);
+        createCell(row, 21, "Lenders Local Contact Name", style, sheet);
+        createCell(row, 22, "Lenders Local Contact Mobile No", style, sheet);
+        createCell(row, 23, "Insurer Name", style, sheet);
+        createCell(row, 24, "Borrower Policy Number", style, sheet);
+        createCell(row, 25, "Master Policy Number", style, sheet);
+        createCell(row, 26, "Policy Start Date", style, sheet);
+        createCell(row, 27, "Policy Tenure", style, sheet);
+        createCell(row, 28, "Policy Sum Assured", style, sheet);
+        createCell(row, 29, "Nominee Name", style, sheet);
+        createCell(row, 30, "Nominee Relationship", style, sheet);
+        createCell(row, 31, "Nominee Contact Number", style, sheet);
+        createCell(row, 32, "Nominee Email id", style, sheet);
+        createCell(row, 33, "Nominee Address", style, sheet);
+        createCell(row, 34, "Reason for Rejected", style, sheet);
     }
 
 }

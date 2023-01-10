@@ -68,7 +68,6 @@ public class BankerServiceImpl implements BankerService {
     private BankerVerifierRemarkRepository bankerVerifierRemarkRepository;
     @Autowired
     private ClaimsDataAuditRepository claimsDataAuditRepository;
-
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
         Map<String, Object> map = new HashMap<>();
@@ -85,12 +84,13 @@ public class BankerServiceImpl implements BankerService {
                     if (StringUtils.isNotBlank(claimDraftData.getBorrowerName()) && StringUtils.isNotBlank(claimDraftData.getBorrowerAddress()) && StringUtils.isNotBlank(claimDraftData.getBorrowerCity()) &&
                             StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
                             StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
-                            StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip())) {
+                            StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
                         List<Long> claimId = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
                         if (claimId.isEmpty()) {
                             claimsDataList.add(claimDraftData);
                         } else {
                             claimDraftData.setValidClaimData(false);
+                            claimDraftData.setInvalidClaimDataReason("Loan number already exists");
                             claimsDataList.add(claimDraftData);
                             log.info("Loan number already exists :: {}", claimId);
                             InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
@@ -101,6 +101,7 @@ public class BankerServiceImpl implements BankerService {
                         }
                     } else {
                         claimDraftData.setValidClaimData(false);
+                        claimDraftData.setInvalidClaimDataReason("Mandatory fields are missing");
                         claimsDataList.add(claimDraftData);
                         log.info("Mandatory fields are missing :: {}", claimDraftData.getId());
                         InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
@@ -761,13 +762,14 @@ public class BankerServiceImpl implements BankerService {
                 if (StringUtils.isNotBlank(claimDraftData.getBorrowerName()) && StringUtils.isNotBlank(claimDraftData.getBorrowerAddress()) && StringUtils.isNotBlank(claimDraftData.getBorrowerCity()) &&
                         StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
                         StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
-                        StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip())) {
+                        StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip())&& StringUtils.isNotBlank(claimDraftData.getCategory())) {
                     List<Long> claimId = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
                     if (claimId.isEmpty()) {
                         claimsDraftDataList.add(claimDraftData);
                     } else {
                         claimDraftData.setValidClaimData(false);
                         claimsDraftDataList.add(claimDraftData);
+                        claimDraftData.setInvalidClaimDataReason("Loan number already exists");
                         log.info("Loan number already exists :: {}", claimId);
                         InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
                         invalidClaimsData.setValidClaimData(false);
@@ -776,6 +778,7 @@ public class BankerServiceImpl implements BankerService {
                     }
                 } else {
                     claimDraftData.setValidClaimData(false);
+                    claimDraftData.setInvalidClaimDataReason("Mandatory fields are missing");
                     claimsDraftDataList.add(claimDraftData);
                     log.info("Mandatory fields are missing :: {}", claimDraftData);
                     InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);

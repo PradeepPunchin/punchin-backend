@@ -57,4 +57,6 @@ public class ClaimDraftData extends BasicEntity {
     @Column(columnDefinition = "Text")
     private String nomineeAddress;
     private boolean validClaimData = true;
+    private String invalidClaimDataReason;
+
 }

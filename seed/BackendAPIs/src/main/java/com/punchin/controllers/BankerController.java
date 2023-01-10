@@ -480,4 +480,21 @@ public class BankerController {
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @Secured({"BANKER"})
+    @ApiOperation(value = "Download Reject MIS Report", notes = "This can be used to download rejected MIS in excel sheet")
+    @GetMapping(value = UrlMapping.DOWNLOAD_REJECTED_MIS_REPORT)
+    public ResponseEntity<Object> downloadRejectedMISReport() {
+        try {
+            String bankerId = GenericUtils.getLoggedInUser().getUserId();
+            log.info("BankerController :: downloadRejectMISReport");
+            if (!bankerService.isBanker()) {
+                return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
+            }
+            return ResponseHandler.response(misExportService.exportRejectedClaimsData(bankerId), MessageCode.success, true, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error while download reject claim data list");
+            return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

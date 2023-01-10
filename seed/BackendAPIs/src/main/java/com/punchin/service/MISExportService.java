@@ -347,8 +347,7 @@ public class MISExportService {
         List<ClaimDraftData> claimDraftDataList =claimDraftDataRepository.findRejectedClaimDataByBankerId(banker);
         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
         String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
-//        String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
-        String filePath = System.getProperty("/home/sukesh/Downloads/data") + filename;
+        String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
         File file = new File(filePath);
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Sheet1");

@@ -21,6 +21,6 @@ public interface ClaimDraftDataRepository extends JpaRepository<ClaimDraftData, 
     Page<ClaimDraftData> findAllByPunchinBankerId(String userId, Pageable pageable);
 
 
-    @Query(nativeQuery = true, value = "SELECT * FROM claim_draft_data cdd WHERE cdd.valid_claim_data=false and cdd.punchin_banker_id =:banker")
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_draft_data cdd WHERE cdd.valid_claim_data=false and cdd.invalid_claim_data_reason is not null and cdd.punchin_banker_id =:banker")
     List<ClaimDraftData> findRejectedClaimDataByBankerId(@Param("banker") String banker);
 }

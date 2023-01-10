@@ -1,11 +1,11 @@
 package com.punchin.repository;
 
 import com.punchin.entity.ClaimDraftData;
-import com.punchin.entity.ClaimsData;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,4 +19,8 @@ public interface ClaimDraftDataRepository extends JpaRepository<ClaimDraftData, 
     List<ClaimDraftData> findAllByPunchinBankerId(String userId);
 
     Page<ClaimDraftData> findAllByPunchinBankerId(String userId, Pageable pageable);
+
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claim_draft_data cdd WHERE cdd.valid_claim_data=false and cdd.punchin_banker_id =:banker")
+    List<ClaimDraftData> findRejectedClaimDataByBankerId(@Param("banker") String banker);
 }

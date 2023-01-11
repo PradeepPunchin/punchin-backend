@@ -248,6 +248,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());
+                //User user = userRepository.findByPinCode();
                 claimsDataList.add(claimsData);
             }
             claimsDataList = claimsDataRepository.saveAll(claimsDataList);

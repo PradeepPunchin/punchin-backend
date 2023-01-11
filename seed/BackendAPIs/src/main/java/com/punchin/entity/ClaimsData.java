@@ -69,6 +69,7 @@ public class ClaimsData extends BasicEntity {
     private ClaimStatus claimBankerStatus;
     private Long agentId = 0L;
     private Long bankerId = 0L;
+    private Long verifierId = 0L;
     private Long submittedBy;
     private Long submittedAt;
     private Boolean isForwardToVerifier = false;

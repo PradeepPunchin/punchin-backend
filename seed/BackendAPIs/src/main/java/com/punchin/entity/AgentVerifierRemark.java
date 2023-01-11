@@ -16,13 +16,15 @@ public class AgentVerifierRemark extends BasicEntity{
     private Long claimId;
     private Long remarkDoneBy;
     private String remark;
+    private String comment;
     private String role;
 
-    public AgentVerifierRemark(Long claimId, String remark, Long remarkDoneBy, String role) {
+    public AgentVerifierRemark(Long claimId, String remark, Long remarkDoneBy, String role, String comment) {
         this.claimId = claimId;
         this.remark = remark;
         this.remarkDoneBy = remarkDoneBy;
         this.role = role;
+        this.comment = comment;
     }
 
     public AgentVerifierRemark() {}

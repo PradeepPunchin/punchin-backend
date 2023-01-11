@@ -197,7 +197,7 @@ public class AgentServiceImpl implements AgentService {
                 if(documentDTO.getAgentRemark().equalsIgnoreCase("other")){
                     documentDTO.setAgentRemark(documentDTO.getAgentComment());
                 }
-                agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name()));
+                agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name(), documentDTO.getAgentComment()));
                 claimsData.setAgentRemark(documentDTO.getAgentRemark());
                 claimsData.setAgentComment(documentDTO.getAgentComment());
             }

@@ -509,6 +509,12 @@ public class AgentServiceImpl implements AgentService {
             agentSearchDTO1.setAllocationDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimStatus(agentSearchDTO1.getClaimStatus());
+           List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(agentSearchDTO1.getId());
+            List<ClaimsRemarksDTO> claimsRemarksDTOS = new ArrayList<>();
+            for(AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks){
+                claimsRemarksDTOS.add(mapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
+            }
+            agentSearchDTO1.setClaimsRemarksDTOs(claimsRemarksDTOS);
         }
         log.info("searched claim data fetched successfully");
         return commonService.convertPageToDTO(agentSearchDTO1s, claimSearchedData);

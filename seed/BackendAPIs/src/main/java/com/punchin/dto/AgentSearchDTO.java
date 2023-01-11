@@ -4,6 +4,7 @@ import com.punchin.enums.ClaimStatus;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class AgentSearchDTO {
@@ -54,6 +55,8 @@ public class AgentSearchDTO {
     private String nomineeContactNumber;
     private String nomineeEmailId;
     private String nomineeAddress;
+    private List<ClaimsRemarksDTO> claimsRemarksDTOs;
+
 
 
 }

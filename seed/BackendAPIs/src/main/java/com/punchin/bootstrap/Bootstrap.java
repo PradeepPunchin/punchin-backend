@@ -93,7 +93,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("verifier@123"));
                 user.setRole(RoleEnum.VERIFIER);
-                user.setState("UP");
+                user.setState("UTTAR PRADESH");
                 users.add(user);
 
                 user = new User();
@@ -104,7 +104,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("verifier@123"));
                 user.setRole(RoleEnum.VERIFIER);
-                user.setState("DL");
+                user.setState("DELHI");
                 users.add(user);
 
                 user = new User();
@@ -115,7 +115,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("verifier@123"));
                 user.setRole(RoleEnum.VERIFIER);
-                user.setState("PB");
+                user.setState("PUNJAB");
                 users.add(user);
             }
             if (!userRepository.existsByUserIdIgnoreCase("agent")) {

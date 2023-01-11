@@ -68,13 +68,14 @@ public class BankerServiceImpl implements BankerService {
     private BankerVerifierRemarkRepository bankerVerifierRemarkRepository;
     @Autowired
     private ClaimsDataAuditRepository claimsDataAuditRepository;
+
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
         Map<String, Object> map = new HashMap<>();
         map.put("status", false);
         try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
-            String bankerId = GenericUtils.getLoggedInUser().getUserId();
+            Long bankerId = GenericUtils.getLoggedInUser().getId();
             for (MultipartFile file : files) {
                 Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
@@ -85,7 +86,7 @@ public class BankerServiceImpl implements BankerService {
                             StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
                             StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
                             StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
-                        List<Long> claimId = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
+                        List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
                         if (claimId.isEmpty()) {
                             claimsDataList.add(claimDraftData);
                         } else {
@@ -755,16 +756,16 @@ public class BankerServiceImpl implements BankerService {
 
     public List<ClaimDraftData> save(MultipartFile file) {
         try {
-            String bankerId = GenericUtils.getLoggedInUser().getUserId();
-            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream(), bankerId);
+            Long bankerId = GenericUtils.getLoggedInUser().getId();
+            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
             List<ClaimDraftData> claimsDraftDataList = new ArrayList<>();
             List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimsDataList) {
                 if (StringUtils.isNotBlank(claimDraftData.getBorrowerName()) && StringUtils.isNotBlank(claimDraftData.getBorrowerAddress()) && StringUtils.isNotBlank(claimDraftData.getBorrowerCity()) &&
                         StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
                         StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
-                        StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip())&& StringUtils.isNotBlank(claimDraftData.getCategory())) {
-                    List<Long> claimId = claimsDataRepository.findExistingLoanNumber(claimDraftData.getLoanAccountNumber());
+                        StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
+                    List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
                     if (claimId.isEmpty()) {
                         claimsDraftDataList.add(claimDraftData);
                     } else {

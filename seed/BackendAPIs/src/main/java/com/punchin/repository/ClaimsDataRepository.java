@@ -159,8 +159,8 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE id IN (SELECT DISTINCT claims_data_id FROM claim_documents WHERE is_active = true AND upload_side_by = 'banker') AND punchin_banker_id=:userId AND submitted_by is null")
     Page<ClaimsData> findByClaimStatusByDraftSavedByBanker(String userId, Pageable pageable);
 
-    @Query(nativeQuery = true, value = "select cd.id from  claims_data cd where cd.loan_account_number =:loanAccountNumber")
-    List<Long> findExistingLoanNumber(@Param("loanAccountNumber") String loanAccountNumber);
+    @Query(nativeQuery = true, value = "select * from  claims_data cd where cd.banker_id =:bankerId and cd.loan_account_number =:loanAccountNumber")
+    List<Long> findExistingLoanNumber(@Param("bankerId") Long bankerId, @Param("loanAccountNumber") String loanAccountNumber);
 
     @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE LOWER(punchin_claim_id)=:id")
     ClaimsData findIdByPunchinId(String id);

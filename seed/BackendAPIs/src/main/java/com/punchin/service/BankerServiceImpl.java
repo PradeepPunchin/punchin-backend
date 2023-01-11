@@ -82,9 +82,18 @@ public class BankerServiceImpl implements BankerService {
                 List<ClaimDraftData> claimsDataList = new ArrayList<>();
                 List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
                 for (ClaimDraftData claimDraftData : claimsData) {
+                    if (claimDraftData.getLoanAmount() == 0) {
+                        claimDraftData.setLoanAmount(null);
+                    }
+                    if (claimDraftData.getLoanOutstandingAmount() == 0.00) {
+                        claimDraftData.setLoanOutstandingAmount(null);
+                    }
+                    if (claimDraftData.getPolicySumAssured() == 0.00) {
+                        claimDraftData.setPolicySumAssured(null);
+                    }
                     if (StringUtils.isNotBlank(claimDraftData.getBorrowerName()) && StringUtils.isNotBlank(claimDraftData.getBorrowerAddress()) && StringUtils.isNotBlank(claimDraftData.getBorrowerCity()) &&
                             StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
-                            StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
+                            StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanOutstandingAmount() != null &&
                             StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
                         List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
                         if (claimId.isEmpty()) {
@@ -762,9 +771,18 @@ public class BankerServiceImpl implements BankerService {
             List<ClaimDraftData> claimsDraftDataList = new ArrayList<>();
             List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimsDataList) {
+                if (claimDraftData.getLoanAmount() == 0.00) {
+                    claimDraftData.setLoanAmount(null);
+                }
+                if (claimDraftData.getLoanOutstandingAmount() == 0.00) {
+                    claimDraftData.setLoanOutstandingAmount(null);
+                }
+                if (claimDraftData.getPolicySumAssured() == 0.00) {
+                    claimDraftData.setPolicySumAssured(null);
+                }
                 if (StringUtils.isNotBlank(claimDraftData.getBorrowerName()) && StringUtils.isNotBlank(claimDraftData.getBorrowerAddress()) && StringUtils.isNotBlank(claimDraftData.getBorrowerCity()) &&
                         StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
-                        StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanAmount() != null &&
+                        StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanOutstandingAmount() != null &&
                         StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
                     List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
                     if (claimId.isEmpty()) {

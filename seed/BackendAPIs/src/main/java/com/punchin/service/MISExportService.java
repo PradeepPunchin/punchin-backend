@@ -389,7 +389,12 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getLoanAccountNumber(), style, sheet);
             createCell(row, columnCount++, claimsData.getLoanType(), style, sheet);
             createCell(row, columnCount++, claimsData.getCategory(), style, sheet);
-            createCell(row, columnCount++, format.format(claimsData.getLoanDisbursalDate()), style, sheet);
+            if (claimsData.getLoanDisbursalDate() !=null){
+                createCell(row, columnCount++, format.format(claimsData.getLoanDisbursalDate()), style, sheet);
+            }
+            else {
+                createCell(row, columnCount++, null ,style, sheet);
+            }
             createCell(row, columnCount++, claimsData.getLoanAmount(), style, sheet);
             createCell(row, columnCount++, claimsData.getLoanOutstandingAmount(), style, sheet);
             createCell(row, columnCount++, claimsData.getBranchCode(), style, sheet);
@@ -402,7 +407,12 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getInsurerName(), style, sheet);
             createCell(row, columnCount++, claimsData.getPolicyNumber(), style, sheet);
             createCell(row, columnCount++, claimsData.getMasterPolNumber(), style, sheet);
-            createCell(row, columnCount++, format.format(claimsData.getPolicyStartDate()), style, sheet);
+            if (claimsData.getPolicyStartDate() !=null){
+                createCell(row, columnCount++, format.format(claimsData.getPolicyStartDate()), style, sheet);
+            }
+            else {
+                createCell(row, columnCount++, null, style, sheet);
+            }
             createCell(row, columnCount++, claimsData.getPolicyCoverageDuration(), style, sheet);
             createCell(row, columnCount++, claimsData.getPolicySumAssured(), style, sheet);
             createCell(row, columnCount++, claimsData.getNomineeName(), style, sheet);

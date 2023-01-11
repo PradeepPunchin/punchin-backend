@@ -523,12 +523,16 @@ public class BankerServiceImpl implements BankerService {
                             p.setCategory(cell.getStringCellValue().toLowerCase());
                             break;
                         case 13:
-                            if (cell.getCellType().equals(CellType.NUMERIC)) {
-                                if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                    p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                            if (StringUtils.isNotBlank(String.valueOf(cell))) {
+                                if (cell.getCellType().equals(CellType.NUMERIC)) {
+                                    if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                                        p.setLoanDisbursalDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                                    }
+                                } else if (cell.getCellType().equals(CellType.STRING)) {
+                                    p.setLoanDisbursalDate(new Date(cell.getStringCellValue()));
                                 }
-                            } else if (cell.getCellType().equals(CellType.STRING)) {
-                                p.setLoanDisbursalDate(new Date(cell.getStringCellValue()));
+                            } else {
+                                p.setLoanDisbursalDate(null);
                             }
                             break;
                         case 14:
@@ -538,9 +542,14 @@ public class BankerServiceImpl implements BankerService {
                             }
                             break;
                         case 15:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
+                            if (StringUtils.isNotBlank(String.valueOf(cell))) {
+                                cell.setCellType(CellType.NUMERIC);
+                                System.out.println(cell);
+                                if (Objects.nonNull(cell.getNumericCellValue())) {
+                                    p.setLoanOutstandingAmount((double) cell.getNumericCellValue());
+                                }
+                            } else {
+                                p.setLoanOutstandingAmount(0.0);
                             }
                             break;
                         case 16:
@@ -612,12 +621,16 @@ public class BankerServiceImpl implements BankerService {
                             }
                             break;
                         case 26:
-                            if (cell.getCellType().equals(CellType.NUMERIC)) {
-                                if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
-                                    p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                            if (StringUtils.isNotBlank(String.valueOf(cell))) {
+                                if (cell.getCellType().equals(CellType.NUMERIC)) {
+                                    if (Objects.nonNull(cell.getLocalDateTimeCellValue())) {
+                                        p.setPolicyStartDate(Date.from(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toInstant()));
+                                    }
+                                } else if (cell.getCellType().equals(CellType.STRING)) {
+                                    p.setPolicyStartDate(new Date(cell.getStringCellValue()));
                                 }
-                            } else if (cell.getCellType().equals(CellType.STRING)) {
-                                p.setPolicyStartDate(new Date(cell.getStringCellValue()));
+                            } else {
+                                p.setPolicyStartDate(null);
                             }
                             /*if (Objects.nonNull(cell.getStringCellValue())) {
                                 Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(cell.getStringCellValue());
@@ -631,9 +644,13 @@ public class BankerServiceImpl implements BankerService {
                             }
                             break;
                         case 28:
-                            cell.setCellType(CellType.NUMERIC);
-                            if (Objects.nonNull(cell.getNumericCellValue())) {
-                                p.setPolicySumAssured((double) cell.getNumericCellValue());
+                            if (StringUtils.isNotBlank(String.valueOf(cell))) {
+                                cell.setCellType(CellType.NUMERIC);
+                                if (Objects.nonNull(cell.getNumericCellValue())) {
+                                    p.setPolicySumAssured((double) cell.getNumericCellValue());
+                                }
+                            } else {
+                                p.setPolicySumAssured(0.0);
                             }
                             break;
                         case 29:

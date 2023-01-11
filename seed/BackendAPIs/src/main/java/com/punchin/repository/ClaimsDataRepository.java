@@ -164,4 +164,9 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE LOWER(punchin_claim_id)=:id")
     ClaimsData findIdByPunchinId(String id);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where (cd.claim_banker_status in ('VERIFIER_DISCREPENCY','BANKER_DISCREPANCY','NEW_REQUIREMENT')" +
+            "or cd.claim_status in ('VERIFIER_DISCREPENCY','BANKER_DISCREPANCY','NEW_REQUIREMENT')) and cd.punchin_banker_id =:userId ORDER BY cd.created_at DESC")
+    Page<ClaimsData> findByClaimStatusOrClaimBankerStatusInAndPunchinBankerId(String userId, Pageable pageable);
+
 }

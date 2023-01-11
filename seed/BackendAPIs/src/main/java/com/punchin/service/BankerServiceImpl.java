@@ -194,10 +194,10 @@ public class BankerServiceImpl implements BankerService {
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                /*claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
-                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);*/
+                page1 = claimsDataRepository.findByClaimStatusOrClaimBankerStatusInAndPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
             } else if (claimDataFilter.BANKER_DRAFT.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(GenericUtils.getLoggedInUser().getUserId(), pageable);
             }

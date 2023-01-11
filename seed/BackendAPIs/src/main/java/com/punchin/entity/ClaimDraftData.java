@@ -58,5 +58,7 @@ public class ClaimDraftData extends BasicEntity {
     private String nomineeAddress;
     private boolean validClaimData = true;
     private String invalidClaimDataReason;
+    private boolean duplicateLoanNumber;
+    private boolean missingMandatoryField ;
 
 }

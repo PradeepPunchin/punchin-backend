@@ -90,6 +90,7 @@ public class BankerServiceImpl implements BankerService {
                             claimsDataList.add(claimDraftData);
                         } else {
                             claimDraftData.setValidClaimData(false);
+                            claimDraftData.setDuplicateLoanNumber(true);
                             claimDraftData.setInvalidClaimDataReason("Loan number already exists");
                             claimsDataList.add(claimDraftData);
                             log.info("Loan number already exists :: {}", claimId);
@@ -97,10 +98,10 @@ public class BankerServiceImpl implements BankerService {
                             invalidClaimsData.setValidClaimData(false);
                             invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
                             invalidClaimsDataList.add(invalidClaimsData);
-
                         }
                     } else {
                         claimDraftData.setValidClaimData(false);
+                        claimDraftData.setMissingMandatoryField(true);
                         claimDraftData.setInvalidClaimDataReason("Mandatory fields are missing");
                         claimsDataList.add(claimDraftData);
                         log.info("Mandatory fields are missing :: {}", claimDraftData.getId());
@@ -768,6 +769,7 @@ public class BankerServiceImpl implements BankerService {
                         claimsDraftDataList.add(claimDraftData);
                     } else {
                         claimDraftData.setValidClaimData(false);
+                        claimDraftData.setDuplicateLoanNumber(true);
                         claimsDraftDataList.add(claimDraftData);
                         claimDraftData.setInvalidClaimDataReason("Loan number already exists");
                         log.info("Loan number already exists :: {}", claimId);
@@ -778,6 +780,7 @@ public class BankerServiceImpl implements BankerService {
                     }
                 } else {
                     claimDraftData.setValidClaimData(false);
+                    claimDraftData.setMissingMandatoryField(true);
                     claimDraftData.setInvalidClaimDataReason("Mandatory fields are missing");
                     claimsDraftDataList.add(claimDraftData);
                     log.info("Mandatory fields are missing :: {}", claimDraftData);

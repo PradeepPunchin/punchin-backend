@@ -78,6 +78,7 @@ public class BankerController {
                         return ResponseHandler.response(null, MessageCode.invalidFormat, false, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
                     }
                 }
+                bankerService.discardClaims();
                 String fileFormat = GenericUtils.checkCSV(multipartFile);
                 if (fileFormat == null) {
                     return ResponseHandler.response(null, MessageCode.invalidFormat, false, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
@@ -473,6 +474,9 @@ public class BankerController {
             if(!bankerService.checkPinCode(requestDTO.getBorrowerPinCode())){
                 return ResponseHandler.response(null, MessageCode.INVALID_PINCODE, false, HttpStatus.BAD_REQUEST);
             }
+            /*if(!bankerService.checkAvailableVerifier(requestDTO.getBorrowerPinCode())){
+                return ResponseHandler.response(null, MessageCode.INVALID_PINCODE, false, HttpStatus.BAD_REQUEST);
+            }*/
             ClaimDataDTO claimDataDTO = bankerService.updateClaimData(claimsData, requestDTO);
             if(Objects.nonNull(claimDataDTO)) {
                 return ResponseHandler.response(claimDataDTO, MessageCode.success, true, HttpStatus.OK);

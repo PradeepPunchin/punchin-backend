@@ -98,20 +98,33 @@ public class BankerServiceImpl implements BankerService {
                             StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
                             StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanOutstandingAmount() != null &&
                             StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
-                        List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
-                        if (claimId.isEmpty()) {
-                            claimsDataList.add(claimDraftData);
-                        } else {
+                        boolean pinCodeExists = userRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim());//pinCodeStateRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim())
+                        if(pinCodeExists) {
+                            List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
+                            if (claimId.isEmpty()) {
+                                claimsDataList.add(claimDraftData);
+                            } else {
+                                claimDraftData.setValidClaimData(false);
+                                claimDraftData.setDuplicateLoanNumber(true);
+                                claimDraftData.setInvalidClaimDataReason("Loan number already exists");
+                                claimsDataList.add(claimDraftData);
+                                log.info("Loan number already exists :: {}", claimId);
+                                InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                                invalidClaimsData.setValidClaimData(false);
+                                invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
+                                invalidClaimsDataList.add(invalidClaimsData);
+                            }
                             claimDraftData.setValidClaimData(false);
-                            claimDraftData.setDuplicateLoanNumber(true);
-                            claimDraftData.setInvalidClaimDataReason("Loan number already exists");
+                            claimDraftData.setVerifierMapped(false);
+                            claimDraftData.setInvalidClaimDataReason("Verifier not mapped");
                             claimsDataList.add(claimDraftData);
-                            log.info("Loan number already exists :: {}", claimId);
+                            log.info("Verifier not mapped :: {}", claimId);
                             InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
                             invalidClaimsData.setValidClaimData(false);
-                            invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
+                            invalidClaimsData.setInvalidClaimDataReason("Verifier not mapped");
                             invalidClaimsDataList.add(invalidClaimsData);
                         }
+
                     } else {
                         claimDraftData.setValidClaimData(false);
                         claimDraftData.setMissingMandatoryField(true);
@@ -1524,7 +1537,7 @@ public class BankerServiceImpl implements BankerService {
                 Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
                 if(Objects.nonNull(verifierId)){
                     claimsData.setVerifierId(verifierId);
-                    claimsData.setAgentId(0L);
+                    //claimsData.setAgentId(0L);
                 }
             }
             claimsDataRepository.save(claimsData);
@@ -1543,6 +1556,17 @@ public class BankerServiceImpl implements BankerService {
             return pinCodeStateRepository.existsByPinCode(pinCode.trim());
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: checkPinCode ", e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean checkAvailableVerifier(String pinCode) {
+        try {
+            log.info("BankerController :: checkAvailableVerifier pinCode {}", pinCode);
+            return pinCodeStateRepository.existsByPinCode(pinCode.trim());
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: checkAvailableVerifier ", e);
             return false;
         }
     }

@@ -99,8 +99,8 @@ public class BankerServiceImpl implements BankerService {
                             StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
                             StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanOutstandingAmount() != null &&
                             StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
-                        boolean pinCodeExists = userRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim());//pinCodeStateRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim())
-                        if(pinCodeExists) {
+                        /*boolean pinCodeExists = userRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim());//pinCodeStateRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim())
+                        if(pinCodeExists) {*/
                             List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
                             if (claimId.isEmpty()) {
                                 claimsDataList.add(claimDraftData);
@@ -114,17 +114,17 @@ public class BankerServiceImpl implements BankerService {
                                 invalidClaimsData.setValidClaimData(false);
                                 invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
                                 invalidClaimsDataList.add(invalidClaimsData);
-                            }
-                            claimDraftData.setValidClaimData(false);
-                            claimDraftData.setVerifierMapped(false);
+                            }/*
+                            //claimDraftData.setValidClaimData(false);
+                            *//*claimDraftData.setVerifierMapped(false);
                             claimDraftData.setInvalidClaimDataReason("Verifier not mapped");
                             claimsDataList.add(claimDraftData);
                             log.info("Verifier not mapped :: {}", claimId);
                             InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
                             invalidClaimsData.setValidClaimData(false);
                             invalidClaimsData.setInvalidClaimDataReason("Verifier not mapped");
-                            invalidClaimsDataList.add(invalidClaimsData);
-                        }
+                            invalidClaimsDataList.add(invalidClaimsData);*//*
+                        }*/
 
                     } else {
                         claimDraftData.setValidClaimData(false);

@@ -286,9 +286,12 @@ public class AgentServiceImpl implements AgentService {
                     agentDocumentStatus.setAgentDocName(AgentDocType.BANK_ACCOUNT_PROOF.name());
                     agentDocumentStatus.setStatus("UPLOADED");
                 }
+                else if (claimDocuments.getAgentDocType().equals(AgentDocType.ADDITIONAL)) {
+                    agentDocumentStatus.setAgentDocName(AgentDocType.ADDITIONAL.name());
+                    agentDocumentStatus.setStatus("UPLOADED");
+                }
                 agentDocumentStatusList.add(agentDocumentStatus);
             }
-
 
             rejectedDocList.add(AgentDocType.OTHER.name());
             map.put("claimDocuments", claimDocumentsDTOS);

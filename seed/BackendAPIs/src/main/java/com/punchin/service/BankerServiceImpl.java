@@ -69,6 +69,9 @@ public class BankerServiceImpl implements BankerService {
     @Autowired
     private ClaimsDataAuditRepository claimsDataAuditRepository;
 
+    @Autowired
+    private PinCodeStateRepository pinCodeStateRepository;
+
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
         Map<String, Object> map = new HashMap<>();
@@ -1530,6 +1533,17 @@ public class BankerServiceImpl implements BankerService {
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: updateClaimData", e);
             return null;
+        }
+    }
+
+    @Override
+    public boolean checkPinCode(String pinCode) {
+        try {
+            log.info("BankerController :: checkPinCode pinCode {}", pinCode);
+            return pinCodeStateRepository.existsByPinCode(pinCode.trim());
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: checkPinCode ", e);
+            return false;
         }
     }
 }

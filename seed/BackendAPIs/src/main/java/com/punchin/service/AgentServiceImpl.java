@@ -86,7 +86,7 @@ public class AgentServiceImpl implements AgentService {
                     agentClaimListDTO.setClaimStatus(claimsData.getClaimStatus());
                     List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
                     List<ClaimsRemarksDTO> claimsRemarksDTOS = new ArrayList<>();
-                    for(AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks){
+                    for (AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks) {
                         claimsRemarksDTOS.add(mapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
                     }
                     agentClaimListDTO.setClaimsRemarksDTOs(claimsRemarksDTOS);
@@ -178,25 +178,25 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: uploadDocument documentDTO {]", documentDTO);
             List<ClaimDocuments> claimDocuments = new ArrayList<>();
             ClaimsData claimsData = documentDTO.getClaimsData();
-            if(Objects.nonNull(documentDTO.getCauseOfDeath())) {
+            if (Objects.nonNull(documentDTO.getCauseOfDeath())) {
                 claimsData.setCauseOfDeath(documentDTO.getCauseOfDeath());
                 claimsData.setIsMinor(documentDTO.isMinor());
             }
             Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
-            for(String key : keys){
-                if(key.contains(":")){
+            for (String key : keys) {
+                if (key.contains(":")) {
                     String keyArray[] = key.split(":");
                     GenericUtils.hasMatchingSubstring2(keyArray[0].trim(), keys);
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
-                }else{
+                } else {
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }
             }
             claimsData.setClaimStatus(ClaimStatus.IN_PROGRESS);
             //claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.IN_PROGRESS, "In Progress"));
-            if(Objects.nonNull(documentDTO.getAgentRemark())) {
-                if(documentDTO.getAgentRemark().equalsIgnoreCase("other")){
+            if (Objects.nonNull(documentDTO.getAgentRemark())) {
+                if (documentDTO.getAgentRemark().equalsIgnoreCase("other")) {
                     documentDTO.setAgentRemark(documentDTO.getAgentComment());
                 }
                 agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name(), documentDTO.getAgentComment()));
@@ -226,7 +226,7 @@ public class AgentServiceImpl implements AgentService {
             List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
             List<String> rejectedDocList = new ArrayList<>();
             List<String> uploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(id, "agent", true);
-            for(String docTypes : uploadedDocTypes) {
+            for (String docTypes : uploadedDocTypes) {
                 List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(id, "agent", true, docTypes);
                 for (ClaimDocuments claimDocuments : agentDocumentsList) {
                     ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
@@ -266,10 +266,35 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTOS.add(claimDocumentsDTO);
             }
 
+            List<ClaimDocuments> claimDocumentList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(id, "agent");
+            List<AgentDocumentStatusDTO> agentDocumentStatusList = new ArrayList<>();
+            for (ClaimDocuments claimDocuments : claimDocumentList) {
+                AgentDocumentStatusDTO agentDocumentStatus = new AgentDocumentStatusDTO();
+                if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
+                    agentDocumentStatus.setAgentDocName(AgentDocType.SIGNED_FORM.name());
+                    agentDocumentStatus.setStatus("UPLOADED");
+                } else if (claimDocuments.getAgentDocType().equals(AgentDocType.DEATH_CERTIFICATE)) {
+                    agentDocumentStatus.setAgentDocName(AgentDocType.DEATH_CERTIFICATE.name());
+                    agentDocumentStatus.setStatus("UPLOADED");
+                } else if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_KYC_PROOF)) {
+                    agentDocumentStatus.setAgentDocName(AgentDocType.BORROWER_KYC_PROOF.name());
+                    agentDocumentStatus.setStatus("UPLOADED");
+                } else if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_KYC_PROOF)) {
+                    agentDocumentStatus.setAgentDocName(AgentDocType.NOMINEE_KYC_PROOF.name());
+                    agentDocumentStatus.setStatus("UPLOADED");
+                } else if (claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
+                    agentDocumentStatus.setAgentDocName(AgentDocType.BANK_ACCOUNT_PROOF.name());
+                    agentDocumentStatus.setStatus("UPLOADED");
+                }
+                agentDocumentStatusList.add(agentDocumentStatus);
+            }
+
+
             rejectedDocList.add(AgentDocType.OTHER.name());
             map.put("claimDocuments", claimDocumentsDTOS);
             map.put("rejectedDocList", rejectedDocList);
             map.put("claimStatus", claimsDataRepository.findById(id).get().getClaimStatus());
+            map.put("agentDocumentStatusList", agentDocumentStatusList);
             map.put("message", MessageCode.success);
             return map;
         } catch (Exception e) {
@@ -289,14 +314,14 @@ public class AgentServiceImpl implements AgentService {
         try {
             String oldDocType = docType.name();
             List<ClaimDocuments> claimDocumentsList;
-            if(isDiscrepancy){
+            if (isDiscrepancy) {
                 claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndAgentDocType(claimId, docType);
-            }else{
+            } else {
                 claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(claimId, docType, "New Requirement");
             }
             if (!claimDocumentsList.isEmpty()) {
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
-                    if(isDiscrepancy) {
+                    if (isDiscrepancy) {
                         claimDocuments.setIsActive(false);
                     } else {
                         claimDocuments.setUploadSideBy("New Requirement Done");
@@ -311,7 +336,7 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments.setAgentDocType(docType);
             claimDocuments.setDocType(oldDocType);
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
-            if(isDiscrepancy) {
+            if (isDiscrepancy) {
                 claimDocuments.setUploadSideBy("agent");
             } else {
                 claimDocuments.setUploadSideBy("agent New Requirement");
@@ -364,9 +389,9 @@ public class AgentServiceImpl implements AgentService {
         try {
             log.info("AgentServiceImpl :: checkDocumentIsInDiscrepancy");
             ClaimDocuments claimDocuments;
-            if(isDiscrepancy){
+            if (isDiscrepancy) {
                 claimDocuments = claimDocumentsRepository.findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByAndIsVerifiedAndIsApprovedOrderByIdDesc(claimId, docType, "agent", true, false);
-            }else {
+            } else {
                 claimDocuments = claimDocumentsRepository.findFirstByClaimsDataIdAndAgentDocTypeAndUploadSideByOrderByIdDesc(claimId, docType, "New Requirement");
             }
             return Objects.nonNull(claimDocuments) ? true : false;
@@ -392,7 +417,7 @@ public class AgentServiceImpl implements AgentService {
     public boolean checkDocumentUploaded(Long claimId, boolean isDiscrepancy) {
         try {
             log.info("AgentServiceImpl :: checkDocumentUploaded");
-            if(isDiscrepancy){
+            if (isDiscrepancy) {
                 return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsVerifiedAndIsApprovedAndIsActive(claimId, "agent", true, false, true);
             }
             return claimDocumentsRepository.existsByClaimsDataIdAndUploadSideByAndIsVerifiedAndIsApprovedAndIsActiveAndIsDeleted(claimId, "New Requirement", true, false, false, false);
@@ -511,9 +536,9 @@ public class AgentServiceImpl implements AgentService {
             agentSearchDTO1.setAllocationDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimDate(agentSearchDTO1.getClaimInwardDate());
             agentSearchDTO1.setClaimStatus(agentSearchDTO1.getClaimStatus());
-           List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(agentSearchDTO1.getId());
+            List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(agentSearchDTO1.getId());
             List<ClaimsRemarksDTO> claimsRemarksDTOS = new ArrayList<>();
-            for(AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks){
+            for (AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks) {
                 claimsRemarksDTOS.add(mapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
             }
             agentSearchDTO1.setClaimsRemarksDTOs(claimsRemarksDTOS);
@@ -560,7 +585,7 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: getClaimHistory claimId - {}", id);
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
             ClaimsData claimsData = claimsDataRepository.findIdByPunchinId(id.toLowerCase().trim());
-            if(Objects.nonNull(claimsData)) {
+            if (Objects.nonNull(claimsData)) {
                 List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());
                 ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
                 for (ClaimHistory claimHistory : claimHistories) {

@@ -69,6 +69,7 @@ public class BankerController {
             if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
+            bankerService.discardClaims();
             MultipartFile[] files = {multipartFile};
             log.info("BankerController :: uploadClaimData files{}", files.length);
             Map<String, Object> map = new HashMap<>();
@@ -78,7 +79,6 @@ public class BankerController {
                         return ResponseHandler.response(null, MessageCode.invalidFormat, false, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
                     }
                 }
-                bankerService.discardClaims();
                 String fileFormat = GenericUtils.checkCSV(multipartFile);
                 if (fileFormat == null) {
                     return ResponseHandler.response(null, MessageCode.invalidFormat, false, HttpStatus.UNSUPPORTED_MEDIA_TYPE);

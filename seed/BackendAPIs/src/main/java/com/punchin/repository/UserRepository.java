@@ -37,6 +37,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Boolean existsByIdAndVerifierId(Long agentId, Long id);
 
-    @Query(nativeQuery = true, value = "SELECT id FROM users WHERE LOWER(state)=:")
+    @Query(nativeQuery = true, value = "SELECT id FROM users WHERE LOWER(state)=:state")
     Long findTopByStateIgnoreCaseOrderById(String state);
 }

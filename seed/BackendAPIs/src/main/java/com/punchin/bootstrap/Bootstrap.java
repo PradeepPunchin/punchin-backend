@@ -139,7 +139,8 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
                 user.setState("UTTAR PRADESH");
-                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState()));
+                user.setCity("Lucknow");
+                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState().toLowerCase()));
                 users.add(user);
 
                 user = new User();
@@ -151,7 +152,8 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
                 user.setState("UTTAR PRADESH");
-                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState()));
+                user.setCity("Azamgarh");
+                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState().toLowerCase()));
                 users.add(user);
 
                 user = new User();
@@ -163,7 +165,8 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
                 user.setState("DELHI");
-                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState()));
+                user.setCity("New Delhi");
+                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState().toLowerCase()));
                 users.add(user);
 
                 user = new User();
@@ -175,7 +178,8 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
                 user.setState("PUNJAB");
-                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState()));
+                user.setCity("Firozpur");
+                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState().toLowerCase()));
                 users.add(user);
             }
             userRepository.saveAll(users);

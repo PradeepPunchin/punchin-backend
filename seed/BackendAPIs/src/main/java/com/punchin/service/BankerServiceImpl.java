@@ -1518,6 +1518,11 @@ public class BankerServiceImpl implements BankerService {
             }
             if (Objects.nonNull(requestDTO.getBorrowerPinCode())) {
                 claimsData.setBorrowerPinCode(requestDTO.getBorrowerPinCode());
+                Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
+                if(Objects.nonNull(verifierId)){
+                    claimsData.setVerifierId(verifierId);
+                    claimsData.setAgentId(0L);
+                }
             }
             claimsDataRepository.save(claimsData);
             claimsDataAuditRepository.save(claimsDataAudit);

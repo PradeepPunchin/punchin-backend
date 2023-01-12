@@ -33,6 +33,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
         log.info("In On Application Event Service");
         try {
             createDefaultUserIfNotExist();
+            createDefaultAgentIfNotExist();
         } catch (Exception e) {
             log.error("Exception In On Application Event Service - ", e);
         }
@@ -118,38 +119,63 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setState("PUNJAB");
                 users.add(user);
             }
+            userRepository.saveAll(users);
+        } catch (Exception e) {
+            log.error("Exception In Create Admin If Not Exist Service - ", e);
+        }
+    }
+
+    private void createDefaultAgentIfNotExist() {
+        log.info("In Create Admin If Not Exist Service");
+        try {
+            List<User> users = new ArrayList<>();
             if (!userRepository.existsByUserIdIgnoreCase("agent")) {
                 User user = new User();
                 user.setUserId("agent");
-                user.setFirstName("agent UP");
-                user.setLastName("test");
+                user.setFirstName("Binod");
+                user.setLastName("Kumar");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
-                user.setState("UP");
+                user.setState("UTTAR PRADESH");
+                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState()));
+                users.add(user);
+
+                user = new User();
+                user.setUserId("agent1");
+                user.setFirstName("Prabhat");
+                user.setLastName("Kumar");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("agent@123"));
+                user.setRole(RoleEnum.AGENT);
+                user.setState("UTTAR PRADESH");
+                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState()));
                 users.add(user);
 
                 user = new User();
                 user.setUserId("agent2");
-                user.setFirstName("agent DL");
-                user.setLastName("test");
+                user.setFirstName("Rahul");
+                user.setLastName("Kumar");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
-                user.setState("DL");
+                user.setState("DELHI");
+                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState()));
                 users.add(user);
 
                 user = new User();
                 user.setUserId("agent3");
-                user.setFirstName("agent PB");
-                user.setLastName("test");
+                user.setFirstName("Gurpreet");
+                user.setLastName("Singh");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("agent@123"));
                 user.setRole(RoleEnum.AGENT);
-                user.setState("PB");
+                user.setState("PUNJAB");
+                user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState()));
                 users.add(user);
             }
             userRepository.saveAll(users);

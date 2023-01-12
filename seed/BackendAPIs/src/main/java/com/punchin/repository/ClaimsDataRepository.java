@@ -91,10 +91,13 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page<ClaimsData> findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
 
     Long countByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state);
+    Long countByClaimStatusInAndVerifierId(List<ClaimStatus> claimsStatus, long id);
 
     Page<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state, Pageable pageable);
+    Page<ClaimsData> findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, Long id, Pageable pageable);
 
     List<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state);
+    List<ClaimsData> findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, Long id);
 
     @Query(nativeQuery = true, value = "SELECT punchin_claim_id FROM claims_data WHERE id=:claimId")
     String findPunchinClaimIdById(Long claimId);
@@ -111,16 +114,20 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     boolean existsByIdAndAgentId(Long claimId, Long id);
 
     Long countByBorrowerState(String state);
+    Long countByVerifierId(Long id);
 
     Page<ClaimsData> findByBorrowerStateOrderByCreatedAtDesc(String state, Pageable pageable);
+    Page<ClaimsData> findByVerifierIdOrderByCreatedAtDesc(Long id, Pageable pageable);
 
     List<ClaimsData> findByBorrowerStateOrderByCreatedAtDesc(String state);
+    List<ClaimsData> findByVerifierIdOrderByCreatedAtDesc(Long id);
 
     Page<ClaimsData> findByAgentIdOrderByCreatedAtDesc(Long id, Pageable pageable);
 
     Page<ClaimsData> findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(List<ClaimStatus> statusList, Long id, Pageable pageable);
 
     ClaimsData findByIdAndBorrowerState(Long claimId, String state);
+    ClaimsData findByIdAndVerifierId(Long claimId, Long id);
 
     List<ClaimsData> findAllByPunchinBankerId(String userId);
 
@@ -139,17 +146,28 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page<ClaimsData> findClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, Pageable pageable);
 
     Page findByClaimStatusAndBorrowerStateIgnoreCase(ClaimStatus underVerification, String state, Pageable pageable);
+    Page findByClaimStatusAndVerifierId(ClaimStatus underVerification, Long id, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.borrower_state=:state and cd.punchin_claim_id Ilike %:searchedKeyword% ORDER BY cd.punchin_claim_id ")
     Page<ClaimsData> findAllVerifierClaimSearchedDataByClaimDataId(String searchedKeyword, String state, Pageable pageable);
 
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.verifier_id=:id and cd.punchin_claim_id Ilike %:searchedKeyword% ORDER BY cd.punchin_claim_id ")
+    Page<ClaimsData> findAllVerifierClaimSearchedDataByClaimDataId(String searchedKeyword, Long id, Pageable pageable);
+
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.borrower_state=:state and cd.loan_account_number Ilike %:searchedKeyword% ORDER BY cd.loan_account_number")
     Page<ClaimsData> findAllVerifierClaimSearchedDataByLoanAccountNumber(String searchedKeyword, String state, Pageable pageable);
+
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.verifier_id=:id and cd.loan_account_number Ilike %:searchedKeyword% ORDER BY cd.loan_account_number")
+    Page<ClaimsData> findAllVerifierClaimSearchedDataByLoanAccountNumber(String searchedKeyword, Long id, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.borrower_state=:state and (cd.borrower_name Ilike %:searchedKeyword%) ORDER BY cd.borrower_name")
     Page<ClaimsData> findAllVerifierClaimDataBySearchName(String searchedKeyword, String state, Pageable pageable);
 
+    @Query(nativeQuery = true, value = "select * from claims_data cd where cd.verifier_id=:id and (cd.borrower_name Ilike %:searchedKeyword%) ORDER BY cd.borrower_name")
+    Page<ClaimsData> findAllVerifierClaimDataBySearchName(String searchedKeyword, Long id, Pageable pageable);
+
     Page<ClaimsData> findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, List<ClaimStatus> claimsStatus1, String userId, Pageable pageable);
+    Page<ClaimsData> findByClaimStatusInOrClaimBankerStatusInAndVerifierIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, List<ClaimStatus> claimsStatus1, Long id, Pageable pageable);
 
     @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE punchin_banker_id=:userId AND submitted_by is not null")
     Page<ClaimsData> findBySubmittedClaims(String userId, Pageable pageable);

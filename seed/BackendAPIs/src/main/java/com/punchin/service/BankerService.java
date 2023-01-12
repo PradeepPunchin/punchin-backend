@@ -66,4 +66,6 @@ public interface BankerService {
     ClaimsRemarksDTO addClaimRemark(ClaimsData claimsData, ClaimRemarkRequestDTO requestDTO);
 
     ClaimDataDTO updateClaimData(ClaimsData claimsData, ClaimUpdateRequestDTO requestDTO);
+
+    boolean checkPinCode(String borrowerPinCode);
 }

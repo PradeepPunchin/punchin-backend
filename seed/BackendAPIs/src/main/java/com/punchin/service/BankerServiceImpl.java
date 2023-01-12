@@ -69,6 +69,9 @@ public class BankerServiceImpl implements BankerService {
     @Autowired
     private ClaimsDataAuditRepository claimsDataAuditRepository;
 
+    @Autowired
+    private PinCodeStateRepository pinCodeStateRepository;
+
     @Override
     public Map<String, Object> saveUploadExcelData(MultipartFile[] files) {
         Map<String, Object> map = new HashMap<>();
@@ -257,7 +260,10 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());
-                //User user = userRepository.findByPinCode();
+                Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
+                if(Objects.nonNull(verifierId)){
+                    claimsData.setVerifierId(verifierId);
+                }
                 claimsDataList.add(claimsData);
             }
             claimsDataList = claimsDataRepository.saveAll(claimsDataList);
@@ -1515,6 +1521,11 @@ public class BankerServiceImpl implements BankerService {
             }
             if (Objects.nonNull(requestDTO.getBorrowerPinCode())) {
                 claimsData.setBorrowerPinCode(requestDTO.getBorrowerPinCode());
+                Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
+                if(Objects.nonNull(verifierId)){
+                    claimsData.setVerifierId(verifierId);
+                    claimsData.setAgentId(0L);
+                }
             }
             claimsDataRepository.save(claimsData);
             claimsDataAuditRepository.save(claimsDataAudit);
@@ -1522,6 +1533,17 @@ public class BankerServiceImpl implements BankerService {
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: updateClaimData", e);
             return null;
+        }
+    }
+
+    @Override
+    public boolean checkPinCode(String pinCode) {
+        try {
+            log.info("BankerController :: checkPinCode pinCode {}", pinCode);
+            return pinCodeStateRepository.existsByPinCode(pinCode.trim());
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE BankerServiceImpl :: checkPinCode ", e);
+            return false;
         }
     }
 }

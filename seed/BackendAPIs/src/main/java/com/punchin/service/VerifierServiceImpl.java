@@ -69,37 +69,37 @@ public class VerifierServiceImpl implements VerifierService {
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
                 if (Objects.nonNull(searchCaseEnum) && Objects.nonNull(searchedKeyword)) {
                     if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
-                        page1 = claimsDataRepository.findAllVerifierClaimSearchedDataByClaimDataId(searchedKeyword, verifierState, pageable);
+                        page1 = claimsDataRepository.findAllVerifierClaimSearchedDataByClaimDataId(searchedKeyword, GenericUtils.getLoggedInUser().getId(), pageable);
                     } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
-                        page1 = claimsDataRepository.findAllVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, verifierState, pageable);
+                        page1 = claimsDataRepository.findAllVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, GenericUtils.getLoggedInUser().getId(), pageable);
                     } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
-                        page1 = claimsDataRepository.findAllVerifierClaimDataBySearchName(searchedKeyword, verifierState, pageable);
+                        page1 = claimsDataRepository.findAllVerifierClaimDataBySearchName(searchedKeyword, GenericUtils.getLoggedInUser().getId(), pageable);
                     }
                 } else
-                    page1 = claimsDataRepository.findByBorrowerStateOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getState(), pageable);
+                    page1 = claimsDataRepository.findByVerifierIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-                page1 = claimsDataRepository.findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getState(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndVerifierIdOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
@@ -113,7 +113,7 @@ public class VerifierServiceImpl implements VerifierService {
         try {
             log.info("VerifierServiceImpl :: getDashboardData");
             List<ClaimStatus> claimsStatus = new ArrayList<>();
-            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByBorrowerState(GenericUtils.getLoggedInUser().getState()));
+            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByVerifierId(GenericUtils.getLoggedInUser().getId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.IN_PROGRESS);
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
@@ -122,15 +122,15 @@ public class VerifierServiceImpl implements VerifierService {
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
             claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
             claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndVerifierId(claimsStatus, GenericUtils.getLoggedInUser().getId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndVerifierId(claimsStatus, GenericUtils.getLoggedInUser().getId()));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-            map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatusInAndBorrowerStateIgnoreCase(claimsStatus, GenericUtils.getLoggedInUser().getState()));
+            map.put(ClaimStatus.SUBMITTED_TO_INSURER.name(), claimsDataRepository.countByClaimStatusInAndVerifierId(claimsStatus, GenericUtils.getLoggedInUser().getId()));
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getDashboardData e{}", e);
@@ -146,7 +146,7 @@ public class VerifierServiceImpl implements VerifierService {
     public ClaimsData getClaimData(Long claimId) {
         try {
             log.info("VerifierServiceImpl :: getClaimData");
-            return claimsDataRepository.findByIdAndBorrowerState(claimId, GenericUtils.getLoggedInUser().getState());
+            return claimsDataRepository.findByIdAndVerifierId(claimId, GenericUtils.getLoggedInUser().getId());
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getClaimData ", e);
             return null;
@@ -330,7 +330,7 @@ public class VerifierServiceImpl implements VerifierService {
         try {
             log.info("VerifierServiceImpl :: getClaimDataWithDocumentStatus page {}, limit {}", page, limit);
             Pageable pageable = PageRequest.of(page, limit);
-            Page page1 = claimsDataRepository.findByClaimStatusAndBorrowerStateIgnoreCase(ClaimStatus.UNDER_VERIFICATION, GenericUtils.getLoggedInUser().getState(), pageable);
+            Page page1 = claimsDataRepository.findByClaimStatusAndVerifierId(ClaimStatus.UNDER_VERIFICATION, GenericUtils.getLoggedInUser().getId(), pageable);
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getClaimDataWithDocumentStatus", e);
@@ -676,8 +676,7 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     public String claimDataAgentAllocation(Long agentId, Long claimDataId) {
-        String state = GenericUtils.getLoggedInUser().getState();
-        Boolean agentExists = userRepository.findAgentState(agentId, state);
+        Boolean agentExists = userRepository.existsByIdAndVerifierId(agentId, GenericUtils.getLoggedInUser().getId());
         if (!agentExists) {
             return MessageCode.invalidAgentId;
         }

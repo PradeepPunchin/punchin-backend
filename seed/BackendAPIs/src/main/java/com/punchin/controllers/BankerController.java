@@ -470,6 +470,9 @@ public class BankerController {
             if (Objects.isNull(claimsData)) {
                 return ResponseHandler.response(null, MessageCode.invalidClaimId, false, HttpStatus.BAD_REQUEST);
             }
+            if(!bankerService.checkPinCode(requestDTO.getBorrowerPinCode())){
+                return ResponseHandler.response(null, MessageCode.INVALID_PINCODE, false, HttpStatus.BAD_REQUEST);
+            }
             ClaimDataDTO claimDataDTO = bankerService.updateClaimData(claimsData, requestDTO);
             if(Objects.nonNull(claimDataDTO)) {
                 return ResponseHandler.response(claimDataDTO, MessageCode.success, true, HttpStatus.OK);

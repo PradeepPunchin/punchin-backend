@@ -68,7 +68,8 @@ public class BankerServiceImpl implements BankerService {
     private BankerVerifierRemarkRepository bankerVerifierRemarkRepository;
     @Autowired
     private ClaimsDataAuditRepository claimsDataAuditRepository;
-
+    @Autowired
+    private MISExportService misExportService;
     @Autowired
     private PinCodeStateRepository pinCodeStateRepository;
 
@@ -285,11 +286,12 @@ public class BankerServiceImpl implements BankerService {
                 claimHistories.add(new ClaimHistory(claimsData.getId(), ClaimStatus.CLAIM_INTIMATED, "Claim Intimation"));
             }
             claimHistoryRepository.saveAll(claimHistories);
+            String url = misExportService.exportRejectedClaimsData(GenericUtils.getLoggedInUser().getUserId());
             claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
-            return MessageCode.success;
+            return url;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: submitClaims e{}", e);
-            return MessageCode.backText;
+            return null;
         }
     }
 

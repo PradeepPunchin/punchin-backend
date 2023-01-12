@@ -267,6 +267,7 @@ public class BankerServiceImpl implements BankerService {
             List<ClaimDraftData> claimDraftDatas = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
             List<ClaimsData> claimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimDraftDatas) {
+                log.info("CLAIM SUBMITING ---------- {}", claimDraftData.getPunchinClaimId());
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
                 claimsData.setPunchinClaimId("P" + RandomStringUtils.randomNumeric(10));
                 claimsData.setClaimInwardDate(new Date());
@@ -275,8 +276,10 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());
                 Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
+                log.info("VERIFIER FOUND id-{}", verifierId);
                 if(Objects.nonNull(verifierId)){
                     claimsData.setVerifierId(verifierId);
+                    log.info("VERIFIER mapped id-{}", verifierId);
                 }
                 claimsDataList.add(claimsData);
             }

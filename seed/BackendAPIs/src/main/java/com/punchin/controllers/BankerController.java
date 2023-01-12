@@ -69,6 +69,7 @@ public class BankerController {
             if (!bankerService.isBanker()) {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
+            bankerService.discardClaims();
             MultipartFile[] files = {multipartFile};
             log.info("BankerController :: uploadClaimData files{}", files.length);
             Map<String, Object> map = new HashMap<>();
@@ -148,10 +149,10 @@ public class BankerController {
                 return ResponseHandler.response(null, MessageCode.forbidden, false, HttpStatus.FORBIDDEN);
             }
             String result = bankerService.submitClaims();
-            if (result.equals(MessageCode.success)) {
-                return ResponseHandler.response(null, MessageCode.success, true, HttpStatus.OK);
+            if (Objects.nonNull(result)); {
+                return ResponseHandler.response(result, MessageCode.success, true, HttpStatus.OK);
             }
-            return ResponseHandler.response(null, result, false, HttpStatus.INTERNAL_SERVER_ERROR);
+            //return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             log.error("Error while fetching in pagination data");
             return ResponseHandler.response(null, MessageCode.backText, false, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -473,6 +474,9 @@ public class BankerController {
             if(!bankerService.checkPinCode(requestDTO.getBorrowerPinCode())){
                 return ResponseHandler.response(null, MessageCode.INVALID_PINCODE, false, HttpStatus.BAD_REQUEST);
             }
+            /*if(!bankerService.checkAvailableVerifier(requestDTO.getBorrowerPinCode())){
+                return ResponseHandler.response(null, MessageCode.INVALID_PINCODE, false, HttpStatus.BAD_REQUEST);
+            }*/
             ClaimDataDTO claimDataDTO = bankerService.updateClaimData(claimsData, requestDTO);
             if(Objects.nonNull(claimDataDTO)) {
                 return ResponseHandler.response(claimDataDTO, MessageCode.success, true, HttpStatus.OK);

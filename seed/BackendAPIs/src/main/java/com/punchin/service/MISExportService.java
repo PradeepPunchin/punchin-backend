@@ -3,10 +3,12 @@ package com.punchin.service;
 import com.punchin.dto.DownloadVerifierMisResponse;
 import com.punchin.entity.ClaimDraftData;
 import com.punchin.entity.ClaimsData;
+import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
 import com.punchin.repository.ClaimDraftDataRepository;
 import com.punchin.repository.ClaimsDataRepository;
+import com.punchin.repository.UserRepository;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ObjectMapperUtils;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
@@ -22,9 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class MISExportService {
@@ -32,7 +32,8 @@ public class MISExportService {
     private ClaimsDataRepository claimsDataRepository;
     @Autowired
     AmazonS3FileManagers amazonS3FileManagers;
-
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     ClaimDraftDataRepository claimDraftDataRepository;
 
@@ -141,7 +142,8 @@ public class MISExportService {
         createCell(row, 35, "Claim Action", style, sheet);
         createCell(row, 36, "Claim Status", style, sheet);
         createCell(row, 37, "Claim Status Date", style, sheet);
-        createCell(row, 38, "Documents Pending", style, sheet);
+        createCell(row, 38, "Verifier Mapped", style, sheet);
+        createCell(row, 38, "Verifier Id", style, sheet);
     }
 
     private void createCell(Row row, int columnCount, Object value, CellStyle style, Sheet sheet) {
@@ -210,7 +212,18 @@ public class MISExportService {
             }
             createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
             createCell(row, columnCount++, format.format(new Date()), style, sheet);
-            createCell(row, columnCount++, "", style, sheet);
+            if(Objects.nonNull(claimsData.getVerifierId()) && claimsData.getVerifierId() > 0){
+                createCell(row, columnCount++, "Yes", style, sheet);
+                Optional<User> user = userRepository.findById(claimsData.getVerifierId());
+                if(user.isPresent()) {
+                    createCell(row, columnCount++, user.get().getFirstName() + " " + user.get().getLastName() + " (" + user.get().getUserId() + ")", style, sheet);
+                }else{
+                    createCell(row, columnCount++, null, style, sheet);
+                }
+            } else {
+                createCell(row, columnCount++, "No", style, sheet);
+                createCell(row, columnCount++, null, style, sheet);
+            }
             sno++;
         }
     }
@@ -249,6 +262,10 @@ public class MISExportService {
             for (DownloadVerifierMisResponse downloadVerifierMisResponse : downloadVerifierMisResponseList) {
                 if (downloadVerifierMisResponse.getAgentId() > 0) {
                     downloadVerifierMisResponse.setAgentMapped("Yes");
+                    Optional<User> user = userRepository.findById(downloadVerifierMisResponse.getAgentId());
+                    if(user.isPresent()) {
+                        downloadVerifierMisResponse.setAgentName(user.get().getFirstName() + " " + user.get().getLastName() + " (" + user.get().getUserId() + ")");
+                    }
                 } else {
                     downloadVerifierMisResponse.setAgentMapped("No");
                 }
@@ -304,7 +321,7 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
             createCell(row, columnCount++, format.format(new Date()), style, sheet);
             createCell(row, columnCount++, claimsData.getAgentMapped(), style, sheet);
-            createCell(row, columnCount++, "", style, sheet);
+            createCell(row, columnCount++, claimsData.getAgentName(), style, sheet);
             sno++;
         }
     }
@@ -341,12 +358,13 @@ public class MISExportService {
         createCell(row, 16, "Claim Status", style, sheet);
         createCell(row, 17, "Claim Status Date", style, sheet);
         createCell(row, 18, "Agent Mapped", style, sheet);
+        createCell(row, 18, "Agent Id", style, sheet);
     }
 
     public String exportRejectedClaimsData(String banker) throws IOException {
         List<ClaimDraftData> claimDraftDataList =claimDraftDataRepository.findRejectedClaimDataByBankerId(banker);
         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-        String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
+        String filename = "Rejected_Claim_MIS_" + format.format(new Date()) + ".xlsx";
         String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
         File file = new File(filePath);
         Workbook workbook = new XSSFWorkbook();

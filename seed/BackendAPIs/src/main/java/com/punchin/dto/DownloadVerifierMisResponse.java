@@ -25,4 +25,5 @@ public class DownloadVerifierMisResponse {
     private ClaimStatus claimStatus;
     private Long agentId = 0L;
     private String agentMapped;
+    private String agentName;
 }

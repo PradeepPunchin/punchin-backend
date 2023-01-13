@@ -15,6 +15,6 @@ public class ClaimDocumentsDTO {
     private String reason;
     private List<DocumentUrlDTO> documentUrlDTOS;
 
-    private List<AgentDocumentStatusDTO> agentDocumentStatus;
+    private AgentDocumentStatusDTO agentDocumentStatus;
 
 }

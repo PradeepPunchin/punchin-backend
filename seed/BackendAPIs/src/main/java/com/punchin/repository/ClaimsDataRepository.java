@@ -91,12 +91,15 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page<ClaimsData> findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String userId, Pageable pageable);
 
     Long countByClaimStatusInAndBorrowerStateIgnoreCase(List<ClaimStatus> claimsStatus, String state);
+
     Long countByClaimStatusInAndVerifierId(List<ClaimStatus> claimsStatus, long id);
 
     Page<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state, Pageable pageable);
+
     Page<ClaimsData> findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, Long id, Pageable pageable);
 
     List<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state);
+
     List<ClaimsData> findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, Long id);
 
     @Query(nativeQuery = true, value = "SELECT punchin_claim_id FROM claims_data WHERE id=:claimId")
@@ -114,12 +117,15 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     boolean existsByIdAndAgentId(Long claimId, Long id);
 
     Long countByBorrowerState(String state);
+
     Long countByVerifierId(Long id);
 
     Page<ClaimsData> findByBorrowerStateOrderByCreatedAtDesc(String state, Pageable pageable);
+
     Page<ClaimsData> findByVerifierIdOrderByCreatedAtDesc(Long id, Pageable pageable);
 
     List<ClaimsData> findByBorrowerStateOrderByCreatedAtDesc(String state);
+
     List<ClaimsData> findByVerifierIdOrderByCreatedAtDesc(Long id);
 
     Page<ClaimsData> findByAgentIdOrderByCreatedAtDesc(Long id, Pageable pageable);
@@ -127,6 +133,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page<ClaimsData> findByClaimStatusInAndAgentIdOrderByCreatedAtDesc(List<ClaimStatus> statusList, Long id, Pageable pageable);
 
     ClaimsData findByIdAndBorrowerState(Long claimId, String state);
+
     ClaimsData findByIdAndVerifierId(Long claimId, Long id);
 
     List<ClaimsData> findAllByPunchinBankerId(String userId);
@@ -146,6 +153,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page<ClaimsData> findClaimSearchedDataBySearchName(@Param("searchedKeyword") String searchedKeyword, Pageable pageable);
 
     Page findByClaimStatusAndBorrowerStateIgnoreCase(ClaimStatus underVerification, String state, Pageable pageable);
+
     Page findByClaimStatusAndVerifierId(ClaimStatus underVerification, Long id, Pageable pageable);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.borrower_state=:state and cd.punchin_claim_id Ilike %:searchedKeyword% ORDER BY cd.punchin_claim_id ")
@@ -167,6 +175,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     Page<ClaimsData> findAllVerifierClaimDataBySearchName(String searchedKeyword, Long id, Pageable pageable);
 
     Page<ClaimsData> findByClaimStatusInOrClaimBankerStatusInAndPunchinBankerIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, List<ClaimStatus> claimsStatus1, String userId, Pageable pageable);
+
     Page<ClaimsData> findByClaimStatusInOrClaimBankerStatusInAndVerifierIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, List<ClaimStatus> claimsStatus1, Long id, Pageable pageable);
 
     @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE punchin_banker_id=:userId AND submitted_by is not null")
@@ -186,5 +195,9 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
     @Query(nativeQuery = true, value = "select * from claims_data cd where (cd.claim_banker_status in ('VERIFIER_DISCREPENCY','BANKER_DISCREPANCY','NEW_REQUIREMENT')" +
             "or cd.claim_status in ('VERIFIER_DISCREPENCY','BANKER_DISCREPANCY','NEW_REQUIREMENT')) and cd.punchin_banker_id =:userId ORDER BY cd.created_at DESC")
     Page<ClaimsData> findByClaimStatusOrClaimBankerStatusInAndPunchinBankerId(String userId, Pageable pageable);
+
+    @Query(nativeQuery = true, value = " select * from claims_data cd where (cd.claim_banker_status in ('VERIFIER_DISCREPENCY','BANKER_DISCREPANCY', " +
+            " 'NEW_REQUIREMENT') or cd.claim_status in ('VERIFIER_DISCREPENCY','BANKER_DISCREPANCY','NEW_REQUIREMENT')) and cd.verifier_id =:verifierId ORDER BY cd.created_at DESC ")
+    Page<ClaimsData> findByClaimStatusOrClaimBankerStatusInAndVerifierId(@Param("verifierId") long verifierId, Pageable pageable);
 
 }

@@ -175,7 +175,7 @@ public class AgentServiceImpl implements AgentService {
     public Map<String, Object> uploadDocument(AgentUploadDocumentDTO documentDTO) {
         Map<String, Object> map = new HashMap<>();
         try {
-            log.info("AgentServiceImpl :: uploadDocument documentDTO {]", documentDTO);
+            log.info("AgentServiceImpl :: uploadDocument documentDTO {}", documentDTO);
             List<ClaimDocuments> claimDocuments = new ArrayList<>();
             ClaimsData claimsData = documentDTO.getClaimsData();
             if (Objects.nonNull(documentDTO.getCauseOfDeath())) {
@@ -185,6 +185,7 @@ public class AgentServiceImpl implements AgentService {
             Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
             for (String key : keys) {
+                log.info("AgentServiceImpl :: uploadDocument key {}", key);
                 if (key.contains(":")) {
                     String keyArray[] = key.split(":");
                     GenericUtils.hasMatchingSubstring2(keyArray[0].trim(), keys);

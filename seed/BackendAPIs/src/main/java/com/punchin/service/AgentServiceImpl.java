@@ -94,7 +94,7 @@ public class AgentServiceImpl implements AgentService {
                 }
                 return commonService.convertPageToDTO(agentClaimListDTOS, page1);
             }
-            return commonService.convertPageToDTO(page1);
+            return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimsList e{}", e);
             return null;
@@ -785,6 +785,98 @@ public class AgentServiceImpl implements AgentService {
             map.put("rejectedDocList", null);
             map.put("message", e.getMessage());
             return map;
+        }
+    }
+
+    private PageDTO convertInDocumentStatusDTO(Page page) {
+        try {
+            log.info("Verifier Controller :: convertInDocumentStatusDTO page {}, limit {}", page);
+            List<ClaimsData> claimsData = page.getContent();
+            List<VerifierClaimDataResponseDTO> dtos = new ArrayList<>();
+            for (ClaimsData claimData : claimsData) {
+                VerifierClaimDataResponseDTO dto = new VerifierClaimDataResponseDTO();
+                dto.setId(claimData.getId());
+                dto.setPunchinClaimId(claimData.getPunchinClaimId());
+                dto.setClaimDate(claimData.getClaimInwardDate());
+                dto.setBorrowerName(claimData.getBorrowerName());
+                dto.setBorrowerAddress(claimData.getBorrowerAddress());
+                dto.setNomineeAddress(claimData.getNomineeAddress());
+                dto.setNomineeName(claimData.getNomineeName());
+                dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
+                dto.setBorrowerContactNumber(claimData.getBorrowerContactNumber());
+                dto.setClaimStatus(claimData.getClaimStatus());
+                /*if (claimData.getAgentId() > 0) {
+                    dto.setAgentAllocated(true);
+                    Optional<User> optionalUser = userRepository.findById(claimData.getAgentId());
+                    if (optionalUser.isPresent()) {
+                        User agent = optionalUser.get();
+                        dto.setAgentName((agent.getFirstName() + "-" + agent.getCity() + "-" + agent.getState()));
+                        dto.setAgentCity(agent.getCity());
+                        if (agent.getState() != null) {
+                            dto.setAgentState(agent.getState());
+                        }
+                    }
+                }*/
+                List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(claimData.getId(), "agent");
+                for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
+                        dto.setSingnedClaimDocument("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setSingnedClaimDocument("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setSingnedClaimDocument("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.DEATH_CERTIFICATE)) {
+                        dto.setDeathCertificate("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setDeathCertificate("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setDeathCertificate("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_KYC_PROOF)) {
+                        dto.setBorrowerKycProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setBorrowerKycProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBorrowerKycProof("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_KYC_PROOF)) {
+                        dto.setNomineeKycProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setNomineeKycProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setNomineeKycProof("REJECTED");
+                        }
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
+                        dto.setBankAccountProof("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setBankAccountProof("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setBankAccountProof("REJECTED");
+                        }
+                    }
+                    for (AdditionalDocType docType : AdditionalDocType.values()) {
+                        if (claimDocuments.getAgentDocType().name().equalsIgnoreCase(docType.name())) {
+                            dto.setAdditionalDoc("UPLOADED");
+                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("APPROVED");
+                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("REJECTED");
+                            }
+                        }
+                    }
+
+                }
+                dtos.add(dto);
+            }
+            return commonService.convertPageToDTO(dtos, page);
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE VerifierServiceImpl :: convertInDocumentStatusDTO", e);
+            return null;
         }
     }
 }

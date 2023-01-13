@@ -143,7 +143,7 @@ public class MISExportService {
         createCell(row, 36, "Claim Status", style, sheet);
         createCell(row, 37, "Claim Status Date", style, sheet);
         createCell(row, 38, "Verifier Mapped", style, sheet);
-        createCell(row, 38, "Verifier Id", style, sheet);
+        createCell(row, 39, "Verifier Name", style, sheet);
     }
 
     private void createCell(Row row, int columnCount, Object value, CellStyle style, Sheet sheet) {
@@ -358,7 +358,7 @@ public class MISExportService {
         createCell(row, 16, "Claim Status", style, sheet);
         createCell(row, 17, "Claim Status Date", style, sheet);
         createCell(row, 18, "Agent Mapped", style, sheet);
-        createCell(row, 18, "Agent Id", style, sheet);
+        createCell(row, 19, "Agent Name", style, sheet);
     }
 
     public String exportRejectedClaimsData(String banker) throws IOException {

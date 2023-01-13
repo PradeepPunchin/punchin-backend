@@ -102,7 +102,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     List<ClaimsData> findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, Long id);
 
-    @Query(nativeQuery = true, value = "SELECT punchin_claim_id FROM claims_data WHERE id=:claimId")
+    @Query(nativeQuery = true, value = "SELECT loan_account_number FROM claims_data WHERE id=:claimId")
     String findPunchinClaimIdById(Long claimId);
 
     Page findByClaimStatus(ClaimStatus underVerification, Pageable pageable);

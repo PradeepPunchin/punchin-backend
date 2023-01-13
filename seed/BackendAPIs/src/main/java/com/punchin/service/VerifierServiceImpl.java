@@ -99,7 +99,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndVerifierIdOrderByCreatedAtDesc(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusOrClaimBankerStatusInAndVerifierId(GenericUtils.getLoggedInUser().getId(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
@@ -221,7 +221,7 @@ public class VerifierServiceImpl implements VerifierService {
             //Banker
             List<ClaimDocumentsDTO> bankerDocumentsListDTOs = new ArrayList<>();
             List<String> bankerUploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "banker", true);
-            for(String docTypes : bankerUploadedDocTypes) {
+            for (String docTypes : bankerUploadedDocTypes) {
                 List<ClaimDocuments> bankerDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(claimsData.getId(), "banker", true, docTypes);
                 for (ClaimDocuments claimDocuments : bankerDocumentsList) {
                     ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
@@ -246,7 +246,7 @@ public class VerifierServiceImpl implements VerifierService {
             //Additional Requirement
             List<ClaimDocumentsDTO> newDocumentsListDTOs = new ArrayList<>();
             List<String> newUploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimsData.getId(), "agent New Requirement", true);
-            for(String docTypes : newUploadedDocTypes) {
+            for (String docTypes : newUploadedDocTypes) {
                 List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(claimsData.getId(), "agent New Requirement", true, docTypes);
                 for (ClaimDocuments claimDocuments : agentDocumentsList) {
                     ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
@@ -353,7 +353,7 @@ public class VerifierServiceImpl implements VerifierService {
                 List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
                     InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
-                    if(Objects.nonNull(inputStream)) {
+                    if (Objects.nonNull(inputStream)) {
                         ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
                         zipOutputStream.putNextEntry(zipEntry);
                         writeStreamToZip(buffer, zipOutputStream, inputStream);
@@ -477,7 +477,7 @@ public class VerifierServiceImpl implements VerifierService {
                             dto.setBankAccountProof("REJECTED");
                         }
                     }
-                    for(AdditionalDocType docType : AdditionalDocType.values()){
+                    for (AdditionalDocType docType : AdditionalDocType.values()) {
                         if (claimDocuments.getAgentDocType().name().equalsIgnoreCase(docType.name())) {
                             dto.setAdditionalDoc("UPLOADED");
                             if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
@@ -700,7 +700,7 @@ public class VerifierServiceImpl implements VerifierService {
             List<ClaimHistoryDTO> claimHistoryDTOS = new ArrayList<>();
             Long lastActionTime = 0L;
             ClaimsData claimsData = claimsDataRepository.findById(id).get();
-            if(Objects.nonNull(claimsData)) {
+            if (Objects.nonNull(claimsData)) {
                 List<ClaimHistory> claimHistories = claimHistoryRepository.findByClaimIdOrderById(claimsData.getId());
                 ClaimHistoryDTO oldClaimHistory = new ClaimHistoryDTO();
                 for (ClaimHistory claimHistory : claimHistories) {
@@ -731,16 +731,16 @@ public class VerifierServiceImpl implements VerifierService {
             Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
             Long lastRemarkTime = 0L;
             String claimStatus = null;
-            if(optionalClaimsData.isPresent()) {
+            if (optionalClaimsData.isPresent()) {
                 ClaimsData claimsData = optionalClaimsData.get();
                 claimStatus = claimsData.getClaimStatus().name();
-                if(RemarkForEnum.AGENT.equals(remarkBy)) {
+                if (RemarkForEnum.AGENT.equals(remarkBy)) {
                     List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
                     for (AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks) {
                         lastRemarkTime = agentVerifierRemark.getCreatedAt();
                         claimHistoryDTOS.add(modelMapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
                     }
-                } else if(RemarkForEnum.BANKER.equals(remarkBy)){
+                } else if (RemarkForEnum.BANKER.equals(remarkBy)) {
                     List<BankerVerifierRemark> bankerVerifierRemarks = bankerVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
                     for (BankerVerifierRemark bankerVerifierRemark : bankerVerifierRemarks) {
                         lastRemarkTime = bankerVerifierRemark.getCreatedAt();
@@ -763,14 +763,14 @@ public class VerifierServiceImpl implements VerifierService {
         try {
             log.info("VerifierServiceImpl :: addClaimRemark claimsData {}, requestDTO {}", claimsData, requestDTO);
             ClaimsRemarksDTO claimsRemarksDTO = new ClaimsRemarksDTO();
-            if(RemarkForEnum.AGENT.equals(requestDTO.getRemarkFor())){
+            if (RemarkForEnum.AGENT.equals(requestDTO.getRemarkFor())) {
                 AgentVerifierRemark agentVerifierRemark = new AgentVerifierRemark();
                 agentVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
                 agentVerifierRemark.setRole(RoleEnum.VERIFIER.name());
                 agentVerifierRemark.setRemark(requestDTO.getRemark());
                 agentVerifierRemark.setClaimId(claimsData.getId());
                 claimsRemarksDTO = modelMapperService.map(agentVerifierRemarkRepository.save(agentVerifierRemark), ClaimsRemarksDTO.class);
-            } else if(RemarkForEnum.BANKER.equals(requestDTO.getRemarkFor())){
+            } else if (RemarkForEnum.BANKER.equals(requestDTO.getRemarkFor())) {
                 BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
                 bankerVerifierRemark.setClaimId(claimsData.getId());
                 bankerVerifierRemark.setRole(RoleEnum.VERIFIER.name());

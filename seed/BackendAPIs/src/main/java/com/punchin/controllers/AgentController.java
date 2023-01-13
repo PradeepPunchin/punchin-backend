@@ -172,7 +172,7 @@ public class AgentController {
             documentDTO.setCauseOfDeath(causeOfDeath);
             documentDTO.setMinor(isMinor);
             documentDTO.setIsMinorDoc(isMinorDoc);
-            if(isMinorDoc.isEmpty()) {
+            if(isMinorDoc.isEmpty() && Objects.nonNull(agentRemark) && !agentRemark.equals(",")) {
                 documentDTO.setAgentRemark(agentRemark);
                 documentDTO.setAgentComment(agentComment);
             }

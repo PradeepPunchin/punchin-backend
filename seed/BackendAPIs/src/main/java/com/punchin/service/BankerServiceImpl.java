@@ -1246,7 +1246,7 @@ public class BankerServiceImpl implements BankerService {
             claimsData.setClaimStatus(ClaimStatus.NEW_REQUIREMENT);
             claimsDataRepository.save(claimsData);
             for (AgentDocType docType : docTypes) {
-                if(Objects.nonNull(docType)) {
+                if(Objects.nonNull(docType) && docType != AgentDocType.OTHER) {
                     ClaimDocuments documents = new ClaimDocuments();
                     documents.setIsActive(false);
                     documents.setIsDeleted(false);

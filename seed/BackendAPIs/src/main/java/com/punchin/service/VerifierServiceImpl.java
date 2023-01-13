@@ -205,7 +205,7 @@ public class VerifierServiceImpl implements VerifierService {
                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findAllDocumentAccordingToClaimDocuments(claimsData.getId(), "agent", true, docTypes);
                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
                     for (DocumentUrls documentUrls : documentUrlsList) {
                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();

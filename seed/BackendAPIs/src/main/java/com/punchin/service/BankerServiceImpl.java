@@ -1243,17 +1243,19 @@ public class BankerServiceImpl implements BankerService {
             claimsData.setClaimStatus(ClaimStatus.NEW_REQUIREMENT);
             claimsDataRepository.save(claimsData);
             for (AgentDocType docType : docTypes) {
-                ClaimDocuments documents = new ClaimDocuments();
-                documents.setIsActive(false);
-                documents.setIsDeleted(false);
-                documents.setReason(remark);
-                documents.setIsVerified(true);
-                documents.setIsApproved(false);
-                documents.setDocumentUrls(null);
-                documents.setAgentDocType(docType);
-                documents.setUploadSideBy("New Requirement");
-                documents.setClaimsData(claimsData);
-                claimDocumentsList.add(documents);
+                if(Objects.nonNull(docType)) {
+                    ClaimDocuments documents = new ClaimDocuments();
+                    documents.setIsActive(false);
+                    documents.setIsDeleted(false);
+                    documents.setReason(remark);
+                    documents.setIsVerified(true);
+                    documents.setIsApproved(false);
+                    documents.setDocumentUrls(null);
+                    documents.setAgentDocType(docType);
+                    documents.setUploadSideBy("New Requirement");
+                    documents.setClaimsData(claimsData);
+                    claimDocumentsList.add(documents);
+                }
             }
             claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.NEW_REQUIREMENT, "New Requirement"));
             claimDocumentsRepository.saveAll(claimDocumentsList);

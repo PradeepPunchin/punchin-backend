@@ -42,4 +42,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(nativeQuery = true, value = "SELECT EXISTS(SELECT id FROM users WHERE role = 'VERIFIER' and LOWER(state)=LOWER((SELECT state FROM pin_code_state WHERE pin_code=:pinCode)) LIMIT 1)")
     boolean existsByPinCode(String pinCode);
+
+    @Query(nativeQuery = true, value = "SELECT id FROM users WHERE role = 'BANKER'")
+    List<Long> getAllBankerIds();
 }

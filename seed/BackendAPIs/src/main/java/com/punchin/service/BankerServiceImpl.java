@@ -164,35 +164,39 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
-            Long bankerId = GenericUtils.getLoggedInUser().getId();
             Page<ClaimsData> page1 = Page.empty();
+            List<Long> bankerIds = new ArrayList<>();
+            if(GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)){
+                bankerIds = userRepository.getAllBankerIds();
+            }
+            bankerIds.add(GenericUtils.getLoggedInUser().getId());
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
                 PageDTO pageDTO = new PageDTO();
                 if (Objects.nonNull(searchCaseEnum) && Objects.nonNull(searchedKeyword)) {
                     if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
-                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId(searchedKeyword, bankerIds, pageable);
                     } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
-                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, bankerIds, pageable);
                     } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
-                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerIds, pageable);
                     }
                     if (page1.isEmpty()) {
-                        page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                        page1 = claimsDataRepository.findAllByBankerIdInOrderByCreatedAtDesc(bankerIds, pageable);
                         List<BankerClaimListResponseDTO> bankerClaimListResponseDTOS = mappedAgentDetails(page1);
                         pageDTO = commonService.convertPageToDTO(bankerClaimListResponseDTOS, page1);
                         pageDTO.setMessage(MessageCode.CLAIM_NOT_FOUND);
                         return pageDTO;
                     }
                 } else {
-                    page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                    page1 = claimsDataRepository.findAllByBankerIdInOrderByCreatedAtDesc(bankerIds, pageable);
                 }
             } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
                 Page page2 = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
                 return commonService.convertPageToDTO(page2.getContent(), page2);
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 page1 = claimsDataRepository.findBySubmittedClaims(GenericUtils.getLoggedInUser().getUserId(), pageable);
@@ -201,22 +205,22 @@ public class BankerServiceImpl implements BankerService {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-                /*claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
-                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);*/
-                page1 = claimsDataRepository.findByClaimStatusOrClaimBankerStatusInAndPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
+                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndBankerIdIn(claimsStatus, claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.BANKER_DRAFT.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(bankerIds, pageable);
             }
             List<BankerClaimListResponseDTO> bankerClaimListResponseDTOS = mappedAgentDetails(page1);
             return commonService.convertPageToDTO(bankerClaimListResponseDTOS, page1);
@@ -231,7 +235,12 @@ public class BankerServiceImpl implements BankerService {
         Map<String, Long> map = new HashMap<>();
         try {
             log.info("BankerController :: getDashboardData");
-            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId()));
+            List<Long> bankerIds = new ArrayList<>();
+            if(GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)){
+                bankerIds = userRepository.getAllBankerIds();
+            }
+            bankerIds.add(GenericUtils.getLoggedInUser().getId());
+            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByBankerIdIn(bankerIds));
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.IN_PROGRESS);
@@ -241,15 +250,15 @@ public class BankerServiceImpl implements BankerService {
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
             claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
             claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndBankerIdIn(claimsStatus, bankerIds));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
+            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatusInAndBankerIdIn(claimsStatus, bankerIds));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBankerIdIn(claimsStatus, bankerIds));
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);
@@ -311,10 +320,9 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public BankerClaimDocumentationDTO getClaimDataForBankerAction(Long claimId) {
+    public BankerClaimDocumentationDTO getClaimDataForBankerAction(ClaimsData claimsData) {
         try {
-            log.info("BankerController :: getClaimData claimId {}", claimId);
-            ClaimsData claimsData = claimsDataRepository.findByIdAndPunchinBankerId(claimId, GenericUtils.getLoggedInUser().getUserId());
+            log.info("BankerController :: getClaimData claimsData {}", claimsData);
             if (Objects.nonNull(claimsData)) {
                 BankerClaimDocumentationDTO dto = new BankerClaimDocumentationDTO();
                 dto.setId(claimsData.getId());
@@ -404,14 +412,17 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments.setUploadSideBy("banker");
             List<DocumentUrls> documentUrls = new ArrayList<>();
+            String uploadFileName = claimsData.getLoanAccountNumber() + "-" + docType.name();
+            int i = 1;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "banker/"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "banker/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
+                ++i;
             }
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
@@ -757,11 +768,18 @@ public class BankerServiceImpl implements BankerService {
 
     @Override
     public boolean isBanker() {
+        if(GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)){
+            return true;
+        }
         return userRepository.existsByIdAndRole(GenericUtils.getLoggedInUser().getId(), RoleEnum.BANKER);
     }
 
     @Override
     public ClaimsData isClaimByBanker(Long claimId) {
+        if(GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)){
+            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
+            return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
+        }
         return claimsDataRepository.findByIdAndPunchinBankerId(claimId, GenericUtils.getLoggedInUser().getUserId());
     }
 
@@ -1022,7 +1040,7 @@ public class BankerServiceImpl implements BankerService {
         return mapList;
     }
 
-    @Override
+    /*@Override
     public PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize) {
         log.info("Get Searched data request received for caseType :{} , searchedKeyword :{}  ", searchCaseEnum, searchedKeyword);
         Long bankerId = GenericUtils.getLoggedInUser().getId();
@@ -1103,7 +1121,7 @@ public class BankerServiceImpl implements BankerService {
         }
         log.info("searched claim data fetched successfully");
         return commonService.convertPageToDTO(claimSearchedData);
-    }
+    }*/
 
     @Override
     public boolean checkDocumentAlreadyExist(Long id, BankerDocType docType) {
@@ -1196,14 +1214,17 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setIsActive(true);
             claimDocuments.setIsDeleted(false);
             List<DocumentUrls> documentUrls = new ArrayList<>();
+            String uploadFileName = claimsData.getLoanAccountNumber() + "-" + docType;
+            int i = 1;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "banker/"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "banker/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
+                ++i;
             }
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);

@@ -54,6 +54,16 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setRole(RoleEnum.ADMIN);
                 users.add(user);
             }
+            if (!userRepository.existsByUserIdIgnoreCase("super.banker")) {
+                User user = new User();
+                user.setUserId("super.banker");
+                user.setFirstName("Super Banker");
+                user.setAccountLocked(false);
+                user.setStatus(UserStatus.ACTIVE);
+                user.setPassword(passwordEncoder.encode("super@123"));
+                user.setRole(RoleEnum.SUPER_BANKER);
+                users.add(user);
+            }
             if (!userRepository.existsByUserIdIgnoreCase("banker")) {
                 User user = new User();
                 user.setUserId("banker");

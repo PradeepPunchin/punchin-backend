@@ -99,7 +99,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                page1 = claimsDataRepository.findByClaimStatusOrClaimBankerStatusInAndVerifierId(GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndVerifierId(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {

@@ -394,20 +394,24 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments.setAgentDocType(docType);
             claimDocuments.setDocType(oldDocType);
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            String uploadFileName = claimsData.getLoanAccountNumber() + "-" + docType.name();
             if (isDiscrepancy) {
                 claimDocuments.setUploadSideBy("agent");
             } else {
                 claimDocuments.setUploadSideBy("agent New Requirement");
+                uploadFileName = uploadFileName + "-" + "ADD_REQ";
             }
             List<DocumentUrls> documentUrls = new ArrayList<>();
+            int i = 1;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "agent/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
+                ++i;
             }
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
@@ -513,9 +517,10 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments.setUploadSideBy("agent");
             List<DocumentUrls> documentUrls = new ArrayList<>();
+            String uploadFileName = claimsData.getLoanAccountNumber() + "-" + agentDocType;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "agent/"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/"));
                 documentUrls.add(urls);
             }
             documentUrlsRepository.saveAll(documentUrls);
@@ -606,7 +611,7 @@ public class AgentServiceImpl implements AgentService {
         return commonService.convertPageToDTO(agentSearchDTO1s, claimSearchedData);
     }
 
-    public List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType) {
+    /*public List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType) {
         Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
         if (!optionalClaimsData.isPresent()) {
             return Collections.emptyList();
@@ -632,7 +637,7 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments.setUploadTime(System.currentTimeMillis());
         claimDocumentsRepository.save(claimDocuments);
         return documentUrlsList;
-    }
+    }*/
 
     @Override
     public Map<String, Object> getClaimHistory(String id) {

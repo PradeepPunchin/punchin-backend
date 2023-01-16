@@ -21,4 +21,5 @@ public class UserDTO {
 
     private RoleEnum role;
 
+    private String aadharCardNumber;
 }

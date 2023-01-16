@@ -1388,6 +1388,8 @@ public class BankerServiceImpl implements BankerService {
                     lastRemarkTime = bankerVerifierRemark.getCreatedAt();
                     claimHistoryDTOS.add(modelMapper.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
                 }
+                claimsData.setBankerRemarkNotify(false);
+                claimsDataRepository.save(claimsData);
             }
             map.put("claimRemarkDTOS", claimHistoryDTOS);
             map.put("claimStatus", claimStatus);
@@ -1530,6 +1532,8 @@ public class BankerServiceImpl implements BankerService {
             bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
             bankerVerifierRemark.setRemark(requestDTO.getRemark());
             claimsRemarksDTO = modelMapper.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
+            claimsData.setBankerVerifierRemarkNotify(true);
+            claimsDataRepository.save(claimsData);
             return claimsRemarksDTO;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: addClaimRemark", e);

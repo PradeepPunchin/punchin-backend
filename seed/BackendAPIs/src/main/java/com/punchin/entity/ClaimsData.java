@@ -79,4 +79,8 @@ public class ClaimsData extends BasicEntity {
     private Boolean isMinor;
     private String agentRemark;
     private String agentComment;
+    private Boolean agentRemarkNotify = false;
+    private Boolean bankerRemarkNotify = false;
+    private Boolean agentVerifierRemarkNotify = false;
+    private Boolean bankerVerifierRemarkNotify = false;
 }

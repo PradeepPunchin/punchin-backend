@@ -67,4 +67,5 @@ public class User extends BasicEntity {
     private String profilePicUrl;
     private String aadharCardUrl;
     private Long verifierId;
+    private String aadharCardNumber;
 }

@@ -43,32 +43,32 @@ public class MISExportService {
             List<ClaimsData> claimsDataList = new ArrayList<>();
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
-                claimsDataList = claimsDataRepository.findAllByBankerIdOrderByClaimInwardDate(GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findAllByBankerIdOrderByClaimInwardDateDesc(GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             }
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";
@@ -233,30 +233,30 @@ public class MISExportService {
             List<ClaimsData> claimsDataList = new ArrayList<>();
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
-                claimsDataList = claimsDataRepository.findByVerifierIdOrderByClaimInwardDate(GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByVerifierIdOrderByClaimInwardDateDesc(GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDate(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             }
             List<DownloadVerifierMisResponse> downloadVerifierMisResponseList = ObjectMapperUtils.mapAll(claimsDataList, DownloadVerifierMisResponse.class);
             for (DownloadVerifierMisResponse downloadVerifierMisResponse : downloadVerifierMisResponseList) {

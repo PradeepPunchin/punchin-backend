@@ -197,9 +197,9 @@ public class BankerServiceImpl implements BankerService {
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
+
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
-                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-                page1 = claimsDataRepository.findBySubmittedClaims(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findClaimPendingForBakerDocument(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);

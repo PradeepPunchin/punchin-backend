@@ -67,7 +67,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
             if (!userRepository.existsByUserIdIgnoreCase("banker")) {
                 User user = new User();
                 user.setUserId("banker");
-                user.setFirstName("banker");
+                user.setFirstName("A Bank");
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
@@ -77,7 +77,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
                 user = new User();
                 user.setUserId("banker2");
-                user.setFirstName("banker2");
+                user.setFirstName("B Bank");
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
@@ -87,7 +87,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
                 user = new User();
                 user.setUserId("banker3");
-                user.setFirstName("banker3");
+                user.setFirstName("C Bank");
                 user.setLastName("test");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
@@ -98,8 +98,10 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
             if (!userRepository.existsByUserIdIgnoreCase("verifier")) {
                 User user = new User();
                 user.setUserId("verifier");
-                user.setFirstName("verifier UP");
+                user.setFirstName("A Verifier");
                 user.setLastName("test");
+                user.setState("UP");
+                user.setCity("UP");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("verifier@123"));
@@ -109,8 +111,10 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
                 user = new User();
                 user.setUserId("verifier2");
-                user.setFirstName("verifier DL");
+                user.setFirstName("B Verifier");
                 user.setLastName("test");
+                user.setState("DL");
+                user.setCity("DL");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("verifier@123"));
@@ -120,8 +124,10 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
                 user = new User();
                 user.setUserId("verifier3");
-                user.setFirstName("verifier PB");
+                user.setFirstName("C Verifier");
                 user.setLastName("test");
+                user.setState("PB");
+                user.setCity("PB");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setPassword(passwordEncoder.encode("verifier@123"));

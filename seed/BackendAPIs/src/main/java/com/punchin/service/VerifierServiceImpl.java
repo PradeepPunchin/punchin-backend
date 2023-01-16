@@ -418,6 +418,10 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 dto.setBorrowerContactNumber(claimData.getBorrowerContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
+                dto.setAgentRemarkRead(claimData.getAgentRemarkRead());
+                dto.setAgentVerifierRemarkRead(claimData.getAgentVerifierRemarkRead());
+                dto.setBankerVerifierRemarkRead(claimData.getBankerVerifierRemarkRead());
+                dto.setBankerRemarkRead(claimData.getBankerRemarkRead());
                 if (claimData.getAgentId() > 0) {
                     dto.setAgentAllocated(true);
                     Optional<User> optionalUser = userRepository.findById(claimData.getAgentId());
@@ -768,9 +772,10 @@ public class VerifierServiceImpl implements VerifierService {
                 agentVerifierRemark.setRemark(requestDTO.getRemark());
                 agentVerifierRemark.setClaimId(claimsData.getId());
                 claimsRemarksDTO = modelMapperService.map(agentVerifierRemarkRepository.save(agentVerifierRemark), ClaimsRemarksDTO.class);
-                /*claimsData.setAgentRemarkNotify(true);
+                claimsData.setAgentRemarkRead(false);
+                claimsData.setAgentVerifierRemarkRead(true);
                 log.info("Verifier comment to agent and agent get notify");
-                claimsDataRepository.save(claimsData);*/
+                claimsDataRepository.save(claimsData);
             } else if (RemarkForEnum.BANKER.equals(requestDTO.getRemarkFor())) {
                 BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
                 bankerVerifierRemark.setClaimId(claimsData.getId());

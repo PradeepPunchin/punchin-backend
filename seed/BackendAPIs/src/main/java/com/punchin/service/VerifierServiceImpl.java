@@ -778,9 +778,9 @@ public class VerifierServiceImpl implements VerifierService {
                 bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
                 bankerVerifierRemark.setRemark(requestDTO.getRemark());
                 claimsRemarksDTO = modelMapperService.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
-                claimsData.setBankerRemarkRead(true);
+                claimsData.setBankerRemarkRead(false);
                 log.info("Verifier comment to banker and Banker get notify");
-                claimsData.setBankerVerifierRemarkRead(false);
+                claimsData.setBankerVerifierRemarkRead(true);
                 log.info("Verifier read from banker");
                 claimsDataRepository.save(claimsData);
             }

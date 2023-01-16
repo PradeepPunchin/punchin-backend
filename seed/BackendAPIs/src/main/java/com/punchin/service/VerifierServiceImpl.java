@@ -740,12 +740,18 @@ public class VerifierServiceImpl implements VerifierService {
                         lastRemarkTime = agentVerifierRemark.getCreatedAt();
                         claimHistoryDTOS.add(modelMapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
                     }
+                    /* claimsData.setAgentVerifierRemarkNotify(false);
+                    log.info("Verifier read from agent");
+                    claimsDataRepository.save(claimsData);*/
                 } else if (RemarkForEnum.BANKER.equals(remarkBy)) {
                     List<BankerVerifierRemark> bankerVerifierRemarks = bankerVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
                     for (BankerVerifierRemark bankerVerifierRemark : bankerVerifierRemarks) {
                         lastRemarkTime = bankerVerifierRemark.getCreatedAt();
                         claimHistoryDTOS.add(modelMapperService.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
                     }
+                    claimsData.setBankerVerifierRemarkNotify(false);
+                    log.info("Verifier read from banker");
+                    claimsDataRepository.save(claimsData);
                 }
             }
             map.put("claimRemarkDTOS", claimHistoryDTOS);
@@ -770,6 +776,9 @@ public class VerifierServiceImpl implements VerifierService {
                 agentVerifierRemark.setRemark(requestDTO.getRemark());
                 agentVerifierRemark.setClaimId(claimsData.getId());
                 claimsRemarksDTO = modelMapperService.map(agentVerifierRemarkRepository.save(agentVerifierRemark), ClaimsRemarksDTO.class);
+                /*claimsData.setAgentRemarkNotify(true);
+                log.info("Verifier comment to agent and agent get notify");
+                claimsDataRepository.save(claimsData);*/
             } else if (RemarkForEnum.BANKER.equals(requestDTO.getRemarkFor())) {
                 BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
                 bankerVerifierRemark.setClaimId(claimsData.getId());
@@ -777,6 +786,9 @@ public class VerifierServiceImpl implements VerifierService {
                 bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
                 bankerVerifierRemark.setRemark(requestDTO.getRemark());
                 claimsRemarksDTO = modelMapperService.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
+                claimsData.setBankerRemarkNotify(true);
+                log.info("Verifier comment to banker and Banker get notify");
+                claimsDataRepository.save(claimsData);
             }
             return claimsRemarksDTO;
         } catch (Exception e) {

@@ -84,6 +84,7 @@ public class AgentServiceImpl implements AgentService {
                     agentClaimListDTO.setNomineeName(claimsData.getNomineeName());
                     agentClaimListDTO.setNomineeContactNumber(claimsData.getNomineeContactNumber());
                     agentClaimListDTO.setClaimStatus(claimsData.getClaimStatus());
+                    agentClaimListDTO.setAgentRemarkRead(claimsData.getAgentRemarkRead());
                     List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
                     List<ClaimsRemarksDTO> claimsRemarksDTOS = new ArrayList<>();
                     for (AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks) {

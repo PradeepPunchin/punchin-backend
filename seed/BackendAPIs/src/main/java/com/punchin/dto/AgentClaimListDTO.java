@@ -20,4 +20,5 @@ public class AgentClaimListDTO {
 
     private ClaimStatus claimStatus;
     private List<ClaimsRemarksDTO> claimsRemarksDTOs;
+    private Boolean agentRemarkRead;
 }

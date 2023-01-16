@@ -6,7 +6,6 @@ import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.BASE64DecodedMultipartFile;
 import com.punchin.utility.GenericUtils;
-import com.punchin.utility.ZipUtils;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -16,16 +15,12 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -749,9 +744,6 @@ public class VerifierServiceImpl implements VerifierService {
                         lastRemarkTime = bankerVerifierRemark.getCreatedAt();
                         claimHistoryDTOS.add(modelMapperService.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
                     }
-                    claimsData.setBankerVerifierRemarkNotify(false);
-                    log.info("Verifier read from banker");
-                    claimsDataRepository.save(claimsData);
                 }
             }
             map.put("claimRemarkDTOS", claimHistoryDTOS);
@@ -786,8 +778,10 @@ public class VerifierServiceImpl implements VerifierService {
                 bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
                 bankerVerifierRemark.setRemark(requestDTO.getRemark());
                 claimsRemarksDTO = modelMapperService.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
-                claimsData.setBankerRemarkNotify(true);
+                claimsData.setBankerRemarkRead(true);
                 log.info("Verifier comment to banker and Banker get notify");
+                claimsData.setBankerVerifierRemarkRead(false);
+                log.info("Verifier read from banker");
                 claimsDataRepository.save(claimsData);
             }
             return claimsRemarksDTO;

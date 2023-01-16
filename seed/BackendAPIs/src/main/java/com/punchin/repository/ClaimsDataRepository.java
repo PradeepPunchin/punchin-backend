@@ -100,7 +100,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     List<ClaimsData> findByClaimStatusInAndBorrowerStateIgnoreCaseOrderByCreatedAtDesc(List<ClaimStatus> claimsStatus, String state);
 
-    List<ClaimsData> findByClaimStatusInAndVerifierIdOrderByClaimInwardDate(List<ClaimStatus> claimsStatus, Long id);
+    List<ClaimsData> findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(List<ClaimStatus> claimsStatus, Long id);
 
     @Query(nativeQuery = true, value = "SELECT loan_account_number FROM claims_data WHERE id=:claimId")
     String findPunchinClaimIdById(Long claimId);
@@ -124,7 +124,7 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     Page<ClaimsData> findByVerifierIdOrderByCreatedAtDesc(Long id, Pageable pageable);
 
-    List<ClaimsData> findByVerifierIdOrderByClaimInwardDate(Long id);
+    List<ClaimsData> findByVerifierIdOrderByClaimInwardDateDesc(Long id);
 
     Page<ClaimsData> findByAgentIdOrderByCreatedAtDesc(Long id, Pageable pageable);
 
@@ -134,9 +134,9 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     ClaimsData findByIdAndVerifierId(Long claimId, Long id);
 
-    List<ClaimsData> findAllByBankerIdOrderByClaimInwardDate(Long id);
+    List<ClaimsData> findAllByBankerIdOrderByClaimInwardDateDesc(Long id);
 
-    List<ClaimsData> findByClaimStatusInAndBankerIdOrderByClaimInwardDate(List<ClaimStatus> claimsStatus, Long id);
+    List<ClaimsData> findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(List<ClaimStatus> claimsStatus, Long id);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
             "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and (CAST(cd.id AS varchar) Ilike %:searchedKeyword%) ")

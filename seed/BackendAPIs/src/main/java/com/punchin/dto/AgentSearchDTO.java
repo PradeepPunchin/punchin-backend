@@ -56,8 +56,6 @@ public class AgentSearchDTO {
     private String nomineeEmailId;
     private String nomineeAddress;
     private List<ClaimsRemarksDTO> claimsRemarksDTOs;
-
-
-
+    private Boolean agentRemarkRead;
 }
 

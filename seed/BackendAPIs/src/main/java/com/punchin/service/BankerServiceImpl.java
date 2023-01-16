@@ -1532,8 +1532,8 @@ public class BankerServiceImpl implements BankerService {
             bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
             bankerVerifierRemark.setRemark(requestDTO.getRemark());
             claimsRemarksDTO = modelMapper.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
-            claimsData.setBankerVerifierRemarkRead(true);
-            claimsData.setBankerRemarkRead(false);
+            claimsData.setBankerVerifierRemarkRead(false);
+            claimsData.setBankerRemarkRead(true);
             claimsDataRepository.save(claimsData);
             return claimsRemarksDTO;
         } catch (Exception e) {

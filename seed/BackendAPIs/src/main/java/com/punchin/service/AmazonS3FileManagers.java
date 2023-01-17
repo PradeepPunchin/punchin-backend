@@ -159,8 +159,7 @@ public class AmazonS3FileManagers {
     public InputStream getStreamFromS3(String docUrl) {
         try {
             AmazonS3 client = getAmazonConnection();
-            S3Object s3object = client.getObject(new GetObjectRequest(bucketName,
-                    "agent/" + FilenameUtils.getName(docUrl)));
+            S3Object s3object = client.getObject(new GetObjectRequest(bucketName, "agent/" + FilenameUtils.getName(docUrl)));
             return s3object.getObjectContent();
         }  catch (Exception e) {
             return null;

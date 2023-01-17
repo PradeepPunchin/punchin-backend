@@ -1304,7 +1304,7 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(claimDocuments.getUploadSideBy(),documentUrls.getDocUrl());
                     if (Objects.nonNull(inputStream)) {
                         ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
                         zipOutputStream.putNextEntry(zipEntry);

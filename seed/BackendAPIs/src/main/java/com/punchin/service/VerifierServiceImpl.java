@@ -343,11 +343,11 @@ public class VerifierServiceImpl implements VerifierService {
             File zipfile = new File(filePath + punchinClaimId + ".zip");
             FileOutputStream fileOutputStream = new FileOutputStream(zipfile);
             ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndIsActiveOrderByAgentDocType(claimId, true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(claimDocuments.getUploadSideBy(),documentUrls.getDocUrl());
                     if (Objects.nonNull(inputStream)) {
                         ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
                         zipOutputStream.putNextEntry(zipEntry);

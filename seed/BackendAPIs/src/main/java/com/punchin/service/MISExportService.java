@@ -6,6 +6,7 @@ import com.punchin.entity.ClaimsData;
 import com.punchin.entity.User;
 import com.punchin.enums.ClaimDataFilter;
 import com.punchin.enums.ClaimStatus;
+import com.punchin.enums.RoleEnum;
 import com.punchin.repository.ClaimDraftDataRepository;
 import com.punchin.repository.ClaimsDataRepository;
 import com.punchin.repository.UserRepository;
@@ -42,33 +43,38 @@ public class MISExportService {
         try {
             List<ClaimsData> claimsDataList = new ArrayList<>();
             List<ClaimStatus> claimsStatus = new ArrayList<>();
+            List<Long> bankerIds = new ArrayList<>();
+            if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
+                bankerIds = userRepository.getAllBankerIds();
+            }
+            bankerIds.add(GenericUtils.getLoggedInUser().getId());
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
-                claimsDataList = claimsDataRepository.findAllByBankerIdOrderByClaimInwardDateDesc(GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findAllByBankerIdInOrderByClaimInwardDateDesc(bankerIds);
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(claimsStatus, bankerIds);
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(claimsStatus, bankerIds);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(claimsStatus, bankerIds);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(claimsStatus, bankerIds);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(claimsStatus, bankerIds);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(claimsStatus, bankerIds);
             }
             SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
             String filename = "Claim_MIS_" + format.format(new Date()) + ".xlsx";

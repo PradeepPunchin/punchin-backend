@@ -23,4 +23,8 @@ public interface ClaimDraftDataRepository extends JpaRepository<ClaimDraftData, 
 
     @Query(nativeQuery = true, value = "SELECT * FROM claim_draft_data cdd WHERE cdd.valid_claim_data=false and cdd.invalid_claim_data_reason is not null and cdd.punchin_banker_id =:banker")
     List<ClaimDraftData> findRejectedClaimDataByBankerId(@Param("banker") String banker);
+
+    @Query(nativeQuery = true, value = "select * from  claim_draft_data cdd where cdd.punchin_banker_id =:banker and cdd.loan_account_number =:loanAccountNumber")
+    List<Long> findExistingLoanNumber(@Param("banker") String banker, @Param("loanAccountNumber") String loanAccountNumber);
+
 }

@@ -66,73 +66,47 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
             }
             if (!userRepository.existsByUserIdIgnoreCase("banker")) {
                 User user = new User();
-                user.setUserId("banker");
-                user.setFirstName("A Bank");
-                user.setLastName("test");
+                user.setUserId("lkart");
+                user.setFirstName("Lendingkart");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("banker@123"));
-                user.setRole(RoleEnum.BANKER);
-                users.add(user);
-
-                user = new User();
-                user.setUserId("banker2");
-                user.setFirstName("B Bank");
-                user.setLastName("test");
-                user.setAccountLocked(false);
-                user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("banker@123"));
-                user.setRole(RoleEnum.BANKER);
-                users.add(user);
-
-                user = new User();
-                user.setUserId("banker3");
-                user.setFirstName("C Bank");
-                user.setLastName("test");
-                user.setAccountLocked(false);
-                user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("banker@123"));
+                user.setPassword(passwordEncoder.encode("lkart@123"));
                 user.setRole(RoleEnum.BANKER);
                 users.add(user);
             }
             if (!userRepository.existsByUserIdIgnoreCase("verifier")) {
                 User user = new User();
-                user.setUserId("verifier");
-                user.setFirstName("A Verifier");
-                user.setLastName("test");
-                user.setState("UP");
-                user.setCity("UP");
+                user.setUserId("chandramouli.banerjee");
+                user.setFirstName("OURS Group");
+                user.setCity("West Bengal");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("verifier@123"));
+                user.setPassword(passwordEncoder.encode("banerjee@123"));
                 user.setRole(RoleEnum.VERIFIER);
-                user.setState("UTTAR PRADESH");
+                user.setState("West Bengal");
                 users.add(user);
 
                 user = new User();
-                user.setUserId("verifier2");
-                user.setFirstName("B Verifier");
-                user.setLastName("test");
-                user.setState("DL");
-                user.setCity("DL");
+                user.setUserId("sangeetha");
+                user.setFirstName("AVI Business Solutions");
+                user.setCity("Karnataka");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("verifier@123"));
+                user.setPassword(passwordEncoder.encode("sangeetha@123"));
                 user.setRole(RoleEnum.VERIFIER);
-                user.setState("DELHI");
+                user.setState("Karnataka");
                 users.add(user);
 
                 user = new User();
-                user.setUserId("verifier3");
-                user.setFirstName("C Verifier");
-                user.setLastName("test");
+                user.setUserId("pranav.bansal");
+                user.setFirstName("Infominer");
                 user.setState("PB");
                 user.setCity("PB");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("verifier@123"));
+                user.setPassword(passwordEncoder.encode("bansal@123"));
                 user.setRole(RoleEnum.VERIFIER);
-                user.setState("PUNJAB");
+                user.setState("Delhi");
                 users.add(user);
             }
             userRepository.saveAll(users);
@@ -147,45 +121,45 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
             List<User> users = new ArrayList<>();
             if (!userRepository.existsByUserIdIgnoreCase("agent")) {
                 User user = new User();
-                user.setUserId("agent");
-                user.setFirstName("Binod");
-                user.setLastName("Kumar");
+                user.setUserId("manisha.silelan");
+                user.setFirstName("Manisha");
+                user.setLastName("Silelan");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("agent@123"));
+                user.setPassword(passwordEncoder.encode("manisha@123"));
                 user.setRole(RoleEnum.AGENT);
-                user.setState("UTTAR PRADESH");
-                user.setCity("Lucknow");
+                user.setState("West Bengal");
+                user.setCity("West Bengal");
                 user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState().toLowerCase()));
                 users.add(user);
 
                 user = new User();
-                user.setUserId("agent1");
-                user.setFirstName("Prabhat");
+                user.setUserId("pradeep.kumar");
+                user.setFirstName("Pradeep");
                 user.setLastName("Kumar");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("agent@123"));
+                user.setPassword(passwordEncoder.encode("pradeep@123"));
                 user.setRole(RoleEnum.AGENT);
-                user.setState("UTTAR PRADESH");
-                user.setCity("Azamgarh");
+                user.setState("Karnataka");
+                user.setCity("Karnataka");
                 user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState().toLowerCase()));
                 users.add(user);
 
                 user = new User();
-                user.setUserId("agent2");
-                user.setFirstName("Rahul");
-                user.setLastName("Kumar");
+                user.setUserId("tarun.jangra");
+                user.setFirstName("Tarun");
+                user.setLastName("Jangra");
                 user.setAccountLocked(false);
                 user.setStatus(UserStatus.ACTIVE);
-                user.setPassword(passwordEncoder.encode("agent@123"));
+                user.setPassword(passwordEncoder.encode("tarun@123"));
                 user.setRole(RoleEnum.AGENT);
                 user.setState("DELHI");
                 user.setCity("New Delhi");
                 user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState().toLowerCase()));
                 users.add(user);
 
-                user = new User();
+                /*user = new User();
                 user.setUserId("agent3");
                 user.setFirstName("Gurpreet");
                 user.setLastName("Singh");
@@ -196,7 +170,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
                 user.setState("PUNJAB");
                 user.setCity("Firozpur");
                 user.setVerifierId(userRepository.findTopByStateIgnoreCaseOrderById(user.getState().toLowerCase()));
-                users.add(user);
+                users.add(user);*/
             }
             userRepository.saveAll(users);
         } catch (Exception e) {

@@ -80,8 +80,9 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
             Long bankerId = GenericUtils.getLoggedInUser().getId();
+            String banker = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
+                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), banker);
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 List<ClaimDraftData> claimsDataList = new ArrayList<>();
                 List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
@@ -101,8 +102,11 @@ public class BankerServiceImpl implements BankerService {
                             StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
                         /*boolean pinCodeExists = userRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim());//pinCodeStateRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim())
                         if(pinCodeExists) {*/
-                            List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
-                            if (claimId.isEmpty()) {
+                        List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
+                        List<Long> claimId2 = claimDraftDataRepository.findExistingLoanNumber(banker, claimDraftData.getLoanAccountNumber());
+                        if (claimId.isEmpty() && claimId2.isEmpty()) {
+                            boolean loanNumberExists = loanNumberExists(claimsDataList, claimDraftData);
+                            if (!loanNumberExists) {
                                 claimsDataList.add(claimDraftData);
                             } else {
                                 claimDraftData.setValidClaimData(false);
@@ -114,7 +118,19 @@ public class BankerServiceImpl implements BankerService {
                                 invalidClaimsData.setValidClaimData(false);
                                 invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
                                 invalidClaimsDataList.add(invalidClaimsData);
-                            }/*
+                            }
+                        } else {
+                            claimDraftData.setValidClaimData(false);
+                            claimDraftData.setDuplicateLoanNumber(true);
+                            claimDraftData.setInvalidClaimDataReason("Loan number already exists");
+                            claimsDataList.add(claimDraftData);
+                            log.info("Loan number already exists :: {}", claimId);
+                            InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                            invalidClaimsData.setValidClaimData(false);
+                            invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
+                            invalidClaimsDataList.add(invalidClaimsData);
+                        }
+                        /*
                             //claimDraftData.setValidClaimData(false);
                             *//*claimDraftData.setVerifierMapped(false);
                             claimDraftData.setInvalidClaimDataReason("Verifier not mapped");
@@ -159,14 +175,32 @@ public class BankerServiceImpl implements BankerService {
 
     }
 
+    // This method will check if existing list contains loan number
+    public static boolean loanNumberExists(List<ClaimDraftData> claimsDataList, ClaimDraftData claimDraftData) {
+        if (!claimsDataList.isEmpty()) {
+            for (ClaimDraftData claimDraftData1 : claimsDataList) {
+                if (!claimDraftData1.getLoanAccountNumber().equalsIgnoreCase(claimDraftData.getLoanAccountNumber())) {
+                    continue;
+                } else {
+                    return true;
+                }
+            }
+        } else {
+            return false;
+        }
+
+        return false;
+    }
+
     @Override
-    public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit, String searchedKeyword, SearchCaseEnum searchCaseEnum) {
+    public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit, String
+            searchedKeyword, SearchCaseEnum searchCaseEnum) {
         try {
             log.info("BankerServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
             Page<ClaimsData> page1 = Page.empty();
             List<Long> bankerIds = new ArrayList<>();
-            if(GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)){
+            if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
                 bankerIds = userRepository.getAllBankerIds();
             }
             bankerIds.add(GenericUtils.getLoggedInUser().getId());
@@ -235,7 +269,7 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerController :: getDashboardData");
             List<Long> bankerIds = new ArrayList<>();
-            if(GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)){
+            if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
                 bankerIds = userRepository.getAllBankerIds();
             }
             bankerIds.add(GenericUtils.getLoggedInUser().getId());
@@ -285,7 +319,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setUploadDate(new Date());
                 Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
                 log.info("VERIFIER FOUND id-{}", verifierId);
-                if(Objects.nonNull(verifierId)){
+                if (Objects.nonNull(verifierId)) {
                     claimsData.setVerifierId(verifierId);
                     log.info("VERIFIER mapped id-{}", verifierId);
                 }
@@ -399,7 +433,8 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType) {
+    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType
+            docType) {
         Map<String, Object> map = new HashMap<>();
         try {
             log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
@@ -767,7 +802,7 @@ public class BankerServiceImpl implements BankerService {
 
     @Override
     public boolean isBanker() {
-        if(GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)){
+        if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
             return true;
         }
         return userRepository.existsByIdAndRole(GenericUtils.getLoggedInUser().getId(), RoleEnum.BANKER);
@@ -775,7 +810,7 @@ public class BankerServiceImpl implements BankerService {
 
     @Override
     public ClaimsData isClaimByBanker(Long claimId) {
-        if(GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)){
+        if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
             Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
             return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
         }
@@ -825,7 +860,8 @@ public class BankerServiceImpl implements BankerService {
     public List<ClaimDraftData> save(MultipartFile file) {
         try {
             Long bankerId = GenericUtils.getLoggedInUser().getId();
-            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
+            String banker = GenericUtils.getLoggedInUser().getUserId();
+            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream(), banker);
             List<ClaimDraftData> claimsDraftDataList = new ArrayList<>();
             List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimsDataList) {
@@ -843,8 +879,22 @@ public class BankerServiceImpl implements BankerService {
                         StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanOutstandingAmount() != null &&
                         StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
                     List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
-                    if (claimId.isEmpty()) {
-                        claimsDraftDataList.add(claimDraftData);
+                    List<Long> claimId2 = claimDraftDataRepository.findExistingLoanNumber(banker, claimDraftData.getLoanAccountNumber());
+                    if (claimId.isEmpty() && claimId2.isEmpty()) {
+                        boolean loanNumberExists = loanNumberExists(claimsDraftDataList, claimDraftData);
+                        if (!loanNumberExists) {
+                            claimsDraftDataList.add(claimDraftData);
+                        } else {
+                            claimDraftData.setValidClaimData(false);
+                            claimDraftData.setDuplicateLoanNumber(true);
+                            claimsDraftDataList.add(claimDraftData);
+                            claimDraftData.setInvalidClaimDataReason("Loan number already exists");
+                            log.info("Loan number already exists :: {}", claimId);
+                            InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                            invalidClaimsData.setValidClaimData(false);
+                            invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
+                            invalidClaimsDataList.add(invalidClaimsData);
+                        }
                     } else {
                         claimDraftData.setValidClaimData(false);
                         claimDraftData.setDuplicateLoanNumber(true);
@@ -911,7 +961,8 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
+    public List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String
+            searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
         log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
         String queryCondition = "";
         if (Objects.isNull(searchedKeyword))
@@ -961,7 +1012,8 @@ public class BankerServiceImpl implements BankerService {
         return "";
     }
 
-    private List<Map<String, Object>> getClaimDataFilter(String search, List<String> claimStatus, Integer pageNo, Integer pageSize, String queryCondition) {
+    private List<Map<String, Object>> getClaimDataFilter(String search, List<String> claimStatus, Integer
+            pageNo, Integer pageSize, String queryCondition) {
         String query = "select distinct cd.punchin_claim_id as punchinClaimId,cd.insurer_claim_id as insurerClaimId, " +
                 " cd.punchin_banker_id as punchinBankerId,cd.claim_inward_date as claimInwardDate,cd.borrower_name as borrowerName, " +
                 " cd.borrower_contact_number as borrowerContactNumber,cd.borrower_city as borrowerCity,cd.borrower_state as borrowerState, " +
@@ -1190,7 +1242,8 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public Map<String, Object> discrepancyDocumentUpload(Long claimId, MultipartFile[] multipartFiles, String docType) {
+    public Map<String, Object> discrepancyDocumentUpload(Long claimId, MultipartFile[] multipartFiles, String
+            docType) {
         log.info("BankerServiceImpl :: discrepancyDocumentUpload claimsData {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
         Map<String, Object> map = new HashMap<>();
         try {
@@ -1259,14 +1312,15 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public boolean requestForAdditionalDocument(ClaimsData claimsData, List<AgentDocType> docTypes, String remark) {
+    public boolean requestForAdditionalDocument(ClaimsData claimsData, List<AgentDocType> docTypes, String
+            remark) {
         try {
             log.info("BankerServiceImpl :: requestForAdditionalDocument claimsData - {}, docTypes - {}, remark - {}", claimsData, docTypes, remark);
             List<ClaimDocuments> claimDocumentsList = new ArrayList<>();
             claimsData.setClaimStatus(ClaimStatus.NEW_REQUIREMENT);
             claimsDataRepository.save(claimsData);
             for (AgentDocType docType : docTypes) {
-                if(Objects.nonNull(docType) && docType != AgentDocType.OTHER) {
+                if (Objects.nonNull(docType) && docType != AgentDocType.OTHER) {
                     ClaimDocuments documents = new ClaimDocuments();
                     documents.setIsActive(false);
                     documents.setIsDeleted(false);
@@ -1303,7 +1357,7 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(claimDocuments.getUploadSideBy(), documentUrls.getDocUrl());
                     if (Objects.nonNull(inputStream)) {
                         ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
                         zipOutputStream.putNextEntry(zipEntry);
@@ -1567,7 +1621,7 @@ public class BankerServiceImpl implements BankerService {
             if (Objects.nonNull(requestDTO.getBorrowerPinCode())) {
                 claimsData.setBorrowerPinCode(requestDTO.getBorrowerPinCode());
                 Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
-                if(Objects.nonNull(verifierId)){
+                if (Objects.nonNull(verifierId)) {
                     claimsData.setVerifierId(verifierId);
                     //claimsData.setAgentId(0L);
                 }

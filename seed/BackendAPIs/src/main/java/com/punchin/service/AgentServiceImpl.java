@@ -198,9 +198,9 @@ public class AgentServiceImpl implements AgentService {
             claimsData.setClaimStatus(ClaimStatus.IN_PROGRESS);
             //claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.IN_PROGRESS, "In Progress"));
             if (Objects.nonNull(documentDTO.getAgentRemark())) {
-                if (documentDTO.getAgentRemark().equalsIgnoreCase("other")) {
+                /*if (documentDTO.getAgentRemark().equalsIgnoreCase("other")) {
                     documentDTO.setAgentRemark(documentDTO.getAgentComment());
-                }
+                }*/
                 agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name(), documentDTO.getAgentComment()));
                 claimsData.setAgentRemark(documentDTO.getAgentRemark());
                 claimsData.setAgentComment(documentDTO.getAgentComment());

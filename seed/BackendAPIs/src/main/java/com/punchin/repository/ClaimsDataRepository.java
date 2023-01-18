@@ -134,9 +134,9 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     ClaimsData findByIdAndVerifierId(Long claimId, Long id);
 
-    List<ClaimsData> findAllByBankerIdOrderByClaimInwardDateDesc(Long id);
+    List<ClaimsData> findAllByBankerIdInOrderByClaimInwardDateDesc(List<Long> bankerIds);
 
-    List<ClaimsData> findByClaimStatusInAndBankerIdOrderByClaimInwardDateDesc(List<ClaimStatus> claimsStatus, Long id);
+    List<ClaimsData> findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(List<ClaimStatus> claimsStatus, List<Long> bankerIds);
 
     @Query(nativeQuery = true, value = "select * from claims_data cd where cd.claim_status in ('IN_PROGRESS','VERIFIER_DISCREPENCY','AGENT_ALLOCATED', " +
             "'ACTION_PENDING','CLAIM_SUBMITTED','CLAIM_INTIMATED','UNDER_VERIFICATION') and (CAST(cd.id AS varchar) Ilike %:searchedKeyword%) ")

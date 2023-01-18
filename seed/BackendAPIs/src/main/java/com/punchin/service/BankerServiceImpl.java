@@ -103,8 +103,8 @@ public class BankerServiceImpl implements BankerService {
                         /*boolean pinCodeExists = userRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim());//pinCodeStateRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim())
                         if(pinCodeExists) {*/
                         List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
-                        //List<Long> claimId2 = claimDraftDataRepository.findExistingLoanNumber(banker, claimDraftData.getLoanAccountNumber());
-                        if (claimId.isEmpty()/* && claimId2.isEmpty()*/) {
+                        List<Long> claimId2 = claimDraftDataRepository.findExistingLoanNumber(banker, claimDraftData.getLoanAccountNumber());
+                        if (claimId.isEmpty() && claimId2.isEmpty()) {
                             boolean loanNumberExists = loanNumberExists(claimsDataList, claimDraftData);
                             if (!loanNumberExists) {
                                 claimsDataList.add(claimDraftData);

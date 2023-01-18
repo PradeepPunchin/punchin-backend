@@ -6,7 +6,6 @@ import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.BASE64DecodedMultipartFile;
 import com.punchin.utility.GenericUtils;
-import com.punchin.utility.ZipUtils;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -16,16 +15,12 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -99,7 +94,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                page1 = claimsDataRepository.findByClaimStatusOrClaimBankerStatusInAndVerifierId(GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndVerifierId(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
@@ -205,7 +200,7 @@ public class VerifierServiceImpl implements VerifierService {
                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocumentId(claimDocuments.getId());
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findAllDocumentAccordingToClaimDocuments(claimsData.getId(), "agent", true, docTypes);
                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
                     for (DocumentUrls documentUrls : documentUrlsList) {
                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
@@ -348,11 +343,11 @@ public class VerifierServiceImpl implements VerifierService {
             File zipfile = new File(filePath + punchinClaimId + ".zip");
             FileOutputStream fileOutputStream = new FileOutputStream(zipfile);
             ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(claimId, "agent", true);
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndIsActiveOrderByAgentDocType(claimId, true);
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(claimDocuments.getUploadSideBy(),documentUrls.getDocUrl());
                     if (Objects.nonNull(inputStream)) {
                         ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
                         zipOutputStream.putNextEntry(zipEntry);
@@ -423,6 +418,10 @@ public class VerifierServiceImpl implements VerifierService {
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 dto.setBorrowerContactNumber(claimData.getBorrowerContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
+                dto.setAgentRemarkRead(claimData.getAgentRemarkRead());
+                dto.setAgentVerifierRemarkRead(claimData.getAgentVerifierRemarkRead());
+                dto.setBankerVerifierRemarkRead(claimData.getBankerVerifierRemarkRead());
+                dto.setBankerRemarkRead(claimData.getBankerRemarkRead());
                 if (claimData.getAgentId() > 0) {
                     dto.setAgentAllocated(true);
                     Optional<User> optionalUser = userRepository.findById(claimData.getAgentId());
@@ -740,6 +739,9 @@ public class VerifierServiceImpl implements VerifierService {
                         lastRemarkTime = agentVerifierRemark.getCreatedAt();
                         claimHistoryDTOS.add(modelMapperService.map(agentVerifierRemark, ClaimsRemarksDTO.class));
                     }
+                    /* claimsData.setAgentVerifierRemarkNotify(false);
+                    log.info("Verifier read from agent");
+                    claimsDataRepository.save(claimsData);*/
                 } else if (RemarkForEnum.BANKER.equals(remarkBy)) {
                     List<BankerVerifierRemark> bankerVerifierRemarks = bankerVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
                     for (BankerVerifierRemark bankerVerifierRemark : bankerVerifierRemarks) {
@@ -770,6 +772,10 @@ public class VerifierServiceImpl implements VerifierService {
                 agentVerifierRemark.setRemark(requestDTO.getRemark());
                 agentVerifierRemark.setClaimId(claimsData.getId());
                 claimsRemarksDTO = modelMapperService.map(agentVerifierRemarkRepository.save(agentVerifierRemark), ClaimsRemarksDTO.class);
+                claimsData.setAgentRemarkRead(false);
+                claimsData.setAgentVerifierRemarkRead(true);
+                log.info("Verifier comment to agent and agent get notify");
+                claimsDataRepository.save(claimsData);
             } else if (RemarkForEnum.BANKER.equals(requestDTO.getRemarkFor())) {
                 BankerVerifierRemark bankerVerifierRemark = new BankerVerifierRemark();
                 bankerVerifierRemark.setClaimId(claimsData.getId());
@@ -777,6 +783,11 @@ public class VerifierServiceImpl implements VerifierService {
                 bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
                 bankerVerifierRemark.setRemark(requestDTO.getRemark());
                 claimsRemarksDTO = modelMapperService.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
+                claimsData.setBankerRemarkRead(false);
+                log.info("Verifier comment to banker and Banker get notify");
+                claimsData.setBankerVerifierRemarkRead(true);
+                log.info("Verifier read from banker");
+                claimsDataRepository.save(claimsData);
             }
             return claimsRemarksDTO;
         } catch (Exception e) {

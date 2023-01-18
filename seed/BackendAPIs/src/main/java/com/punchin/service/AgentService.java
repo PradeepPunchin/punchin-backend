@@ -36,7 +36,7 @@ public interface AgentService {
 
     String deleteClaimDocument(Long documentId);
 
-    List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType);
+    /*List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType);*/
 
 
     Map<String, Object> getClaimHistory(String id);

@@ -32,6 +32,10 @@ public class VerifierClaimDataResponseDTO {
     private String agentName;
     private String agentCity;
     private String agentState;
+    private Boolean agentRemarkRead;
+    private Boolean bankerRemarkRead;
+    private Boolean agentVerifierRemarkRead;
+    private Boolean bankerVerifierRemarkRead;
 }
 
 

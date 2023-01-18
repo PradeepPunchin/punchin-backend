@@ -66,5 +66,9 @@ public class BankerClaimListResponseDTO {
     private String agentRemark;
     private String agentComment;
     private String agentName;
+    private Boolean agentRemarkRead;
+    private Boolean bankerRemarkRead;
+    private Boolean agentVerifierRemarkRead;
+    private Boolean bankerVerifierRemarkRead;
 
 }

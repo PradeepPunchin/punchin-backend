@@ -84,6 +84,7 @@ public class AgentServiceImpl implements AgentService {
                     agentClaimListDTO.setNomineeName(claimsData.getNomineeName());
                     agentClaimListDTO.setNomineeContactNumber(claimsData.getNomineeContactNumber());
                     agentClaimListDTO.setClaimStatus(claimsData.getClaimStatus());
+                    agentClaimListDTO.setAgentRemarkRead(claimsData.getAgentRemarkRead());
                     List<AgentVerifierRemark> agentVerifierRemarks = agentVerifierRemarkRepository.findByClaimIdOrderById(claimsData.getId());
                     List<ClaimsRemarksDTO> claimsRemarksDTOS = new ArrayList<>();
                     for (AgentVerifierRemark agentVerifierRemark : agentVerifierRemarks) {
@@ -175,7 +176,7 @@ public class AgentServiceImpl implements AgentService {
     public Map<String, Object> uploadDocument(AgentUploadDocumentDTO documentDTO) {
         Map<String, Object> map = new HashMap<>();
         try {
-            log.info("AgentServiceImpl :: uploadDocument documentDTO {]", documentDTO);
+            log.info("AgentServiceImpl :: uploadDocument documentDTO {}", documentDTO);
             List<ClaimDocuments> claimDocuments = new ArrayList<>();
             ClaimsData claimsData = documentDTO.getClaimsData();
             if (Objects.nonNull(documentDTO.getCauseOfDeath())) {
@@ -185,6 +186,7 @@ public class AgentServiceImpl implements AgentService {
             Map<String, MultipartFile> isMinorDoc = documentDTO.getIsMinorDoc();
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
             for (String key : keys) {
+                log.info("AgentServiceImpl :: uploadDocument key {}", key);
                 if (key.contains(":")) {
                     String keyArray[] = key.split(":");
                     GenericUtils.hasMatchingSubstring2(keyArray[0].trim(), keys);
@@ -196,13 +198,16 @@ public class AgentServiceImpl implements AgentService {
             claimsData.setClaimStatus(ClaimStatus.IN_PROGRESS);
             //claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.IN_PROGRESS, "In Progress"));
             if (Objects.nonNull(documentDTO.getAgentRemark())) {
-                if (documentDTO.getAgentRemark().equalsIgnoreCase("other")) {
+                /*if (documentDTO.getAgentRemark().equalsIgnoreCase("other")) {
                     documentDTO.setAgentRemark(documentDTO.getAgentComment());
-                }
+                }*/
                 agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name(), documentDTO.getAgentComment()));
                 claimsData.setAgentRemark(documentDTO.getAgentRemark());
                 claimsData.setAgentComment(documentDTO.getAgentComment());
             }
+            claimsData.setAgentVerifierRemarkRead(false);
+            claimsData.setAgentRemarkRead(true);
+            log.info("Agent comment to verifier and Verifier will get notify");
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
             claimDataDTO.setClaimDocuments(claimDocuments);
             map.put("claimsData", claimDataDTO);
@@ -393,20 +398,24 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments.setAgentDocType(docType);
             claimDocuments.setDocType(oldDocType);
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
+            String uploadFileName = claimsData.getLoanAccountNumber() + "-" + docType.name();
             if (isDiscrepancy) {
                 claimDocuments.setUploadSideBy("agent");
             } else {
                 claimDocuments.setUploadSideBy("agent New Requirement");
+                uploadFileName = uploadFileName + "-" + "ADD_REQ";
             }
             List<DocumentUrls> documentUrls = new ArrayList<>();
+            int i = 1;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "agent/"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "agent/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
+                ++i;
             }
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
@@ -512,9 +521,10 @@ public class AgentServiceImpl implements AgentService {
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments.setUploadSideBy("agent");
             List<DocumentUrls> documentUrls = new ArrayList<>();
+            String uploadFileName = claimsData.getLoanAccountNumber() + "-" + agentDocType;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "agent/"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/"));
                 documentUrls.add(urls);
             }
             documentUrlsRepository.saveAll(documentUrls);
@@ -605,7 +615,7 @@ public class AgentServiceImpl implements AgentService {
         return commonService.convertPageToDTO(agentSearchDTO1s, claimSearchedData);
     }
 
-    public List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType) {
+    /*public List<DocumentUrls> uploadAgentDocument(Long id, MultipartFile[] multipartFiles, AgentDocType docType) {
         Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
         if (!optionalClaimsData.isPresent()) {
             return Collections.emptyList();
@@ -631,7 +641,7 @@ public class AgentServiceImpl implements AgentService {
         claimDocuments.setUploadTime(System.currentTimeMillis());
         claimDocumentsRepository.save(claimDocuments);
         return documentUrlsList;
-    }
+    }*/
 
     @Override
     public Map<String, Object> getClaimHistory(String id) {
@@ -787,5 +797,6 @@ public class AgentServiceImpl implements AgentService {
             return map;
         }
     }
+
 }
 

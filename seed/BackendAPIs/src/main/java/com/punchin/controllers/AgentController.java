@@ -207,7 +207,7 @@ public class AgentController {
         }
     }
 
-    @Secured({"AGENT"})
+    /*@Secured({"AGENT"})
     @ApiOperation(value = "Upload Document", notes = "This can be used to upload document regarding claim by agent")
     //@PutMapping(value = UrlMapping.UPLOAD_DOCUMENT_AGENT)
     public ResponseEntity<Object> uploadAgentDocument(@RequestParam Long id, @RequestParam AgentDocType docType, @ApiParam(name = "multipartFiles", value = "The multipart object as an array to upload multiple files.") @Valid @RequestBody MultipartFile multipartFiles) {
@@ -230,7 +230,7 @@ public class AgentController {
             return ResponseHandler.response(null, MessageCode.ERROR_UPLOAD_DOCUMENT, false, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+*/
     @Secured({"AGENT"})
     @ApiOperation(value = "Delete document", notes = "This can be used to delete document")
     @DeleteMapping(value = UrlMapping.AGENT_DELETE_DOCUMENT)

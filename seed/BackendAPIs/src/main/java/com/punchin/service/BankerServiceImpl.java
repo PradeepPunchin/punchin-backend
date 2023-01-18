@@ -80,8 +80,9 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerServiceImpl :: saveUploadExcelData files{}", files);
             Long bankerId = GenericUtils.getLoggedInUser().getId();
+            String banker = GenericUtils.getLoggedInUser().getUserId();
             for (MultipartFile file : files) {
-                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
+                Map<String, Object> data = convertExcelToListOfClaimsData(file.getInputStream(), banker);
                 List<ClaimDraftData> claimsData = (List<ClaimDraftData>) Arrays.asList(data.get("claimsData")).get(0);
                 List<ClaimDraftData> claimsDataList = new ArrayList<>();
                 List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
@@ -99,10 +100,13 @@ public class BankerServiceImpl implements BankerService {
                             StringUtils.isNotBlank(claimDraftData.getBorrowerPinCode()) && StringUtils.isNotBlank(claimDraftData.getBorrowerState()) && StringUtils.isNotBlank(claimDraftData.getBorrowerContactNumber()) &&
                             StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanOutstandingAmount() != null &&
                             StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
-                        boolean pinCodeExists = userRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim());//pinCodeStateRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim())
-                        if(pinCodeExists) {
-                            List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
-                            if (claimId.isEmpty()) {
+                        /*boolean pinCodeExists = userRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim());//pinCodeStateRepository.existsByPinCode(claimDraftData.getBorrowerPinCode().trim())
+                        if(pinCodeExists) {*/
+                        List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
+                        List<Long> claimId2 = claimDraftDataRepository.findExistingLoanNumber(banker, claimDraftData.getLoanAccountNumber());
+                        if (claimId.isEmpty() && claimId2.isEmpty()) {
+                            boolean loanNumberExists = loanNumberExists(claimsDataList, claimDraftData);
+                            if (!loanNumberExists) {
                                 claimsDataList.add(claimDraftData);
                             } else {
                                 claimDraftData.setValidClaimData(false);
@@ -115,16 +119,28 @@ public class BankerServiceImpl implements BankerService {
                                 invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
                                 invalidClaimsDataList.add(invalidClaimsData);
                             }
+                        } else {
                             claimDraftData.setValidClaimData(false);
-                            claimDraftData.setVerifierMapped(false);
+                            claimDraftData.setDuplicateLoanNumber(true);
+                            claimDraftData.setInvalidClaimDataReason("Loan number already exists");
+                            claimsDataList.add(claimDraftData);
+                            log.info("Loan number already exists :: {}", claimId);
+                            InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                            invalidClaimsData.setValidClaimData(false);
+                            invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
+                            invalidClaimsDataList.add(invalidClaimsData);
+                        }
+                        /*
+                            //claimDraftData.setValidClaimData(false);
+                            *//*claimDraftData.setVerifierMapped(false);
                             claimDraftData.setInvalidClaimDataReason("Verifier not mapped");
                             claimsDataList.add(claimDraftData);
                             log.info("Verifier not mapped :: {}", claimId);
                             InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
                             invalidClaimsData.setValidClaimData(false);
                             invalidClaimsData.setInvalidClaimDataReason("Verifier not mapped");
-                            invalidClaimsDataList.add(invalidClaimsData);
-                        }
+                            invalidClaimsDataList.add(invalidClaimsData);*//*
+                        }*/
 
                     } else {
                         claimDraftData.setValidClaimData(false);
@@ -159,64 +175,85 @@ public class BankerServiceImpl implements BankerService {
 
     }
 
+    // This method will check if existing list contains loan number
+    public static boolean loanNumberExists(List<ClaimDraftData> claimsDataList, ClaimDraftData claimDraftData) {
+        if (!claimsDataList.isEmpty()) {
+            for (ClaimDraftData claimDraftData1 : claimsDataList) {
+                if (!claimDraftData1.getLoanAccountNumber().equalsIgnoreCase(claimDraftData.getLoanAccountNumber())) {
+                    continue;
+                } else {
+                    return true;
+                }
+            }
+        } else {
+            return false;
+        }
+
+        return false;
+    }
+
     @Override
-    public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit, String searchedKeyword, SearchCaseEnum searchCaseEnum) {
+    public PageDTO getClaimsList(ClaimDataFilter claimDataFilter, Integer page, Integer limit, String
+            searchedKeyword, SearchCaseEnum searchCaseEnum) {
         try {
             log.info("BankerServiceImpl :: getClaimsList dataFilter{}, page{}, limit{}", claimDataFilter, page, limit);
             Pageable pageable = PageRequest.of(page, limit);
-            Long bankerId = GenericUtils.getLoggedInUser().getId();
             Page<ClaimsData> page1 = Page.empty();
+            List<Long> bankerIds = new ArrayList<>();
+            if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
+                bankerIds = userRepository.getAllBankerIds();
+            }
+            bankerIds.add(GenericUtils.getLoggedInUser().getId());
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             if (claimDataFilter.ALL.equals(claimDataFilter)) {
                 PageDTO pageDTO = new PageDTO();
                 if (Objects.nonNull(searchCaseEnum) && Objects.nonNull(searchedKeyword)) {
                     if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
-                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByClaimDataId(searchedKeyword, bankerIds, pageable);
                     } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
-                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataByLoanAccountNumber(searchedKeyword, bankerIds, pageable);
                     } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
-                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerId, pageable);
+                        page1 = claimsDataRepository.findAllBankerClaimSearchedDataBySearchName(searchedKeyword, bankerIds, pageable);
                     }
                     if (page1.isEmpty()) {
-                        page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                        page1 = claimsDataRepository.findAllByBankerIdInOrderByCreatedAtDesc(bankerIds, pageable);
                         List<BankerClaimListResponseDTO> bankerClaimListResponseDTOS = mappedAgentDetails(page1);
                         pageDTO = commonService.convertPageToDTO(bankerClaimListResponseDTOS, page1);
                         pageDTO.setMessage(MessageCode.CLAIM_NOT_FOUND);
                         return pageDTO;
                     }
                 } else {
-                    page1 = claimsDataRepository.findAllByPunchinBankerIdOrderByCreatedAtDesc(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                    page1 = claimsDataRepository.findAllByBankerIdInOrderByCreatedAtDesc(bankerIds, pageable);
                 }
             } else if (claimDataFilter.DRAFT.equals(claimDataFilter)) {
                 Page page2 = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
                 return commonService.convertPageToDTO(page2.getContent(), page2);
             } else if (claimDataFilter.BANKER_ACTION_PENDING.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.SUBMITTED.equals(claimDataFilter)) {
-                claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
-                page1 = claimsDataRepository.findBySubmittedClaims(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findClaimPendingForBakerDocument(GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.WIP.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.IN_PROGRESS);
                 claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
                 claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.UNDER_VERIFICATION.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.SETTLED.equals(claimDataFilter)) {
                 claimsStatus.add(ClaimStatus.SETTLED);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-                page1 = claimsDataRepository.findByClaimStatusInAndPunchinBankerIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-                /*claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
-                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);*/
-                page1 = claimsDataRepository.findByClaimStatusOrClaimBankerStatusInAndPunchinBankerId(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
+                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndBankerIdIn(claimsStatus, claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.BANKER_DRAFT.equals(claimDataFilter)) {
-                page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(GenericUtils.getLoggedInUser().getUserId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(bankerIds, pageable);
             }
             List<BankerClaimListResponseDTO> bankerClaimListResponseDTOS = mappedAgentDetails(page1);
             return commonService.convertPageToDTO(bankerClaimListResponseDTOS, page1);
@@ -231,7 +268,12 @@ public class BankerServiceImpl implements BankerService {
         Map<String, Long> map = new HashMap<>();
         try {
             log.info("BankerController :: getDashboardData");
-            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId()));
+            List<Long> bankerIds = new ArrayList<>();
+            if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
+                bankerIds = userRepository.getAllBankerIds();
+            }
+            bankerIds.add(GenericUtils.getLoggedInUser().getId());
+            map.put(ClaimStatus.ALL.name(), claimsDataRepository.countByBankerIdIn(bankerIds));
             List<ClaimStatus> claimsStatus = new ArrayList<>();
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.IN_PROGRESS);
@@ -241,15 +283,15 @@ public class BankerServiceImpl implements BankerService {
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
             claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
             claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
-            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
+            map.put(ClaimStatus.IN_PROGRESS.name(), claimsDataRepository.countByClaimStatusInAndBankerIdIn(claimsStatus, bankerIds));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.SETTLED);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_LENDER);
             claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
-            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
+            map.put(ClaimStatus.SETTLED.name(), claimsDataRepository.countByClaimStatusInAndBankerIdIn(claimsStatus, bankerIds));
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
-            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndPunchinBankerId(claimsStatus, GenericUtils.getLoggedInUser().getUserId()));
+            map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBankerIdIn(claimsStatus, bankerIds));
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);
@@ -267,6 +309,7 @@ public class BankerServiceImpl implements BankerService {
             List<ClaimDraftData> claimDraftDatas = claimDraftDataRepository.findAllByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
             List<ClaimsData> claimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimDraftDatas) {
+                log.info("CLAIM SUBMITING ---------- {}", claimDraftData.getPunchinClaimId());
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
                 claimsData.setPunchinClaimId("P" + RandomStringUtils.randomNumeric(10));
                 claimsData.setClaimInwardDate(new Date());
@@ -275,8 +318,10 @@ public class BankerServiceImpl implements BankerService {
                 claimsData.setBankerId(GenericUtils.getLoggedInUser().getId());
                 claimsData.setUploadDate(new Date());
                 Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
-                if(Objects.nonNull(verifierId)){
+                log.info("VERIFIER FOUND id-{}", verifierId);
+                if (Objects.nonNull(verifierId)) {
                     claimsData.setVerifierId(verifierId);
+                    log.info("VERIFIER mapped id-{}", verifierId);
                 }
                 claimsDataList.add(claimsData);
             }
@@ -308,10 +353,9 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public BankerClaimDocumentationDTO getClaimDataForBankerAction(Long claimId) {
+    public BankerClaimDocumentationDTO getClaimDataForBankerAction(ClaimsData claimsData) {
         try {
-            log.info("BankerController :: getClaimData claimId {}", claimId);
-            ClaimsData claimsData = claimsDataRepository.findByIdAndPunchinBankerId(claimId, GenericUtils.getLoggedInUser().getUserId());
+            log.info("BankerController :: getClaimData claimsData {}", claimsData);
             if (Objects.nonNull(claimsData)) {
                 BankerClaimDocumentationDTO dto = new BankerClaimDocumentationDTO();
                 dto.setId(claimsData.getId());
@@ -389,7 +433,8 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType docType) {
+    public Map<String, Object> uploadDocument(ClaimsData claimsData, MultipartFile[] multipartFiles, BankerDocType
+            docType) {
         Map<String, Object> map = new HashMap<>();
         try {
             log.info("BankerServiceImpl :: uploadDocument claimsData {}, multipartFiles {}, docType {}", claimsData, multipartFiles, docType);
@@ -401,14 +446,17 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setUploadBy(GenericUtils.getLoggedInUser().getUserId());
             claimDocuments.setUploadSideBy("banker");
             List<DocumentUrls> documentUrls = new ArrayList<>();
+            String uploadFileName = claimsData.getLoanAccountNumber() + "-" + docType.name();
+            int i = 1;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getPunchinClaimId(), multipartFile, "banker/"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "banker/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
+                ++i;
             }
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
@@ -754,11 +802,18 @@ public class BankerServiceImpl implements BankerService {
 
     @Override
     public boolean isBanker() {
+        if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
+            return true;
+        }
         return userRepository.existsByIdAndRole(GenericUtils.getLoggedInUser().getId(), RoleEnum.BANKER);
     }
 
     @Override
     public ClaimsData isClaimByBanker(Long claimId) {
+        if (GenericUtils.getLoggedInUser().getRole().equals(RoleEnum.SUPER_BANKER)) {
+            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(claimId);
+            return optionalClaimsData.isPresent() ? optionalClaimsData.get() : null;
+        }
         return claimsDataRepository.findByIdAndPunchinBankerId(claimId, GenericUtils.getLoggedInUser().getUserId());
     }
 
@@ -805,7 +860,8 @@ public class BankerServiceImpl implements BankerService {
     public List<ClaimDraftData> save(MultipartFile file) {
         try {
             Long bankerId = GenericUtils.getLoggedInUser().getId();
-            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream(), GenericUtils.getLoggedInUser().getUserId());
+            String banker = GenericUtils.getLoggedInUser().getUserId();
+            List<ClaimDraftData> claimsDataList = CSVHelper.csvToClaimsData(file.getInputStream(), banker);
             List<ClaimDraftData> claimsDraftDataList = new ArrayList<>();
             List<InvalidClaimsData> invalidClaimsDataList = new ArrayList<>();
             for (ClaimDraftData claimDraftData : claimsDataList) {
@@ -823,8 +879,22 @@ public class BankerServiceImpl implements BankerService {
                         StringUtils.isNotBlank(claimDraftData.getLoanAccountNumber()) && claimDraftData.getLoanDisbursalDate() != null && claimDraftData.getLoanOutstandingAmount() != null &&
                         StringUtils.isNotBlank(claimDraftData.getInsurerName()) && claimDraftData.getPolicySumAssured() != null && StringUtils.isNotBlank(claimDraftData.getNomineeName()) && StringUtils.isNotBlank(claimDraftData.getNomineeRelationShip()) && StringUtils.isNotBlank(claimDraftData.getCategory())) {
                     List<Long> claimId = claimsDataRepository.findExistingLoanNumber(bankerId, claimDraftData.getLoanAccountNumber());
-                    if (claimId.isEmpty()) {
-                        claimsDraftDataList.add(claimDraftData);
+                    List<Long> claimId2 = claimDraftDataRepository.findExistingLoanNumber(banker, claimDraftData.getLoanAccountNumber());
+                    if (claimId.isEmpty() && claimId2.isEmpty()) {
+                        boolean loanNumberExists = loanNumberExists(claimsDraftDataList, claimDraftData);
+                        if (!loanNumberExists) {
+                            claimsDraftDataList.add(claimDraftData);
+                        } else {
+                            claimDraftData.setValidClaimData(false);
+                            claimDraftData.setDuplicateLoanNumber(true);
+                            claimsDraftDataList.add(claimDraftData);
+                            claimDraftData.setInvalidClaimDataReason("Loan number already exists");
+                            log.info("Loan number already exists :: {}", claimId);
+                            InvalidClaimsData invalidClaimsData = ObjectMapperUtils.map(claimDraftData, InvalidClaimsData.class);
+                            invalidClaimsData.setValidClaimData(false);
+                            invalidClaimsData.setInvalidClaimDataReason("Loan number already exists");
+                            invalidClaimsDataList.add(invalidClaimsData);
+                        }
                     } else {
                         claimDraftData.setValidClaimData(false);
                         claimDraftData.setDuplicateLoanNumber(true);
@@ -891,7 +961,8 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
+    public List<Map<String, Object>> getClaimSearchedData(SearchCaseEnum searchCaseEnum, String
+            searchedKeyword, Integer pageNo, Integer limit, ClaimDataFilter claimDataFilter) {
         log.info("Get Searched data request received for searchCaseEnum :{} , searchedKeyword :{} , pageNo :{} , limit :{} ", searchCaseEnum, searchedKeyword, pageNo, limit);
         String queryCondition = "";
         if (Objects.isNull(searchedKeyword))
@@ -941,7 +1012,8 @@ public class BankerServiceImpl implements BankerService {
         return "";
     }
 
-    private List<Map<String, Object>> getClaimDataFilter(String search, List<String> claimStatus, Integer pageNo, Integer pageSize, String queryCondition) {
+    private List<Map<String, Object>> getClaimDataFilter(String search, List<String> claimStatus, Integer
+            pageNo, Integer pageSize, String queryCondition) {
         String query = "select distinct cd.punchin_claim_id as punchinClaimId,cd.insurer_claim_id as insurerClaimId, " +
                 " cd.punchin_banker_id as punchinBankerId,cd.claim_inward_date as claimInwardDate,cd.borrower_name as borrowerName, " +
                 " cd.borrower_contact_number as borrowerContactNumber,cd.borrower_city as borrowerCity,cd.borrower_state as borrowerState, " +
@@ -1019,7 +1091,7 @@ public class BankerServiceImpl implements BankerService {
         return mapList;
     }
 
-    @Override
+    /*@Override
     public PageDTO getBankerClaimSearchedData(SearchCaseEnum searchCaseEnum, String searchedKeyword, ClaimDataFilter claimDataFilter, Integer pageNo, Integer pageSize) {
         log.info("Get Searched data request received for caseType :{} , searchedKeyword :{}  ", searchCaseEnum, searchedKeyword);
         Long bankerId = GenericUtils.getLoggedInUser().getId();
@@ -1100,7 +1172,7 @@ public class BankerServiceImpl implements BankerService {
         }
         log.info("searched claim data fetched successfully");
         return commonService.convertPageToDTO(claimSearchedData);
-    }
+    }*/
 
     @Override
     public boolean checkDocumentAlreadyExist(Long id, BankerDocType docType) {
@@ -1170,7 +1242,8 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public Map<String, Object> discrepancyDocumentUpload(Long claimId, MultipartFile[] multipartFiles, String docType) {
+    public Map<String, Object> discrepancyDocumentUpload(Long claimId, MultipartFile[] multipartFiles, String
+            docType) {
         log.info("BankerServiceImpl :: discrepancyDocumentUpload claimsData {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
         Map<String, Object> map = new HashMap<>();
         try {
@@ -1193,14 +1266,17 @@ public class BankerServiceImpl implements BankerService {
             claimDocuments.setIsActive(true);
             claimDocuments.setIsDeleted(false);
             List<DocumentUrls> documentUrls = new ArrayList<>();
+            String uploadFileName = claimsData.getLoanAccountNumber() + "-" + docType;
+            int i = 1;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimDocuments.getClaimsData().getPunchinClaimId(), multipartFile, "banker/"));
+                urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "banker/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
                     return map;
                 }
                 documentUrls.add(urls);
+                ++i;
             }
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
@@ -1236,14 +1312,15 @@ public class BankerServiceImpl implements BankerService {
     }
 
     @Override
-    public boolean requestForAdditionalDocument(ClaimsData claimsData, List<AgentDocType> docTypes, String remark) {
+    public boolean requestForAdditionalDocument(ClaimsData claimsData, List<AgentDocType> docTypes, String
+            remark) {
         try {
             log.info("BankerServiceImpl :: requestForAdditionalDocument claimsData - {}, docTypes - {}, remark - {}", claimsData, docTypes, remark);
             List<ClaimDocuments> claimDocumentsList = new ArrayList<>();
             claimsData.setClaimStatus(ClaimStatus.NEW_REQUIREMENT);
             claimsDataRepository.save(claimsData);
             for (AgentDocType docType : docTypes) {
-                if(Objects.nonNull(docType) && docType != AgentDocType.OTHER) {
+                if (Objects.nonNull(docType) && docType != AgentDocType.OTHER) {
                     ClaimDocuments documents = new ClaimDocuments();
                     documents.setIsActive(false);
                     documents.setIsDeleted(false);
@@ -1280,7 +1357,7 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(documentUrls.getDocUrl());
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(claimDocuments.getUploadSideBy(), documentUrls.getDocUrl());
                     if (Objects.nonNull(inputStream)) {
                         ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
                         zipOutputStream.putNextEntry(zipEntry);
@@ -1364,6 +1441,8 @@ public class BankerServiceImpl implements BankerService {
                     lastRemarkTime = bankerVerifierRemark.getCreatedAt();
                     claimHistoryDTOS.add(modelMapper.map(bankerVerifierRemark, ClaimsRemarksDTO.class));
                 }
+               /* claimsData.setBankerRemarkNotify(false);
+                claimsDataRepository.save(claimsData);*/
             }
             map.put("claimRemarkDTOS", claimHistoryDTOS);
             map.put("claimStatus", claimStatus);
@@ -1506,6 +1585,9 @@ public class BankerServiceImpl implements BankerService {
             bankerVerifierRemark.setRemarkDoneBy(GenericUtils.getLoggedInUser().getId());
             bankerVerifierRemark.setRemark(requestDTO.getRemark());
             claimsRemarksDTO = modelMapper.map(bankerVerifierRemarkRepository.save(bankerVerifierRemark), ClaimsRemarksDTO.class);
+            claimsData.setBankerVerifierRemarkRead(false);
+            claimsData.setBankerRemarkRead(true);
+            claimsDataRepository.save(claimsData);
             return claimsRemarksDTO;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: addClaimRemark", e);
@@ -1539,7 +1621,7 @@ public class BankerServiceImpl implements BankerService {
             if (Objects.nonNull(requestDTO.getBorrowerPinCode())) {
                 claimsData.setBorrowerPinCode(requestDTO.getBorrowerPinCode());
                 Long verifierId = userRepository.findByPinCode(claimsData.getBorrowerPinCode().trim().toLowerCase());
-                if(Objects.nonNull(verifierId)){
+                if (Objects.nonNull(verifierId)) {
                     claimsData.setVerifierId(verifierId);
                     //claimsData.setAgentId(0L);
                 }

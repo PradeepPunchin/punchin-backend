@@ -90,9 +90,9 @@ public class BankerServiceImpl implements BankerService {
                     if (claimDraftData.getLoanAmount() == 0) {
                         claimDraftData.setLoanAmount(null);
                     }
-                    if (claimDraftData.getLoanOutstandingAmount() == 0.00) {
+                    /*if (claimDraftData.getLoanOutstandingAmount() == 0.00) {
                         claimDraftData.setLoanOutstandingAmount(null);
-                    }
+                    }*/
                     if (claimDraftData.getPolicySumAssured() == 0.00) {
                         claimDraftData.setPolicySumAssured(null);
                     }

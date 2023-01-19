@@ -658,7 +658,7 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     public List<AgentListResponseDTO> getAllAgentsForVerifier(User verifier) {
-        List<User> allAgents = userRepository.findAllAgentsForVerifier(verifier.getState());
+        List<User> allAgents = userRepository.findAllAgentsForVerifier(verifier.getId());
         if (allAgents.isEmpty()) {
             log.info(MessageCode.NO_RECORD_FOUND);
             return Collections.emptyList();

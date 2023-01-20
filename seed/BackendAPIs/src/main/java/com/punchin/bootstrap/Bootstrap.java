@@ -32,8 +32,8 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
     public void onApplicationEvent(ContextRefreshedEvent event) {
         log.info("In On Application Event Service");
         try {
-            createDefaultUserIfNotExist();
-            createDefaultAgentIfNotExist();
+            //createDefaultUserIfNotExist();
+            //createDefaultAgentIfNotExist();
         } catch (Exception e) {
             log.error("Exception In On Application Event Service - ", e);
         }

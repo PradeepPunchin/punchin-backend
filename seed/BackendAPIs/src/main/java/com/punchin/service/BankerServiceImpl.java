@@ -248,7 +248,7 @@ public class BankerServiceImpl implements BankerService {
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+                //claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndBankerIdIn(claimsStatus, claimsStatus, bankerIds, pageable);
@@ -279,7 +279,7 @@ public class BankerServiceImpl implements BankerService {
             claimsStatus.add(ClaimStatus.IN_PROGRESS);
             claimsStatus.add(ClaimStatus.CLAIM_SUBMITTED);
             claimsStatus.add(ClaimStatus.CLAIM_INTIMATED);
-            claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+            //claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
             claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
             claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
             claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);

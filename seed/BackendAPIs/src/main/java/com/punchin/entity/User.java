@@ -59,7 +59,8 @@ public class User extends BasicEntity {
      */
     @Enumerated(EnumType.STRING)
     private RoleEnum role;
-
+    private String serviceProvider;
+    private String companyName = "PunchIn Technologies Pvt Ltd";
     private String state;
     private String city;
     private String address;

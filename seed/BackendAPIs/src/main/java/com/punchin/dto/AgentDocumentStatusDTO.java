@@ -4,7 +4,8 @@ import lombok.Data;
 
 @Data
 public class AgentDocumentStatusDTO {
-    private String signedClaimDocument = "NOT_UPLOADED";
+    private AgentDocTypeDTO agentDocTypeDTO;
+    /*private String signedClaimDocument = "NOT_UPLOADED";
     private String deathCertificate = "NOT_UPLOADED";
     private String bankAccountProof = "NOT_UPLOADED";
     private String additionalDoc = "NOT_UPLOADED";
@@ -13,5 +14,5 @@ public class AgentDocumentStatusDTO {
     private String guardianAddressProof = "NOT_UPLOADED";
     private String nomineeKycProof = "NOT_UPLOADED";
     private String borrowerKycProof = "NOT_UPLOADED";
-
+*/
 }

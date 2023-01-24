@@ -2,7 +2,10 @@ package com.punchin.service;
 
 import com.punchin.dto.*;
 import com.punchin.entity.*;
-import com.punchin.enums.*;
+import com.punchin.enums.AgentDocType;
+import com.punchin.enums.ClaimDataFilter;
+import com.punchin.enums.ClaimStatus;
+import com.punchin.enums.SearchCaseEnum;
 import com.punchin.repository.*;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ObjectMapperUtils;
@@ -223,152 +226,152 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    @Override
-    public Map<String, Object> getClaimDocuments(Long id) {
-        Map<String, Object> map = new HashMap<>();
-        try {
-            log.info("AgentServiceImpl :: getClaimDocuments claimId {}", id);
-            List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
-            List<String> rejectedDocList = new ArrayList<>();
-            List<String> uploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(id, "agent", true);
-            for (String docTypes : uploadedDocTypes) {
-                List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(id, "agent", true, docTypes);
-                for (ClaimDocuments claimDocuments : agentDocumentsList) {
-                    ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
-                    claimDocumentsDTO.setId(claimDocuments.getId());
-                    claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
-                    claimDocumentsDTO.setDocType(claimDocuments.getDocType());
-                    claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
-                    claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                    claimDocumentsDTO.setReason(claimDocuments.getReason());
-                    if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                        rejectedDocList.add(claimDocuments.getAgentDocType().name());
-                    }
-                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(id, "agent", true, docTypes);
-                    List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
-                    for (DocumentUrls documentUrls : documentUrlsList) {
-                        DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
-                        documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
-                        documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
-                        documentUrlDTOS.add(documentUrlListDTO);
-                    }
-                    claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
-                    claimDocumentsDTOS.add(claimDocumentsDTO);
-                }
-            }
+    /* @Override
+     public Map<String, Object> getClaimDocuments(Long id) {
+         Map<String, Object> map = new HashMap<>();
+         try {
+             log.info("AgentServiceImpl :: getClaimDocuments claimId {}", id);
+             List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
+             List<String> rejectedDocList = new ArrayList<>();
+             List<String> uploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(id, "agent", true);
+             for (String docTypes : uploadedDocTypes) {
+                 List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(id, "agent", true, docTypes);
+                 for (ClaimDocuments claimDocuments : agentDocumentsList) {
+                     ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                     claimDocumentsDTO.setId(claimDocuments.getId());
+                     claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                     claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                     claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                     claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                     claimDocumentsDTO.setReason(claimDocuments.getReason());
+                     if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                         rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                     }
+                     List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(id, "agent", true, docTypes);
+                     List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                     for (DocumentUrls documentUrls : documentUrlsList) {
+                         DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                         documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
+                         documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
+                         documentUrlDTOS.add(documentUrlListDTO);
+                     }
+                     claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                     claimDocumentsDTOS.add(claimDocumentsDTO);
+                 }
+             }
 
-            //Add new document request claims
-            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.getAdditionalDocumentRequestClaims(id);
-            for (ClaimDocuments claimDocuments : claimDocumentsList) {
-                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
-                claimDocumentsDTO.setId(claimDocuments.getId());
-                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
-                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
-                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
-                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                claimDocumentsDTO.setReason(claimDocuments.getReason());
-                rejectedDocList.add(claimDocuments.getAgentDocType().toString());
-                claimDocumentsDTOS.add(claimDocumentsDTO);
-            }
+             //Add new document request claims
+             List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.getAdditionalDocumentRequestClaims(id);
+             for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                 ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                 claimDocumentsDTO.setId(claimDocuments.getId());
+                 claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                 claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                 claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                 claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                 claimDocumentsDTO.setReason(claimDocuments.getReason());
+                 rejectedDocList.add(claimDocuments.getAgentDocType().toString());
+                 claimDocumentsDTOS.add(claimDocumentsDTO);
+             }
 
-            List<ClaimDocuments> claimDocumentList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(id, "agent");
-            AgentDocumentStatusDTO agentDocumentStatus = new AgentDocumentStatusDTO();
-            if (!claimDocumentList.isEmpty()) {
-                for (ClaimDocuments claimDocuments : claimDocumentList) {
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
-                        agentDocumentStatus.setSignedClaimDocument("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setSignedClaimDocument("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setSignedClaimDocument("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.DEATH_CERTIFICATE)) {
-                        agentDocumentStatus.setDeathCertificate("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setDeathCertificate("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setDeathCertificate("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_KYC_PROOF)) {
-                        agentDocumentStatus.setBorrowerKycProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setBorrowerKycProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setBorrowerKycProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_KYC_PROOF)) {
-                        agentDocumentStatus.setNomineeKycProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setNomineeKycProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setNomineeKycProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
-                        agentDocumentStatus.setBankAccountProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setBankAccountProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setBankAccountProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.RELATIONSHIP_PROOF)) {
-                        agentDocumentStatus.setRelationshipDoc("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setRelationshipDoc("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setRelationshipDoc("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.GUARDIAN_ID_PROOF)) {
-                        agentDocumentStatus.setGuardianIdProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setGuardianIdProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setGuardianIdProof("REJECTED");
-                        }
-                    }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.GUARDIAN_ADD_PROOF)) {
-                        agentDocumentStatus.setGuardianAddressProof("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setGuardianAddressProof("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            agentDocumentStatus.setGuardianAddressProof("REJECTED");
-                        }
-                    }
-                    for (AdditionalDocType docType : AdditionalDocType.values()) {
-                        if (claimDocuments.getAgentDocType().name().equalsIgnoreCase(docType.name())) {
-                            agentDocumentStatus.setAdditionalDoc("UPLOADED");
-                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                                agentDocumentStatus.setAdditionalDoc("APPROVED");
-                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                                agentDocumentStatus.setAdditionalDoc("REJECTED");
-                            }
-                        }
-                    }
-                }
-            }
+             List<ClaimDocuments> claimDocumentList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(id, "agent");
+             AgentDocumentStatusDTO agentDocumentStatus = new AgentDocumentStatusDTO();
+             if (!claimDocumentList.isEmpty()) {
+                 for (ClaimDocuments claimDocuments : claimDocumentList) {
+                     if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
+                         agentDocumentStatus.setSignedClaimDocument("UPLOADED");
+                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setSignedClaimDocument("APPROVED");
+                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setSignedClaimDocument("REJECTED");
+                         }
+                     }
+                     if (claimDocuments.getAgentDocType().equals(AgentDocType.DEATH_CERTIFICATE)) {
+                         agentDocumentStatus.setDeathCertificate("UPLOADED");
+                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setDeathCertificate("APPROVED");
+                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setDeathCertificate("REJECTED");
+                         }
+                     }
+                     if (claimDocuments.getAgentDocType().equals(AgentDocType.BORROWER_KYC_PROOF)) {
+                         agentDocumentStatus.setBorrowerKycProof("UPLOADED");
+                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setBorrowerKycProof("APPROVED");
+                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setBorrowerKycProof("REJECTED");
+                         }
+                     }
+                     if (claimDocuments.getAgentDocType().equals(AgentDocType.NOMINEE_KYC_PROOF)) {
+                         agentDocumentStatus.setNomineeKycProof("UPLOADED");
+                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setNomineeKycProof("APPROVED");
+                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setNomineeKycProof("REJECTED");
+                         }
+                     }
+                     if (claimDocuments.getAgentDocType().equals(AgentDocType.BANK_ACCOUNT_PROOF)) {
+                         agentDocumentStatus.setBankAccountProof("UPLOADED");
+                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setBankAccountProof("APPROVED");
+                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setBankAccountProof("REJECTED");
+                         }
+                     }
+                     if (claimDocuments.getAgentDocType().equals(AgentDocType.RELATIONSHIP_PROOF)) {
+                         agentDocumentStatus.setRelationshipDoc("UPLOADED");
+                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setRelationshipDoc("APPROVED");
+                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setRelationshipDoc("REJECTED");
+                         }
+                     }
+                     if (claimDocuments.getAgentDocType().equals(AgentDocType.GUARDIAN_ID_PROOF)) {
+                         agentDocumentStatus.setGuardianIdProof("UPLOADED");
+                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setGuardianIdProof("APPROVED");
+                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setGuardianIdProof("REJECTED");
+                         }
+                     }
+                     if (claimDocuments.getAgentDocType().equals(AgentDocType.GUARDIAN_ADD_PROOF)) {
+                         agentDocumentStatus.setGuardianAddressProof("UPLOADED");
+                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setGuardianAddressProof("APPROVED");
+                         } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                             agentDocumentStatus.setGuardianAddressProof("REJECTED");
+                         }
+                     }
+                     for (AdditionalDocType docType : AdditionalDocType.values()) {
+                         if (claimDocuments.getAgentDocType().name().equalsIgnoreCase(docType.name())) {
+                             agentDocumentStatus.setAdditionalDoc("UPLOADED");
+                             if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                 agentDocumentStatus.setAdditionalDoc("APPROVED");
+                             } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                 agentDocumentStatus.setAdditionalDoc("REJECTED");
+                             }
+                         }
+                     }
+                 }
+             }
 
-            rejectedDocList.add(AgentDocType.OTHER.name());
-            map.put("claimDocuments", claimDocumentsDTOS);
-            map.put("rejectedDocList", rejectedDocList);
-            map.put("claimStatus", claimsDataRepository.findById(id).get().getClaimStatus());
-            map.put("agentDocumentStatusList", agentDocumentStatus);
-            map.put("message", MessageCode.success);
-            return map;
-        } catch (Exception e) {
-            log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimDocuments e {}", e);
-            map.put("claimDocuments", null);
-            map.put("rejectedDocList", null);
-            map.put("claimStatus", null);
-            map.put("message", e.getMessage());
-            return map;
-        }
-    }
-
+             rejectedDocList.add(AgentDocType.OTHER.name());
+             map.put("claimDocuments", claimDocumentsDTOS);
+             map.put("rejectedDocList", rejectedDocList);
+             map.put("claimStatus", claimsDataRepository.findById(id).get().getClaimStatus());
+             map.put("agentDocumentStatusList", agentDocumentStatus);
+             map.put("message", MessageCode.success);
+             return map;
+         } catch (Exception e) {
+             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimDocuments e {}", e);
+             map.put("claimDocuments", null);
+             map.put("rejectedDocList", null);
+             map.put("claimStatus", null);
+             map.put("message", e.getMessage());
+             return map;
+         }
+     }
+ */
     @Override
     public Map<String, Object> discrepancyDocumentUpload(Long claimId, MultipartFile[] multipartFiles, AgentDocType docType, boolean isDiscrepancy) {
         log.info("AgentServiceImpl :: discrepancyDocumentUpload claimsData {}, multipartFiles {}, docType {}", claimId, multipartFiles, docType);
@@ -797,6 +800,96 @@ public class AgentServiceImpl implements AgentService {
             return map;
         }
     }
+
+    @Override
+    public Map<String, Object> getClaimDocuments(Long id) {
+        Map<String, Object> map = new HashMap<>();
+        try {
+            log.info("AgentServiceImpl :: getClaimDocuments claimId {}", id);
+            List<ClaimDocumentsDTO> claimDocumentsDTOS = new ArrayList<>();
+            List<String> rejectedDocList = new ArrayList<>();
+            List<String> uploadedDocTypes = claimDocumentsRepository.findDistinctByClaimsDataIdAndUploadSideByAndIsActiveOrderByAgentDocType(id, "agent", true);
+            for (String docTypes : uploadedDocTypes) {
+                List<ClaimDocuments> agentDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveAndAgentDocTypeOrderByAgentDocTypeLimit(id, "agent", true, docTypes);
+                for (ClaimDocuments claimDocuments : agentDocumentsList) {
+                    ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                    claimDocumentsDTO.setId(claimDocuments.getId());
+                    claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                    claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                    claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                    claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                    claimDocumentsDTO.setReason(claimDocuments.getReason());
+                    if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                        rejectedDocList.add(claimDocuments.getAgentDocType().name());
+                    }
+                    List<DocumentUrls> documentUrlsList = documentUrlsRepository.findDocumentUrlsByClaimDocument(id, "agent", true, docTypes);
+                    List<DocumentUrlDTO> documentUrlDTOS = new ArrayList<>();
+                    for (DocumentUrls documentUrls : documentUrlsList) {
+                        DocumentUrlDTO documentUrlListDTO = new DocumentUrlDTO();
+                        documentUrlListDTO.setDocUrl(documentUrls.getDocUrl());
+                        documentUrlListDTO.setDocFormat(FilenameUtils.getExtension(documentUrls.getDocUrl()));
+                        documentUrlDTOS.add(documentUrlListDTO);
+                    }
+                    claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
+                    claimDocumentsDTOS.add(claimDocumentsDTO);
+                }
+            }
+
+            //Add new document request claims
+            List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.getAdditionalDocumentRequestClaims(id);
+            for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                ClaimDocumentsDTO claimDocumentsDTO = new ClaimDocumentsDTO();
+                claimDocumentsDTO.setId(claimDocuments.getId());
+                claimDocumentsDTO.setAgentDocType(claimDocuments.getAgentDocType());
+                claimDocumentsDTO.setDocType(claimDocuments.getDocType());
+                claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
+                claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
+                claimDocumentsDTO.setReason(claimDocuments.getReason());
+                rejectedDocList.add(claimDocuments.getAgentDocType().toString());
+                claimDocumentsDTOS.add(claimDocumentsDTO);
+            }
+
+            List<ClaimDocuments> claimDocumentList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(id, "agent");
+            AgentDocumentStatusDTO agentDocumentStatus = new AgentDocumentStatusDTO();
+            List<String> docTypes = getDocType();
+            AgentDocTypeDTO agentDocTypeDTO = new AgentDocTypeDTO();
+            List<HashMap<String, String>> addDocsList = new ArrayList<>();
+            if (!claimDocumentList.isEmpty()) {
+                for (ClaimDocuments claimDocuments : claimDocumentList) {
+                    docTypes.remove(claimDocuments.getAgentDocType().name());
+                }
+                for (String docType : docTypes) {
+                    HashMap<String, String> allDocs = new HashMap<>();
+                    allDocs.put("agent doc type", docType);
+                    addDocsList.add(allDocs);
+                }
+                agentDocTypeDTO.setNames(addDocsList);
+            }
+            agentDocumentStatus.setAgentDocTypeDTO(agentDocTypeDTO);
+
+
+            rejectedDocList.add(AgentDocType.OTHER.name());
+            map.put("claimDocuments", claimDocumentsDTOS);
+            map.put("rejectedDocList", rejectedDocList);
+            map.put("claimStatus", claimsDataRepository.findById(id).get().getClaimStatus());
+            map.put("agentDocumentStatusList", agentDocumentStatus);
+            map.put("message", MessageCode.success);
+            return map;
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimDocuments e {}", e);
+            map.put("claimDocuments", null);
+            map.put("rejectedDocList", null);
+            map.put("claimStatus", null);
+            map.put("message", e.getMessage());
+            return map;
+        }
+    }
+
+    public List<String> getDocType() {
+        List<String> docTypes = new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "INCOME_TAX_RETURN", "MEDICAL_RECORDS", "LEGAL_HEIR_CERTIFICATE", "POLICE_INVESTIGATION_REPORT", "STAMPED_AFFIDAVIT", "ANY_UTILITY_BILL", "MEDICAL_ATTENDANT_CERTIFICATE", "FIR_REPORT", "POSTMORTEM_REPORT", "OTHER"));
+        return docTypes;
+    }
+
 
 }
 

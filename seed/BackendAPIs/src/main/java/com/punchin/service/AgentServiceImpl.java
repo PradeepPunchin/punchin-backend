@@ -901,16 +901,48 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTOS.add(claimDocumentsDTO);
             }
 
+            Optional<ClaimsData> optionalClaimsData = claimsDataRepository.findById(id);
+            if (!optionalClaimsData.isPresent()) {
+                return Collections.emptyMap();
+            }
             List<ClaimDocuments> claimDocumentList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByOrderById(id, "agent");
             AgentDocumentStatusDTO agentDocumentStatus = new AgentDocumentStatusDTO();
-            List<String> docTypes = getDocType();
+            ClaimsData claimsData = optionalClaimsData.get();
+            List<String> docsList = null;
+            if (claimsData.getIsMinor()) {
+                if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
+                    docsList = getSucideAccidentDocsMinor();
+                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
+                    docsList = getMedicalDocsMinor();
+                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
+                    docsList = getNaturalDocsMinor();
+                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
+                    docsList = getDocTypeMinor();
+                }
+
+            } else {
+                if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
+                    docsList = getSucideAccidentDocs();
+                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
+                    docsList = getMedicalDocs();
+                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
+                    docsList = getNaturalDocs();
+                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
+                    docsList = getDocType();
+                }
+            }
+
+            if (docsList == null) {
+                return Collections.emptyMap();
+            }
+//            List<String> docTypes = getDocType();
             AgentDocTypeDTO agentDocTypeDTO = new AgentDocTypeDTO();
             List<HashMap<String, String>> addDocsList = new ArrayList<>();
             if (!claimDocumentList.isEmpty()) {
                 for (ClaimDocuments claimDocuments : claimDocumentList) {
-                    docTypes.remove(claimDocuments.getAgentDocType().name());
+                    docsList.remove(claimDocuments.getAgentDocType().name());
                 }
-                for (String docType : docTypes) {
+                for (String docType : docsList) {
                     HashMap<String, String> allDocs = new HashMap<>();
                     allDocs.put("agent doc type", docType);
                     addDocsList.add(allDocs);
@@ -937,11 +969,39 @@ public class AgentServiceImpl implements AgentService {
         }
     }
 
-    public List<String> getDocType() {
-        List<String> docTypes = new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "INCOME_TAX_RETURN", "MEDICAL_RECORDS", "LEGAL_HEIR_CERTIFICATE", "POLICE_INVESTIGATION_REPORT", "STAMPED_AFFIDAVIT", "ANY_UTILITY_BILL", "MEDICAL_ATTENDANT_CERTIFICATE", "FIR_REPORT", "POSTMORTEM_REPORT", "OTHER"));
-        return docTypes;
+    public List<String> getDocTypeMinor() {
+        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "INCOME_TAX_RETURN", "MEDICAL_RECORDS", "LEGAL_HEIR_CERTIFICATE", "POLICE_INVESTIGATION_REPORT", "STAMPED_AFFIDAVIT", "ANY_UTILITY_BILL", "MEDICAL_ATTENDANT_CERTIFICATE", "FIR_REPORT", "POSTMORTEM_REPORT", "OTHER"));
     }
 
+    public List<String> getSucideAccidentDocsMinor() {
+        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS", "DISCHARGE_SUMMARY", "POSTMORTEM_REPORT", "FIR_REPORT"));
+
+    }
+
+    public List<String> getMedicalDocsMinor() {
+        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS", "DISCHARGE_SUMMARY", "POSTMORTEM_REPORT"));
+    }
+
+    public List<String> getNaturalDocsMinor() {
+        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS"));
+    }
+
+    public List<String> getSucideAccidentDocs() {
+        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS", "DISCHARGE_SUMMARY", "POSTMORTEM_REPORT", "FIR_REPORT"));
+
+    }
+
+    public List<String> getMedicalDocs() {
+        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS", "DISCHARGE_SUMMARY", "POSTMORTEM_REPORT"));
+    }
+
+    public List<String> getNaturalDocs() {
+        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS"));
+    }
+
+    public List<String> getDocType() {
+        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "INCOME_TAX_RETURN", "MEDICAL_RECORDS", "LEGAL_HEIR_CERTIFICATE", "POLICE_INVESTIGATION_REPORT", "STAMPED_AFFIDAVIT", "ANY_UTILITY_BILL", "MEDICAL_ATTENDANT_CERTIFICATE", "FIR_REPORT", "POSTMORTEM_REPORT", "OTHER"));
+    }
 
 }
 

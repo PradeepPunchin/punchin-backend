@@ -204,9 +204,9 @@ public class AgentServiceImpl implements AgentService {
                 agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name(), documentDTO.getAgentComment()));
                 claimsData.setAgentRemark(documentDTO.getAgentRemark());
                 claimsData.setAgentComment(documentDTO.getAgentComment());
+                claimsData.setAgentVerifierRemarkRead(false);
+                claimsData.setAgentRemarkRead(true);
             }
-            claimsData.setAgentVerifierRemarkRead(false);
-            claimsData.setAgentRemarkRead(true);
             log.info("Agent comment to verifier and Verifier will get notify");
             ClaimDataDTO claimDataDTO = mapperService.map(claimsDataRepository.save(claimsData), ClaimDataDTO.class);
             claimDataDTO.setClaimDocuments(claimDocuments);

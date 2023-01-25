@@ -2,10 +2,7 @@ package com.punchin.service;
 
 import com.punchin.dto.*;
 import com.punchin.entity.*;
-import com.punchin.enums.AgentDocType;
-import com.punchin.enums.ClaimDataFilter;
-import com.punchin.enums.ClaimStatus;
-import com.punchin.enums.SearchCaseEnum;
+import com.punchin.enums.*;
 import com.punchin.repository.*;
 import com.punchin.utility.GenericUtils;
 import com.punchin.utility.ObjectMapperUtils;
@@ -738,14 +735,7 @@ public class AgentServiceImpl implements AgentService {
                             dto.setBankAccountProof("REJECTED");
                         }
                     }
-                    if (claimDocuments.getAgentDocType().equals(AgentDocType.ADDITIONAL)) {
-                        dto.setAdditionalDoc("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setAdditionalDoc("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setAdditionalDoc("REJECTED");
-                        }
-                    }
+
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.RELATIONSHIP_PROOF)) {
                         dto.setRelationshipDoc("UPLOADED");
                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
@@ -798,8 +788,55 @@ public class AgentServiceImpl implements AgentService {
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.FIR_REPORT)) {
                         additionalListDoc.add(AgentDocType.FIR_REPORT);
                     }
-                    dto.setAdditionalList(additionalListDoc);
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.POLICE_INVESTIGATION_REPORT)) {
+                        additionalListDoc.add(AgentDocType.POLICE_INVESTIGATION_REPORT);
+                    }
+                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
+                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)) {
+                            dto.setAdditionalDoc("UPLOADED");
+                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("APPROVED");
+                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("REJECTED");
+                            }
+                        }
+                    }
+                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
+                        dto.setAdditionalDoc("UPLOADED");
+                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                            dto.setAdditionalDoc("APPROVED");
+                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                            dto.setAdditionalDoc("REJECTED");
+                        }
+                    }
+                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
+                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
+                                && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
+                                && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)) {
+                            dto.setAdditionalDoc("UPLOADED");
+                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("APPROVED");
+                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("REJECTED");
+                            }
+                        }
+                    }
+                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
+                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
+                                && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
+                                && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)
+                                && additionalListDoc.contains(AgentDocType.FIR_REPORT)
+                                && additionalListDoc.contains(AgentDocType.POLICE_INVESTIGATION_REPORT)) {
+                            dto.setAdditionalDoc("UPLOADED");
+                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("APPROVED");
+                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                dto.setAdditionalDoc("REJECTED");
+                            }
+                        }
+                    }
                 }
+                dto.setAdditionalList(additionalListDoc);
                 dtos.add(dto);
             }
             map.put("claimDocuments", dtos);

@@ -95,6 +95,10 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndVerifierId(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
+            } else if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndVerifierId(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
@@ -347,7 +351,7 @@ public class VerifierServiceImpl implements VerifierService {
             for (ClaimDocuments claimDocuments : claimDocumentsList) {
                 List<DocumentUrls> documentUrlsList = claimDocuments.getDocumentUrls();
                 for (DocumentUrls documentUrls : documentUrlsList) {
-                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(claimDocuments.getUploadSideBy(),documentUrls.getDocUrl());
+                    InputStream inputStream = amazonS3FileManagers.getStreamFromS3(claimDocuments.getUploadSideBy(), documentUrls.getDocUrl());
                     if (Objects.nonNull(inputStream)) {
                         ZipEntry zipEntry = new ZipEntry(FilenameUtils.getName(documentUrls.getDocUrl()));
                         zipOutputStream.putNextEntry(zipEntry);
@@ -642,6 +646,15 @@ public class VerifierServiceImpl implements VerifierService {
             }
         } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
             statusList.add(ClaimStatus.VERIFIER_DISCREPENCY.toString());
+            if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList, verifierState, pageable);
+            } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByLoanAccountNumber(searchedKeyword, statusList, verifierState, pageable);
+            } else if (searchCaseEnum.equals(SearchCaseEnum.NAME)) {
+                claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataBySearchName(searchedKeyword, statusList, verifierState, pageable);
+            }
+        } else if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
+            statusList.add(ClaimStatus.AGENT_ALLOCATED.toString());
             if (searchCaseEnum.equals(SearchCaseEnum.CLAIM_DATA_ID)) {
                 claimSearchedData = claimsDataRepository.findVerifierClaimSearchedDataByClaimDataId(searchedKeyword, statusList, verifierState, pageable);
             } else if (searchCaseEnum.equals(SearchCaseEnum.LOAN_ACCOUNT_NUMBER)) {

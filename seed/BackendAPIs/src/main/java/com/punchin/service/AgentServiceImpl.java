@@ -695,7 +695,6 @@ public class AgentServiceImpl implements AgentService {
             claimsData.add(page);
             List<VerifierClaimDataResponseDTO> dtos = new ArrayList<>();
             for (ClaimsData claimData : claimsData) {
-
                 VerifierClaimDataResponseDTO dto = new VerifierClaimDataResponseDTO();
                 dto.setId(claimData.getId());
                 dto.setPunchinClaimId(claimData.getPunchinClaimId());
@@ -825,8 +824,8 @@ public class AgentServiceImpl implements AgentService {
                         if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
                                 && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
                                 && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)
-                                && additionalListDoc.contains(AgentDocType.FIR_REPORT)
-                                && additionalListDoc.contains(AgentDocType.POLICE_INVESTIGATION_REPORT)) {
+                                && (additionalListDoc.contains(AgentDocType.FIR_REPORT)
+                                || additionalListDoc.contains(AgentDocType.POLICE_INVESTIGATION_REPORT))) {
                             dto.setAdditionalDoc("UPLOADED");
                             if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
                                 dto.setAdditionalDoc("APPROVED");

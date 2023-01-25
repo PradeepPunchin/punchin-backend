@@ -1,9 +1,11 @@
 package com.punchin.dto;
 
+import com.punchin.enums.AgentDocType;
 import com.punchin.enums.ClaimStatus;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class VerifierClaimDataResponseDTO {
@@ -36,6 +38,7 @@ public class VerifierClaimDataResponseDTO {
     private Boolean bankerRemarkRead;
     private Boolean agentVerifierRemarkRead;
     private Boolean bankerVerifierRemarkRead;
+    private List<AgentDocType> additionalList;
 }
 
 

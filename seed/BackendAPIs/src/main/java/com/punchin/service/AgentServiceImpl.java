@@ -709,9 +709,12 @@ public class AgentServiceImpl implements AgentService {
                 dto.setNomineeName(claimData.getNomineeName());
                 dto.setNomineeContactNumber(claimData.getNomineeContactNumber());
                 dto.setClaimStatus(claimData.getClaimStatus());
+
                 category = claimData.getCategory();
+                List<AgentDocType> additionalListDoc = new ArrayList<>();
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderById(claimData.getId(), "agent", true);
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
+                    additionalListDoc.removeAll(additionalListDoc);
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
                         dto.setSingnedClaimDocument("UPLOADED");
                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
@@ -784,6 +787,19 @@ public class AgentServiceImpl implements AgentService {
                             dto.setNomineeKycProof("REJECTED");
                         }
                     }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.HOSPITALISATION_RECORDS)) {
+                        additionalListDoc.add(AgentDocType.HOSPITALISATION_RECORDS);
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.DISCHARGE_SUMMARY)) {
+                        additionalListDoc.add(AgentDocType.DISCHARGE_SUMMARY);
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.POSTMORTEM_REPORT)) {
+                        additionalListDoc.add(AgentDocType.POSTMORTEM_REPORT);
+                    }
+                    if (claimDocuments.getAgentDocType().equals(AgentDocType.FIR_REPORT)) {
+                        additionalListDoc.add(AgentDocType.FIR_REPORT);
+                    }
+                    dto.setAdditionalList(additionalListDoc);
                 }
                 dtos.add(dto);
             }

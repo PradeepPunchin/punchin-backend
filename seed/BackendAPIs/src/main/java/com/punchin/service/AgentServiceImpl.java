@@ -708,9 +708,9 @@ public class AgentServiceImpl implements AgentService {
 
                 category = claimData.getCategory();
                 List<AgentDocType> additionalListDoc = new ArrayList<>();
+                additionalListDoc.removeAll(additionalListDoc);
                 List<ClaimDocuments> claimDocumentsList = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActiveOrderById(claimData.getId(), "agent", true);
                 for (ClaimDocuments claimDocuments : claimDocumentsList) {
-                    additionalListDoc.removeAll(additionalListDoc);
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.SIGNED_FORM)) {
                         dto.setSingnedClaimDocument("UPLOADED");
                         if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {

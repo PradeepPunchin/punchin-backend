@@ -909,49 +909,49 @@ public class AgentServiceImpl implements AgentService {
             AgentDocumentStatusDTO agentDocumentStatus = new AgentDocumentStatusDTO();
             ClaimsData claimsData = optionalClaimsData.get();
             List<String> docsList = null;
-            if (claimsData.getIsMinor()) {
-                if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
-                    docsList = getSucideAccidentDocsMinor();
-                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
-                    docsList = getMedicalDocsMinor();
-                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
-                    docsList = getNaturalDocsMinor();
-                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
-                    docsList = getDocTypeMinor();
+            if (claimsData.getCauseOfDeath() != null) {
+                if (claimsData.getIsMinor()) {
+                    if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
+                        docsList = getSucideAccidentDocsMinor();
+                    } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
+                        docsList = getMedicalDocsMinor();
+                    } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
+                        docsList = getNaturalDocsMinor();
+                    } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
+                        docsList = getDocTypeMinor();
+                    }
+
+                } else {
+                    if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
+                        docsList = getSucideAccidentDocs();
+                    } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
+                        docsList = getMedicalDocs();
+                    } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
+                        docsList = getNaturalDocs();
+                    } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
+                        docsList = getDocType();
+                    }
                 }
 
-            } else {
-                if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
-                    docsList = getSucideAccidentDocs();
-                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
-                    docsList = getMedicalDocs();
-                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
-                    docsList = getNaturalDocs();
-                } else if (claimsData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
-                    docsList = getDocType();
+                if (docsList == null) {
+                    return Collections.emptyMap();
                 }
-            }
-
-            if (docsList == null) {
-                return Collections.emptyMap();
-            }
 //            List<String> docTypes = getDocType();
-            AgentDocTypeDTO agentDocTypeDTO = new AgentDocTypeDTO();
-            List<HashMap<String, String>> addDocsList = new ArrayList<>();
-            if (!claimDocumentList.isEmpty()) {
-                for (ClaimDocuments claimDocuments : claimDocumentList) {
-                    docsList.remove(claimDocuments.getAgentDocType().name());
+                AgentDocTypeDTO agentDocTypeDTO = new AgentDocTypeDTO();
+                List<HashMap<String, String>> addDocsList = new ArrayList<>();
+                if (!claimDocumentList.isEmpty()) {
+                    for (ClaimDocuments claimDocuments : claimDocumentList) {
+                        docsList.remove(claimDocuments.getAgentDocType().name());
+                    }
+                    for (String docType : docsList) {
+                        HashMap<String, String> allDocs = new HashMap<>();
+                        allDocs.put("agent doc type", docType);
+                        addDocsList.add(allDocs);
+                    }
+                    agentDocTypeDTO.setNames(addDocsList);
                 }
-                for (String docType : docsList) {
-                    HashMap<String, String> allDocs = new HashMap<>();
-                    allDocs.put("agent doc type", docType);
-                    addDocsList.add(allDocs);
-                }
-                agentDocTypeDTO.setNames(addDocsList);
+                agentDocumentStatus.setAgentDocTypeDTO(agentDocTypeDTO);
             }
-            agentDocumentStatus.setAgentDocTypeDTO(agentDocTypeDTO);
-
-
             rejectedDocList.add(AgentDocType.OTHER.name());
             map.put("claimDocuments", claimDocumentsDTOS);
             map.put("rejectedDocList", rejectedDocList);

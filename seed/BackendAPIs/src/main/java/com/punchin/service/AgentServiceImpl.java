@@ -941,7 +941,13 @@ public class AgentServiceImpl implements AgentService {
                 List<HashMap<String, String>> addDocsList = new ArrayList<>();
                 if (!claimDocumentList.isEmpty()) {
                     for (ClaimDocuments claimDocuments : claimDocumentList) {
-                        docsList.remove(claimDocuments.getAgentDocType().name());
+                        String docName = claimDocuments.getAgentDocType().name();
+                        if (docName.contains("_")) {
+                            String newDocName = docName.replace("_", " ");
+                            docsList.remove(newDocName);
+                        } else {
+                            docsList.remove(docName);
+                        }
                     }
                     for (String docType : docsList) {
                         HashMap<String, String> allDocs = new HashMap<>();
@@ -970,37 +976,35 @@ public class AgentServiceImpl implements AgentService {
     }
 
     public List<String> getDocTypeMinor() {
-        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "INCOME_TAX_RETURN", "MEDICAL_RECORDS", "LEGAL_HEIR_CERTIFICATE", "POLICE_INVESTIGATION_REPORT", "STAMPED_AFFIDAVIT", "ANY_UTILITY_BILL", "MEDICAL_ATTENDANT_CERTIFICATE", "FIR_REPORT", "POSTMORTEM_REPORT", "OTHER"));
+        return new LinkedList<>(Arrays.asList("SIGNED FORM", "DEATH CERTIFICATE", "BANK ACCOUNT PROOF", "RELATIONSHIP PROOF", "GUARDIAN ID PROOF", "GUARDIAN ADD PROOF", "BORROWER KYC PROOF", "NOMINEE KYC PROOF", "INCOME TAX RETURN", "MEDICAL RECORDS", "LEGAL HEIR CERTIFICATE", "POLICE INVESTIGATION REPORT", "STAMPED AFFIDAVIT", "ANY UTILITY BILL", "MEDICAL ATTENDANT CERTIFICATE", "FIR REPORT", "POSTMORTEM REPORT", "OTHER"));
     }
 
     public List<String> getSucideAccidentDocsMinor() {
-        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS", "DISCHARGE_SUMMARY", "POSTMORTEM_REPORT", "FIR_REPORT"));
-
+        return new LinkedList<>(Arrays.asList("SIGNED FORM", "DEATH CERTIFICATE", "BANK ACCOUNT PROOF", "RELATIONSHIP PROOF", "GUARDIAN ID PROOF", "GUARDIAN ADD PROOF", "BORROWER KYC PROOF", "NOMINEE KYC PROOF", "HOSPITALISATION RECORDS", "DISCHARGE SUMMARY", "POSTMORTEM REPORT", "FIR REPORT"));
     }
 
     public List<String> getMedicalDocsMinor() {
-        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS", "DISCHARGE_SUMMARY", "POSTMORTEM_REPORT"));
+        return new LinkedList<>(Arrays.asList("SIGNED FORM", "DEATH CERTIFICATE", "BANK ACCOUNT PROOF", "RELATIONSHIP PROOF", "GUARDIAN ID PROOF", "GUARDIAN ADD PROOF", "BORROWER KYC PROOF", "NOMINEE KYC PROOF", "HOSPITALISATION RECORDS", "DISCHARGE SUMMARY", "POSTMORTEM REPORT"));
     }
 
     public List<String> getNaturalDocsMinor() {
-        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "RELATIONSHIP_PROOF", "GUARDIAN_ID_PROOF", "GUARDIAN_ADD_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS"));
+        return new LinkedList<>(Arrays.asList("SIGNED FORM", "DEATH CERTIFICATE", "BANK ACCOUNT PROOF", "RELATIONSHIP PROOF", "GUARDIAN ID PROOF", "GUARDIAN ADD PROOF", "BORROWER KYC PROOF", "NOMINEE KYC PROOF", "HOSPITALISATION RECORDS"));
     }
 
     public List<String> getSucideAccidentDocs() {
-        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS", "DISCHARGE_SUMMARY", "POSTMORTEM_REPORT", "FIR_REPORT"));
-
+        return new LinkedList<>(Arrays.asList("SIGNED FORM", "DEATH CERTIFICATE", "BANK ACCOUNT PROOF", "BORROWER KYC PROOF", "NOMINEE KYC PROOF", "HOSPITALISATION RECORDS", "DISCHARGE SUMMARY", "POSTMORTEM REPORT", "FIR REPORT"));
     }
 
     public List<String> getMedicalDocs() {
-        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS", "DISCHARGE_SUMMARY", "POSTMORTEM_REPORT"));
+        return new LinkedList<>(Arrays.asList("SIGNED FORM", "DEATH CERTIFICATE", "BANK ACCOUNT PROOF", "BORROWER KYC PROOF", "NOMINEE KYC PROOF", "HOSPITALISATION RECORDS", "DISCHARGE SUMMARY", "POSTMORTEM REPORT"));
     }
 
     public List<String> getNaturalDocs() {
-        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "HOSPITALISATION_RECORDS"));
+        return new LinkedList<>(Arrays.asList("SIGNED FORM", "DEATH CERTIFICATE", "BANK ACCOUNT PROOF", "BORROWER KYC PROOF", "NOMINEE KYC PROOF", "HOSPITALISATION RECORDS"));
     }
 
     public List<String> getDocType() {
-        return new LinkedList<>(Arrays.asList("SIGNED_FORM", "DEATH_CERTIFICATE", "BANK_ACCOUNT_PROOF", "BORROWER_KYC_PROOF", "NOMINEE_KYC_PROOF", "INCOME_TAX_RETURN", "MEDICAL_RECORDS", "LEGAL_HEIR_CERTIFICATE", "POLICE_INVESTIGATION_REPORT", "STAMPED_AFFIDAVIT", "ANY_UTILITY_BILL", "MEDICAL_ATTENDANT_CERTIFICATE", "FIR_REPORT", "POSTMORTEM_REPORT", "OTHER"));
+        return new LinkedList<>(Arrays.asList("SIGNED FORM", "DEATH CERTIFICATE", "BANK ACCOUNT PROOF", "BORROWER KYC PROOF", "NOMINEE KYC PROOF", "INCOME TAX RETURN", "MEDICAL RECORDS", "LEGAL HEIR CERTIFICATE", "POLICE INVESTIGATION REPORT", "STAMPED AFFIDAVIT", "ANY UTILITY BILL", "MEDICAL ATTENDANT CERTIFICATE", "FIR REPORT", "POSTMORTEM REPORT", "OTHER"));
     }
 
 }

@@ -98,7 +98,7 @@ public class VerifierServiceImpl implements VerifierService {
             } else if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
-                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndVerifierId(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             }
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {

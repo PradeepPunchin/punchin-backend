@@ -249,9 +249,10 @@ public class BankerServiceImpl implements BankerService {
                 page1 = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByCreatedAtDesc(claimsStatus, bankerIds, pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
                 //claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
-                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
-                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
-                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndBankerIdIn(claimsStatus, claimsStatus, bankerIds, pageable);
+//                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
+//                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
+//                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndBankerIdIn(claimsStatus, claimsStatus, bankerIds, pageable);
+                page1 = claimsDataRepository.findByClaimStatusOrClaimBankerStatusInAndPunchinBankerId(bankerIds, pageable);
             } else if (claimDataFilter.BANKER_DRAFT.equals(claimDataFilter)) {
                 page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(bankerIds, pageable);
             }
@@ -314,7 +315,7 @@ public class BankerServiceImpl implements BankerService {
                 ClaimsData claimsData1 = claimsDataRepository.findByPunchinId(1L);
                 if (claimsData1 == null) {
                     claimsData.setPunchinId(1L);
-                }else {
+                } else {
                     long punchinId = claimsDataRepository.findHigestPunchInId() + 1;
                     claimsData.setPunchinId(punchinId);
                 }

@@ -264,6 +264,11 @@ public class MISExportService {
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             }
+            else if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
+            }
             List<DownloadVerifierMisResponse> downloadVerifierMisResponseList = ObjectMapperUtils.mapAll(claimsDataList, DownloadVerifierMisResponse.class);
             for (DownloadVerifierMisResponse downloadVerifierMisResponse : downloadVerifierMisResponseList) {
                 if (downloadVerifierMisResponse.getAgentId() > 0) {

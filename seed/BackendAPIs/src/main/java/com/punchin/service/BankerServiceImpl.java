@@ -311,7 +311,14 @@ public class BankerServiceImpl implements BankerService {
             for (ClaimDraftData claimDraftData : claimDraftDatas) {
                 log.info("CLAIM SUBMITING ---------- {}", claimDraftData.getPunchinClaimId());
                 ClaimsData claimsData = modelMapper.map(claimDraftData, ClaimsData.class);
-                claimsData.setPunchinClaimId("P" + RandomStringUtils.randomNumeric(10));
+                ClaimsData claimsData1 = claimsDataRepository.findByPunchinId(1L);
+                if (claimsData1 == null) {
+                    claimsData.setPunchinId(1L);
+                }else {
+                    long punchinId = claimsDataRepository.findHigestPunchInId() + 1;
+                    claimsData.setPunchinId(punchinId);
+                }
+                claimsData.setPunchinClaimId("P" + claimsData.getPunchinId());
                 claimsData.setClaimInwardDate(new Date());
                 claimsData.setLenderName(GenericUtils.getLoggedInUser().getFirstName());
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);
@@ -323,9 +330,10 @@ public class BankerServiceImpl implements BankerService {
                     claimsData.setVerifierId(verifierId);
                     log.info("VERIFIER mapped id-{}", verifierId);
                 }
-                claimsDataList.add(claimsData);
+                ClaimsData updatedClaimData = claimsDataRepository.save(claimsData);
+
+                claimsDataList.add(updatedClaimData);
             }
-            claimsDataList = claimsDataRepository.saveAll(claimsDataList);
             List<ClaimHistory> claimHistories = new ArrayList<>();
             for (ClaimsData claimsData : claimsDataList) {
                 claimHistories.add(new ClaimHistory(claimsData.getId(), ClaimStatus.CLAIM_INTIMATED, "Claim Intimation"));

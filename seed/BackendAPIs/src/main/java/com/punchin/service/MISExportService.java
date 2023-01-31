@@ -218,12 +218,12 @@ public class MISExportService {
             }
             createCell(row, columnCount++, claimsData.getClaimStatus().name(), style, sheet);
             createCell(row, columnCount++, format.format(new Date()), style, sheet);
-            if(Objects.nonNull(claimsData.getVerifierId()) && claimsData.getVerifierId() > 0){
+            if (Objects.nonNull(claimsData.getVerifierId()) && claimsData.getVerifierId() > 0) {
                 createCell(row, columnCount++, "Yes", style, sheet);
                 Optional<User> user = userRepository.findById(claimsData.getVerifierId());
-                if(user.isPresent()) {
+                if (user.isPresent()) {
                     createCell(row, columnCount++, user.get().getFirstName() + " " + user.get().getLastName() + " (" + user.get().getUserId() + ")", style, sheet);
-                }else{
+                } else {
                     createCell(row, columnCount++, null, style, sheet);
                 }
             } else {
@@ -263,13 +263,17 @@ public class MISExportService {
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
+            } else if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
+                claimsStatus.removeAll(claimsStatus);
+                claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
+                claimsDataList = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByClaimInwardDateDesc(claimsStatus, GenericUtils.getLoggedInUser().getId());
             }
             List<DownloadVerifierMisResponse> downloadVerifierMisResponseList = ObjectMapperUtils.mapAll(claimsDataList, DownloadVerifierMisResponse.class);
             for (DownloadVerifierMisResponse downloadVerifierMisResponse : downloadVerifierMisResponseList) {
                 if (downloadVerifierMisResponse.getAgentId() > 0) {
                     downloadVerifierMisResponse.setAgentMapped("Yes");
                     Optional<User> user = userRepository.findById(downloadVerifierMisResponse.getAgentId());
-                    if(user.isPresent()) {
+                    if (user.isPresent()) {
                         downloadVerifierMisResponse.setAgentName(user.get().getFirstName() + " " + user.get().getLastName() + " (" + user.get().getUserId() + ")");
                     }
                 } else {
@@ -368,7 +372,7 @@ public class MISExportService {
     }
 
     public String exportRejectedClaimsData(String banker) throws IOException {
-        List<ClaimDraftData> claimDraftDataList =claimDraftDataRepository.findRejectedClaimDataByBankerId(banker);
+        List<ClaimDraftData> claimDraftDataList = claimDraftDataRepository.findRejectedClaimDataByBankerId(banker);
         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
         String filename = "Rejected_Claim_MIS_" + format.format(new Date()) + ".xlsx";
         String filePath = System.getProperty("user.dir") + "/BackendAPIs/downloads/" + filename;
@@ -397,7 +401,7 @@ public class MISExportService {
             createCell(row, columnCount++, sno, style, sheet);
             if (claimsData.getClaimInwardDate() != null) {
                 createCell(row, columnCount++, format.format(claimsData.getClaimInwardDate()).toString(), style, sheet);
-            }else {
+            } else {
                 createCell(row, columnCount++, "", style, sheet);
 
             }
@@ -413,11 +417,10 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getLoanAccountNumber(), style, sheet);
             createCell(row, columnCount++, claimsData.getLoanType(), style, sheet);
             createCell(row, columnCount++, claimsData.getCategory(), style, sheet);
-            if (claimsData.getLoanDisbursalDate() !=null){
+            if (claimsData.getLoanDisbursalDate() != null) {
                 createCell(row, columnCount++, format.format(claimsData.getLoanDisbursalDate()), style, sheet);
-            }
-            else {
-                createCell(row, columnCount++, null ,style, sheet);
+            } else {
+                createCell(row, columnCount++, null, style, sheet);
             }
             createCell(row, columnCount++, claimsData.getLoanAmount(), style, sheet);
             createCell(row, columnCount++, claimsData.getLoanOutstandingAmount(), style, sheet);
@@ -431,10 +434,9 @@ public class MISExportService {
             createCell(row, columnCount++, claimsData.getInsurerName(), style, sheet);
             createCell(row, columnCount++, claimsData.getPolicyNumber(), style, sheet);
             createCell(row, columnCount++, claimsData.getMasterPolNumber(), style, sheet);
-            if (claimsData.getPolicyStartDate() !=null){
+            if (claimsData.getPolicyStartDate() != null) {
                 createCell(row, columnCount++, format.format(claimsData.getPolicyStartDate()), style, sheet);
-            }
-            else {
+            } else {
                 createCell(row, columnCount++, null, style, sheet);
             }
             createCell(row, columnCount++, claimsData.getPolicyCoverageDuration(), style, sheet);

@@ -318,7 +318,7 @@ public class BankerServiceImpl implements BankerService {
                     long punchinId = claimsDataRepository.findHigestPunchInId() + 1;
                     claimsData.setPunchinId(punchinId);
                 }
-                claimsData.setPunchinClaimId("P" + claimsData.getPunchinId());
+                claimsData.setPunchinClaimId("P00" + claimsData.getPunchinId());
                 claimsData.setClaimInwardDate(new Date());
                 claimsData.setLenderName(GenericUtils.getLoggedInUser().getFirstName());
                 claimsData.setClaimStatus(ClaimStatus.CLAIM_INTIMATED);

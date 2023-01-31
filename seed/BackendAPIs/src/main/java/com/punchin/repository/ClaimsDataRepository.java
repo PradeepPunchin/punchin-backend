@@ -203,5 +203,11 @@ public interface ClaimsDataRepository extends JpaRepository<ClaimsData, Long> {
 
     @Query(nativeQuery = true, value = "SELECT * FROM claims_data WHERE banker_id=:bankerId AND submitted_by is null ORDER BY id DESC")
     Page<ClaimsData> findClaimPendingForBakerDocumentPending(Long bankerId, Pageable pageable);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM claims_data cd Where cd.punchin_id =:punchinId ")
+    ClaimsData findByPunchinId(Long punchinId);
+
+    @Query(nativeQuery = true, value = "SELECT MAX(punchin_id) AS punchinId FROM claims_data ")
+    Long findHigestPunchInId();
 }
 

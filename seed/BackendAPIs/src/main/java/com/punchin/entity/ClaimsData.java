@@ -83,4 +83,5 @@ public class ClaimsData extends BasicEntity {
     private Boolean bankerRemarkRead;
     private Boolean agentVerifierRemarkRead;
     private Boolean bankerVerifierRemarkRead;
+    private Long punchinId;
 }

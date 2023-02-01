@@ -71,7 +71,7 @@ public class MISExportService {
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(claimsStatus, bankerIds);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
-                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+//                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
                 claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
                 claimsDataList = claimsDataRepository.findByClaimStatusInAndBankerIdInOrderByClaimInwardDateDesc(claimsStatus, bankerIds);

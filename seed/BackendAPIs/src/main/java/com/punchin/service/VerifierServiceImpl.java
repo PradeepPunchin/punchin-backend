@@ -90,6 +90,13 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.SUBMITTED_TO_INSURER);
                 page1 = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             } else if (claimDataFilter.DISCREPENCY.equals(claimDataFilter)) {
+//                claimsStatus.removeAll(claimsStatus);
+//                claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
+//                claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);
+//                claimsStatus.add(ClaimStatus.NEW_REQUIREMENT);
+//                page1 = claimsDataRepository.findByClaimStatusInOrClaimBankerStatusInAndVerifierId(claimsStatus, claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
+                page1 = claimsDataRepository.findByClaimStatusOrClaimBankerStatusInAndVerifierId(GenericUtils.getLoggedInUser().getId(), pageable);
+            } else if (claimDataFilter.ALLOCATED.equals(claimDataFilter)) {
                 claimsStatus.removeAll(claimsStatus);
                 claimsStatus.add(ClaimStatus.VERIFIER_DISCREPENCY);
                 claimsStatus.add(ClaimStatus.BANKER_DISCREPANCY);

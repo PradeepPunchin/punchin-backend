@@ -64,7 +64,7 @@ public class AuthenticationFilter extends GenericFilterBean {
 
     private boolean checkSessionTimeOut(Session session) {
         try {
-            if (session.getLastActiveTime() != null && (System.currentTimeMillis() - session.getLastActiveTime() >= Literals.HALF_HOUR)) {
+            if (session.getLastActiveTime() != null && (System.currentTimeMillis() - session.getLastActiveTime() >= Literals.ONE_DAY)) {
                 return true;
             }
         } catch (Exception e) {

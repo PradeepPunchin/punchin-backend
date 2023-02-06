@@ -902,7 +902,7 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTO.setDocType(claimDocuments.getDocType());
                 claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                 claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                claimDocumentsDTO.setReason(claimDocuments.getReason());
+                claimDocumentsDTO.setReason(claimDocuments.getReason() + ", " + claimDocuments.getRejectRemark());
                 rejectedDocList.add(claimDocuments.getAgentDocType().toString());
                 claimDocumentsDTOS.add(claimDocumentsDTO);
             }

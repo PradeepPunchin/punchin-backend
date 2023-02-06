@@ -525,9 +525,10 @@ public class AgentServiceImpl implements AgentService {
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
                 urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/"));
-                documentUrls.add(urls);
+                DocumentUrls docUrls = documentUrlsRepository.save(urls);
+                documentUrls.add(docUrls);
             }
-            documentUrlsRepository.saveAll(documentUrls);
+//            documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
             log.info("AgentServiceImpl :: uploadDocumentOnS3 uploaded agentDocType - {}, ClaimId - {}, multipartFiles - {}", agentDocType, claimsData.getId(), multipartFiles.length);

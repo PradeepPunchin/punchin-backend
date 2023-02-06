@@ -189,8 +189,11 @@ public class AgentServiceImpl implements AgentService {
                 log.info("AgentServiceImpl :: uploadDocument key {}", key);
                 if (key.contains(":")) {
                     String keyArray[] = key.split(":");
-                    GenericUtils.hasMatchingSubstring2(keyArray[0].trim(), keys);
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    if(keyArray.length > 1) {
+                        claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    } else {
+                        claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[0].trim().replace("_", " "), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    }
                 } else {
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }

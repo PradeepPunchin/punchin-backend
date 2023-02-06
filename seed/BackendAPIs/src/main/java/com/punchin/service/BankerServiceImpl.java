@@ -598,7 +598,7 @@ public class BankerServiceImpl implements BankerService {
                             break;
                         case 12:
                             cell.setCellType(CellType.STRING);
-                            p.setCategory(cell.getStringCellValue().toLowerCase());
+                            p.setCategory(cell.getStringCellValue().toLowerCase().trim());
                             break;
                         case 13:
                             if (StringUtils.isNotBlank(String.valueOf(cell))) {

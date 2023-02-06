@@ -68,7 +68,7 @@ public class CSVHelper {
                     claimsData.setLoanAccountNumber(csvRecord.get(10));
                 }
                 claimsData.setLoanType(csvRecord.get(11));
-                claimsData.setCategory(csvRecord.get(12));
+                claimsData.setCategory(csvRecord.get(12).toLowerCase().trim());
                 String date = csvRecord.get(13);
                 if (StringUtils.isNotBlank(date)) {
                     claimsData.setLoanDisbursalDate(formatter1.parse(date));

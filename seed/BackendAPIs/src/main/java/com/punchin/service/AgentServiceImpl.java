@@ -791,8 +791,18 @@ public class AgentServiceImpl implements AgentService {
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.POLICE_INVESTIGATION_REPORT)) {
                         additionalListDoc.add(AgentDocType.POLICE_INVESTIGATION_REPORT);
                     }
-                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
-                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)) {
+                    if(Objects.nonNull(claimData.getCauseOfDeath())) {
+                        if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
+                            if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)) {
+                                dto.setAdditionalDoc("UPLOADED");
+                                if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("APPROVED");
+                                } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("REJECTED");
+                                }
+                            }
+                        }
+                        if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
                             dto.setAdditionalDoc("UPLOADED");
                             if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
                                 dto.setAdditionalDoc("APPROVED");
@@ -800,38 +810,30 @@ public class AgentServiceImpl implements AgentService {
                                 dto.setAdditionalDoc("REJECTED");
                             }
                         }
-                    }
-                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
-                        dto.setAdditionalDoc("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setAdditionalDoc("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setAdditionalDoc("REJECTED");
-                        }
-                    }
-                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
-                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
-                                && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
-                                && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)) {
-                            dto.setAdditionalDoc("UPLOADED");
-                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                                dto.setAdditionalDoc("APPROVED");
-                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                                dto.setAdditionalDoc("REJECTED");
+                        if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
+                            if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
+                                    && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
+                                    && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)) {
+                                dto.setAdditionalDoc("UPLOADED");
+                                if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("APPROVED");
+                                } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("REJECTED");
+                                }
                             }
                         }
-                    }
-                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
-                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
-                                && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
-                                && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)
-                                && (additionalListDoc.contains(AgentDocType.FIR_REPORT)
-                                || additionalListDoc.contains(AgentDocType.POLICE_INVESTIGATION_REPORT))) {
-                            dto.setAdditionalDoc("UPLOADED");
-                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                                dto.setAdditionalDoc("APPROVED");
-                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                                dto.setAdditionalDoc("REJECTED");
+                        if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
+                            if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
+                                    && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
+                                    && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)
+                                    && (additionalListDoc.contains(AgentDocType.FIR_REPORT)
+                                    || additionalListDoc.contains(AgentDocType.POLICE_INVESTIGATION_REPORT))) {
+                                dto.setAdditionalDoc("UPLOADED");
+                                if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("APPROVED");
+                                } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("REJECTED");
+                                }
                             }
                         }
                     }

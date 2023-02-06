@@ -289,7 +289,7 @@ public class VerifierServiceImpl implements VerifierService {
             claimDocumentsList.forEach(claimDocuments1 -> {
                 claimDocuments1.setIsVerified(true);
                 claimDocuments1.setIsApproved(approveRejectPayloadDTO.isApproved());
-                claimDocuments1.setReason(approveRejectPayloadDTO.getReason());
+                claimDocuments1.setReason(approveRejectPayloadDTO.getReason() + ", " + approveRejectPayloadDTO.getRemark());
                 claimDocuments1.setRejectRemark(approveRejectPayloadDTO.getRemark());
                 claimDocuments1.setVerifierId(GenericUtils.getLoggedInUser().getUserId());
                 claimDocuments1.setVerifyTime(System.currentTimeMillis());

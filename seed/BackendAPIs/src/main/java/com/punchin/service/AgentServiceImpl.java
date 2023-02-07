@@ -189,8 +189,11 @@ public class AgentServiceImpl implements AgentService {
                 log.info("AgentServiceImpl :: uploadDocument key {}", key);
                 if (key.contains(":")) {
                     String keyArray[] = key.split(":");
-                    GenericUtils.hasMatchingSubstring2(keyArray[0].trim(), keys);
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    if(keyArray.length > 1) {
+                        claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    } else {
+                        claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[0].trim().replace("_", " "), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    }
                 } else {
                     claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
                 }
@@ -525,9 +528,10 @@ public class AgentServiceImpl implements AgentService {
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
                 urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/"));
-                documentUrls.add(urls);
+                DocumentUrls docUrls = documentUrlsRepository.save(urls);
+                documentUrls.add(docUrls);
             }
-            documentUrlsRepository.saveAll(documentUrls);
+//            documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
             log.info("AgentServiceImpl :: uploadDocumentOnS3 uploaded agentDocType - {}, ClaimId - {}, multipartFiles - {}", agentDocType, claimsData.getId(), multipartFiles.length);
@@ -791,8 +795,18 @@ public class AgentServiceImpl implements AgentService {
                     if (claimDocuments.getAgentDocType().equals(AgentDocType.POLICE_INVESTIGATION_REPORT)) {
                         additionalListDoc.add(AgentDocType.POLICE_INVESTIGATION_REPORT);
                     }
-                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
-                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)) {
+                    if(Objects.nonNull(claimData.getCauseOfDeath())) {
+                        if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.NATURAL_DEATH)) {
+                            if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)) {
+                                dto.setAdditionalDoc("UPLOADED");
+                                if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("APPROVED");
+                                } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("REJECTED");
+                                }
+                            }
+                        }
+                        if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
                             dto.setAdditionalDoc("UPLOADED");
                             if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
                                 dto.setAdditionalDoc("APPROVED");
@@ -800,38 +814,30 @@ public class AgentServiceImpl implements AgentService {
                                 dto.setAdditionalDoc("REJECTED");
                             }
                         }
-                    }
-                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.OTHER)) {
-                        dto.setAdditionalDoc("UPLOADED");
-                        if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                            dto.setAdditionalDoc("APPROVED");
-                        } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                            dto.setAdditionalDoc("REJECTED");
-                        }
-                    }
-                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
-                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
-                                && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
-                                && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)) {
-                            dto.setAdditionalDoc("UPLOADED");
-                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                                dto.setAdditionalDoc("APPROVED");
-                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                                dto.setAdditionalDoc("REJECTED");
+                        if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ILLNESS_MEDICAL_REASON)) {
+                            if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
+                                    && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
+                                    && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)) {
+                                dto.setAdditionalDoc("UPLOADED");
+                                if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("APPROVED");
+                                } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("REJECTED");
+                                }
                             }
                         }
-                    }
-                    if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
-                        if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
-                                && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
-                                && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)
-                                && (additionalListDoc.contains(AgentDocType.FIR_REPORT)
-                                || additionalListDoc.contains(AgentDocType.POLICE_INVESTIGATION_REPORT))) {
-                            dto.setAdditionalDoc("UPLOADED");
-                            if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
-                                dto.setAdditionalDoc("APPROVED");
-                            } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
-                                dto.setAdditionalDoc("REJECTED");
+                        if (claimData.getCauseOfDeath().equals(CauseOfDeathEnum.ACCIDENT) || claimData.getCauseOfDeath().equals(CauseOfDeathEnum.SUICIDE)) {
+                            if (additionalListDoc.contains(AgentDocType.HOSPITALISATION_RECORDS)
+                                    && additionalListDoc.contains(AgentDocType.DISCHARGE_SUMMARY)
+                                    && additionalListDoc.contains(AgentDocType.POSTMORTEM_REPORT)
+                                    && (additionalListDoc.contains(AgentDocType.FIR_REPORT)
+                                    || additionalListDoc.contains(AgentDocType.POLICE_INVESTIGATION_REPORT))) {
+                                dto.setAdditionalDoc("UPLOADED");
+                                if (claimDocuments.getIsVerified() && claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("APPROVED");
+                                } else if (claimDocuments.getIsVerified() && !claimDocuments.getIsApproved()) {
+                                    dto.setAdditionalDoc("REJECTED");
+                                }
                             }
                         }
                     }
@@ -896,7 +902,7 @@ public class AgentServiceImpl implements AgentService {
                 claimDocumentsDTO.setDocType(claimDocuments.getDocType());
                 claimDocumentsDTO.setIsVerified(claimDocuments.getIsVerified());
                 claimDocumentsDTO.setIsApproved(claimDocuments.getIsApproved());
-                claimDocumentsDTO.setReason(claimDocuments.getReason());
+                claimDocumentsDTO.setReason(claimDocuments.getReason() + ", " + claimDocuments.getRejectRemark());
                 rejectedDocList.add(claimDocuments.getAgentDocType().toString());
                 claimDocumentsDTOS.add(claimDocumentsDTO);
             }

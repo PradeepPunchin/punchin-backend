@@ -93,8 +93,10 @@ public class AgentServiceImpl implements AgentService {
                     agentClaimListDTO.setClaimsRemarksDTOs(claimsRemarksDTOS);
                     agentClaimListDTOS.add(agentClaimListDTO);
                 }
+                log.info("Claim List fetched successfully");
                 return commonService.convertPageToDTO(agentClaimListDTOS, page1);
             }
+            log.info("Claim List fetched successfully");
             return commonService.convertPageToDTO(page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimsList e{}", e);
@@ -125,7 +127,7 @@ public class AgentServiceImpl implements AgentService {
             statusList.add(ClaimStatus.SUBMITTED_TO_LENDER);
             statusList.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
-
+            log.info("Dashboard Data fetched successfully");
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getDashboardData e{}", e);
@@ -204,6 +206,7 @@ public class AgentServiceImpl implements AgentService {
                 /*if (documentDTO.getAgentRemark().equalsIgnoreCase("other")) {
                     documentDTO.setAgentRemark(documentDTO.getAgentComment());
                 }*/
+                log.info("agent Verifier remark saved successfully : {}",claimsData.getId());
                 agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name(), documentDTO.getAgentComment()));
                 claimsData.setAgentRemark(documentDTO.getAgentRemark());
                 claimsData.setAgentComment(documentDTO.getAgentComment());
@@ -216,6 +219,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("claimsData", claimDataDTO);
             map.put("status", true);
             map.put("message", MessageCode.success);
+            log.info("Agent Document uploaded successfully ");
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocument e{}", e);
@@ -393,6 +397,7 @@ public class AgentServiceImpl implements AgentService {
                     }
                     oldDocType = claimDocuments.getDocType();
                 }
+                log.info("Dicrepancy document changed successfully");
                 claimDocumentsRepository.saveAll(claimDocumentsList);
             }
             ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
@@ -415,14 +420,17 @@ public class AgentServiceImpl implements AgentService {
                 urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "agent/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
+                    log.info("Error while uploading document {}",uploadFileName);
                     return map;
                 }
                 documentUrls.add(urls);
                 ++i;
             }
+            log.info("Document url saved successfully {}");
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
+            log.info("Claim Document saved successfully {}");
             claimDocumentsRepository.save(claimDocuments);
             //inactive old rejected doc
 
@@ -444,6 +452,7 @@ public class AgentServiceImpl implements AgentService {
             claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
             map.put("message", MessageCode.success);
             map.put("claimDocuments", claimDocumentsDTO);
+            log.info("Discrepancy Document Uploaded successfully for claim Id {}", claimId);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: discrepancyDocumentUpload e {} ", e);
@@ -506,6 +515,7 @@ public class AgentServiceImpl implements AgentService {
             claimsData.setIsForwardToVerifier(true);
             claimsDataRepository.save(claimsData);
             claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.UNDER_VERIFICATION, "Under Verification"));
+            log.info("Forward To Verifier successfully for claim Id {}", claimId);
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: forwardToVerifier e{}", e);
@@ -528,6 +538,7 @@ public class AgentServiceImpl implements AgentService {
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
                 urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/"));
+                log.info("Agent Document saved successfully {}",uploadFileName);
                 DocumentUrls docUrls = documentUrlsRepository.save(urls);
                 documentUrls.add(docUrls);
             }
@@ -674,6 +685,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("claimHistoryDTOS", claimHistoryDTOS);
             map.put("claimStatus", claimsData.getClaimStatus());
             map.put("startedAt", claimsData.getCreatedAt());
+            log.info("Claim History fecthed successfully for id : {}",id);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimHistory e - {}", e);
@@ -687,6 +699,7 @@ public class AgentServiceImpl implements AgentService {
             return MessageCode.NO_RECORD_FOUND;
         }
         claimDocumentsRepository.delete(optionalClaimDocuments.get());
+        log.info("Claim Document deleted successfully for document id : {}",documentId);
         return MessageCode.DOCUMENT_DELETED;
     }
 
@@ -849,6 +862,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("claimCategory", category);
             map.put("claimData", claimsData.get(0));
             map.put("message", MessageCode.success);
+            log.info("claim data document fetched successfully : {}");
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimBankerDocuments e {}", e);
@@ -970,6 +984,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("claimStatus", claimsDataRepository.findById(id).get().getClaimStatus());
             map.put("agentDocumentStatusList", agentDocumentStatus);
             map.put("message", MessageCode.success);
+            log.info("claim document fetched successfully for claim data id : {}",id);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimDocuments e {}", e);

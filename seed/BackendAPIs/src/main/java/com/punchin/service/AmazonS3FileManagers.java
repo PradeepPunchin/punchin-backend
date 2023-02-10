@@ -79,6 +79,7 @@ public class AmazonS3FileManagers {
             String fileName = claimId + "-" + System.currentTimeMillis() + extension;
             versionId = uploadFileToAmazonS3(folderName, file, fileName);
             cleanUp(file);
+            log.info("File uploaded in AWS {}",fileName);
             return versionId;
         } catch (IOException e) {
             return null;

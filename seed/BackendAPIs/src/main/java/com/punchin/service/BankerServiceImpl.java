@@ -8,7 +8,6 @@ import com.punchin.utility.*;
 import com.punchin.utility.constant.MessageCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -163,6 +162,7 @@ public class BankerServiceImpl implements BankerService {
                     map.put("data", claimsDataList);
                     map.put("status", true);
                     map.put("message", MessageCode.success);
+                    log.info("save Upload Excel Data successfully");
                     return map;
                 }
                 map.put("message", data.get("message"));
@@ -257,6 +257,7 @@ public class BankerServiceImpl implements BankerService {
                 page1 = claimsDataRepository.findByClaimStatusByDraftSavedByBanker(bankerIds, pageable);
             }
             List<BankerClaimListResponseDTO> bankerClaimListResponseDTOS = mappedAgentDetails(page1);
+            log.info("Claims data List fetched successfully ");
             return commonService.convertPageToDTO(bankerClaimListResponseDTOS, page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getClaimsList e {}", e);
@@ -293,6 +294,7 @@ public class BankerServiceImpl implements BankerService {
             claimsStatus.removeAll(claimsStatus);
             claimsStatus.add(ClaimStatus.UNDER_VERIFICATION);
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndBankerIdIn(claimsStatus, bankerIds));
+            log.info("Dashboard Data fetched successfully ");
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: getDashboardData e{}", e);
@@ -342,6 +344,7 @@ public class BankerServiceImpl implements BankerService {
             claimHistoryRepository.saveAll(claimHistories);
             String url = misExportService.exportRejectedClaimsData(GenericUtils.getLoggedInUser().getUserId());
             claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
+            log.info("claim data submitted successfully : {}", url);
             return url;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: submitClaims e{}", e);
@@ -354,6 +357,7 @@ public class BankerServiceImpl implements BankerService {
         try {
             log.info("BankerController :: discardClaims");
             claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
+            log.info("claim data dicarded successfully");
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: discardClaims e{}", e);
@@ -421,6 +425,7 @@ public class BankerServiceImpl implements BankerService {
                 //For delete unsaved document
                 List<ClaimDocuments> claimDocuments = claimDocumentsRepository.findByClaimsDataIdAndUploadSideByAndIsActive(claimsData.getId(), "banker", false);
                 claimDocumentsRepository.deleteAll(claimDocuments);
+                log.info("claim data submitted successfully");
                 return dto;
             }
             return null;
@@ -462,11 +467,13 @@ public class BankerServiceImpl implements BankerService {
                 urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "banker/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
+                    log.info("Error while uploading Banker document url : {}", uploadFileName);
                     return map;
                 }
                 documentUrls.add(urls);
                 ++i;
             }
+            log.info("Banker document url saved successfully");
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
@@ -859,6 +866,7 @@ public class BankerServiceImpl implements BankerService {
                 claimDocuments.setIsActive(true);
             });
             claimDocumentsRepository.saveAll(claimDocumentsList);
+            log.info("claim data saved as draft successfully : {}", claimsData);
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE BankerServiceImpl :: saveASDraftDocument ", e);
@@ -932,6 +940,7 @@ public class BankerServiceImpl implements BankerService {
                     log.info("Invalid claimsData Saved successfully");
                     invalidClaimsDataRepository.saveAll(invalidClaimsDataList);
                 }
+                log.info("CSV claim data  saved successfully");
                 return claimDraftDataRepository.saveAll(claimsDraftDataList);
             }
         } catch (IOException e) {
@@ -1282,14 +1291,17 @@ public class BankerServiceImpl implements BankerService {
                 urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "banker/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
+                    log.info("Error while uploading document {}",uploadFileName);
                     return map;
                 }
                 documentUrls.add(urls);
                 ++i;
             }
+            log.info("Document url saved successfully {}");
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
+            log.info("Claim Document saved successfully {}");
             claimDocumentsRepository.save(claimDocuments);
             //inactive old rejected doc
 

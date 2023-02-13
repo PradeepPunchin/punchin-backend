@@ -73,14 +73,20 @@ public class AmazonS3FileManagers {
 
     public String uploadFile(String claimId, MultipartFile multipartFile, String folderName) {
         try {
-            String versionId = null;
+            log.info("File loaded in AWS for uploaded: claimId {}, multipartFile {},folderName {}", claimId, multipartFile, folderName);
             File file = convertMultiPartToFile(multipartFile);
+            log.info("File created in AWS :  {}", multipartFile);
             String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+            log.info("extension created in AWS :  {}", extension);
             String fileName = claimId + "-" + System.currentTimeMillis() + extension;
-            versionId = uploadFileToAmazonS3(folderName, file, fileName);
+            log.info("fileName created in AWS :  {}", fileName);
+            String versionId = uploadFileToAmazonS3(folderName, file, fileName);
+            log.info("versionId created in AWS :  {}", versionId);
             cleanUp(file);
+            log.info("File uploaded in AWS {}",fileName);
             return versionId;
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AmazonS3FileManagers :: uploadFiles e-{}", e);
             return null;
         }
     }

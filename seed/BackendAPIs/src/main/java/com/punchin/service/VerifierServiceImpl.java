@@ -107,6 +107,7 @@ public class VerifierServiceImpl implements VerifierService {
                 claimsStatus.add(ClaimStatus.AGENT_ALLOCATED);
                 page1 = claimsDataRepository.findByClaimStatusInAndVerifierIdOrderByCreatedAtDesc(claimsStatus, GenericUtils.getLoggedInUser().getId(), pageable);
             }
+            log.info("Get all Claim data list fetched successfully : {}", page1);
             return convertInDocumentStatusDTO(page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE VerifierServiceImpl :: getAllClaimsData", e);

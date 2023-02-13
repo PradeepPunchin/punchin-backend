@@ -93,8 +93,10 @@ public class AgentServiceImpl implements AgentService {
                     agentClaimListDTO.setClaimsRemarksDTOs(claimsRemarksDTOS);
                     agentClaimListDTOS.add(agentClaimListDTO);
                 }
+                log.info("Claim List fetched successfully");
                 return commonService.convertPageToDTO(agentClaimListDTOS, page1);
             }
+            log.info("Claim List fetched successfully");
             return commonService.convertPageToDTO(page1);
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimsList e{}", e);
@@ -125,7 +127,7 @@ public class AgentServiceImpl implements AgentService {
             statusList.add(ClaimStatus.SUBMITTED_TO_LENDER);
             statusList.add(ClaimStatus.SUBMITTED_TO_INSURER);
             map.put(ClaimStatus.UNDER_VERIFICATION.name(), claimsDataRepository.countByClaimStatusInAndAgentId(statusList, GenericUtils.getLoggedInUser().getId()));
-
+            log.info("Dashboard Data fetched successfully");
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getDashboardData e{}", e);
@@ -187,16 +189,25 @@ public class AgentServiceImpl implements AgentService {
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
             for (String key : keys) {
                 log.info("AgentServiceImpl :: uploadDocument key {}", key);
+                ClaimDocuments uploadedDocuments = new ClaimDocuments();
                 if (key.contains(":")) {
                     String keyArray[] = key.split(":");
                     if(keyArray.length > 1) {
-                        claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                        uploadedDocuments = uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)});
                     } else {
-                        claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[0].trim().replace("_", " "), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                        uploadedDocuments = uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[0].trim().replace("_", " "), claimsData, new MultipartFile[]{isMinorDoc.get(key)});
                     }
                 } else {
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    uploadedDocuments = uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)});
                 }
+                if(Objects.isNull(uploadedDocuments)){
+                    log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocument e{}");
+                    map.put("claimsData", null);
+                    map.put("status", false);
+                    map.put("message", "Invalid data");
+                    return map;
+                }
+                claimDocuments.add(uploadedDocuments);
             }
             claimsData.setClaimStatus(ClaimStatus.IN_PROGRESS);
             //claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.IN_PROGRESS, "In Progress"));
@@ -204,6 +215,7 @@ public class AgentServiceImpl implements AgentService {
                 /*if (documentDTO.getAgentRemark().equalsIgnoreCase("other")) {
                     documentDTO.setAgentRemark(documentDTO.getAgentComment());
                 }*/
+                log.info("agent Verifier remark saved successfully : {}",claimsData.getId());
                 agentVerifierRemarkRepository.save(new AgentVerifierRemark(claimsData.getId(), documentDTO.getAgentRemark(), GenericUtils.getLoggedInUser().getId(), GenericUtils.getLoggedInUser().getRole().name(), documentDTO.getAgentComment()));
                 claimsData.setAgentRemark(documentDTO.getAgentRemark());
                 claimsData.setAgentComment(documentDTO.getAgentComment());
@@ -216,6 +228,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("claimsData", claimDataDTO);
             map.put("status", true);
             map.put("message", MessageCode.success);
+            log.info("Agent Document uploaded successfully ");
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocument e{}", e);
@@ -393,6 +406,7 @@ public class AgentServiceImpl implements AgentService {
                     }
                     oldDocType = claimDocuments.getDocType();
                 }
+                log.info("Dicrepancy document changed successfully");
                 claimDocumentsRepository.saveAll(claimDocumentsList);
             }
             ClaimsData claimsData = claimsDataRepository.findById(claimId).get();
@@ -412,17 +426,21 @@ public class AgentServiceImpl implements AgentService {
             int i = 1;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
+                urls.setClaimDocuments(claimDocuments);
                 urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "agent/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
+                    log.info("Error while uploading document {}",uploadFileName);
                     return map;
                 }
                 documentUrls.add(urls);
                 ++i;
             }
+            log.info("Document url saved successfully {}");
             documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
             claimDocuments.setUploadTime(System.currentTimeMillis());
+            log.info("Claim Document saved successfully {}");
             claimDocumentsRepository.save(claimDocuments);
             //inactive old rejected doc
 
@@ -444,6 +462,7 @@ public class AgentServiceImpl implements AgentService {
             claimDocumentsDTO.setDocumentUrlDTOS(documentUrlDTOS);
             map.put("message", MessageCode.success);
             map.put("claimDocuments", claimDocumentsDTO);
+            log.info("Discrepancy Document Uploaded successfully for claim Id {}", claimId);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: discrepancyDocumentUpload e {} ", e);
@@ -506,6 +525,7 @@ public class AgentServiceImpl implements AgentService {
             claimsData.setIsForwardToVerifier(true);
             claimsDataRepository.save(claimsData);
             claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.UNDER_VERIFICATION, "Under Verification"));
+            log.info("Forward To Verifier successfully for claim Id {}", claimId);
             return MessageCode.success;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: forwardToVerifier e{}", e);
@@ -527,9 +547,15 @@ public class AgentServiceImpl implements AgentService {
             String uploadFileName = claimsData.getLoanAccountNumber() + "-" + agentDocType;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/"));
-                DocumentUrls docUrls = documentUrlsRepository.save(urls);
-                documentUrls.add(docUrls);
+                urls.setClaimDocuments(claimDocuments);
+                String url = amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/");
+                if(Objects.isNull(url)){
+                    log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocumentOnS3 ");
+                    return null;
+                }
+                urls.setDocUrl(url);
+                log.info("Agent Document saved successfully {}",uploadFileName);
+                documentUrls.add(documentUrlsRepository.save(urls));
             }
 //            documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
@@ -537,7 +563,7 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: uploadDocumentOnS3 uploaded agentDocType - {}, ClaimId - {}, multipartFiles - {}", agentDocType, claimsData.getId(), multipartFiles.length);
             return claimDocumentsRepository.save(claimDocuments);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE AgentServiceImpl :: uploadFiles ", e);
+            log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocumentOnS3 ", e);
             return null;
         }
     }
@@ -674,6 +700,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("claimHistoryDTOS", claimHistoryDTOS);
             map.put("claimStatus", claimsData.getClaimStatus());
             map.put("startedAt", claimsData.getCreatedAt());
+            log.info("Claim History fecthed successfully for id : {}",id);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimHistory e - {}", e);
@@ -687,6 +714,7 @@ public class AgentServiceImpl implements AgentService {
             return MessageCode.NO_RECORD_FOUND;
         }
         claimDocumentsRepository.delete(optionalClaimDocuments.get());
+        log.info("Claim Document deleted successfully for document id : {}",documentId);
         return MessageCode.DOCUMENT_DELETED;
     }
 
@@ -849,6 +877,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("claimCategory", category);
             map.put("claimData", claimsData.get(0));
             map.put("message", MessageCode.success);
+            log.info("claim data document fetched successfully : {}");
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimBankerDocuments e {}", e);
@@ -970,6 +999,7 @@ public class AgentServiceImpl implements AgentService {
             map.put("claimStatus", claimsDataRepository.findById(id).get().getClaimStatus());
             map.put("agentDocumentStatusList", agentDocumentStatus);
             map.put("message", MessageCode.success);
+            log.info("claim document fetched successfully for claim data id : {}",id);
             return map;
         } catch (Exception e) {
             log.error("EXCEPTION WHILE AgentServiceImpl :: getClaimDocuments e {}", e);

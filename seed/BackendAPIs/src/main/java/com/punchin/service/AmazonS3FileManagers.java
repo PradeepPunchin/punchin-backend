@@ -73,6 +73,7 @@ public class AmazonS3FileManagers {
 
     public String uploadFile(String claimId, MultipartFile multipartFile, String folderName) {
         try {
+            log.info("File loaded in AWS for uploaded: claimId {}, multipartFile {},folderName", claimId, multipartFile, folderName);
             String versionId = null;
             File file = convertMultiPartToFile(multipartFile);
             String extension = "." + FilenameUtils.getExtension(multipartFile.getOriginalFilename());

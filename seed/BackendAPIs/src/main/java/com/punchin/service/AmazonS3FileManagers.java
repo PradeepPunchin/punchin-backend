@@ -85,7 +85,8 @@ public class AmazonS3FileManagers {
             cleanUp(file);
             log.info("File uploaded in AWS {}",fileName);
             return versionId;
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.error("EXCEPTION WHILE AmazonS3FileManagers :: uploadFiles e-{}", e);
             return null;
         }
     }

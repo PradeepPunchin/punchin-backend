@@ -16,4 +16,5 @@ public class DocumentUrls extends BasicEntity {
     private Long id;
 
     private String docUrl;
+    private ClaimDocuments claimDocuments;
 }

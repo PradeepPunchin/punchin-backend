@@ -189,16 +189,25 @@ public class AgentServiceImpl implements AgentService {
             List<String> keys = new ArrayList<>(isMinorDoc.keySet());
             for (String key : keys) {
                 log.info("AgentServiceImpl :: uploadDocument key {}", key);
+                ClaimDocuments uploadedDocuments = new ClaimDocuments();
                 if (key.contains(":")) {
                     String keyArray[] = key.split(":");
                     if(keyArray.length > 1) {
-                        claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                        uploadedDocuments = uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[1].trim(), claimsData, new MultipartFile[]{isMinorDoc.get(key)});
                     } else {
-                        claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[0].trim().replace("_", " "), claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                        uploadedDocuments = uploadDocumentOnS3(AgentDocType.valueOf(keyArray[0].trim()), keyArray[0].trim().replace("_", " "), claimsData, new MultipartFile[]{isMinorDoc.get(key)});
                     }
                 } else {
-                    claimDocuments.add(uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)}));
+                    uploadedDocuments = uploadDocumentOnS3(AgentDocType.valueOf(key), key, claimsData, new MultipartFile[]{isMinorDoc.get(key)});
                 }
+                if(Objects.isNull(uploadedDocuments)){
+                    log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocument e{}");
+                    map.put("claimsData", null);
+                    map.put("status", false);
+                    map.put("message", "Invalid data");
+                    return map;
+                }
+                claimDocuments.add(uploadedDocuments);
             }
             claimsData.setClaimStatus(ClaimStatus.IN_PROGRESS);
             //claimHistoryRepository.save(new ClaimHistory(claimsData.getId(), ClaimStatus.IN_PROGRESS, "In Progress"));
@@ -417,6 +426,7 @@ public class AgentServiceImpl implements AgentService {
             int i = 1;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
+                urls.setClaimDocuments(claimDocuments);
                 urls.setDocUrl(amazonS3FileManagers.uploadFile(uploadFileName + "-" + i, multipartFile, "agent/"));
                 if (Objects.isNull(urls.getDocUrl())) {
                     map.put("message", MessageCode.fileNotUploaded);
@@ -537,10 +547,15 @@ public class AgentServiceImpl implements AgentService {
             String uploadFileName = claimsData.getLoanAccountNumber() + "-" + agentDocType;
             for (MultipartFile multipartFile : multipartFiles) {
                 DocumentUrls urls = new DocumentUrls();
-                urls.setDocUrl(amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/"));
+                urls.setClaimDocuments(claimDocuments);
+                String url = amazonS3FileManagers.uploadFile(claimsData.getLoanAccountNumber() + "-" + agentDocType, multipartFile, "agent/");
+                if(Objects.isNull(url)){
+                    log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocumentOnS3 ");
+                    return null;
+                }
+                urls.setDocUrl(url);
                 log.info("Agent Document saved successfully {}",uploadFileName);
-                DocumentUrls docUrls = documentUrlsRepository.save(urls);
-                documentUrls.add(docUrls);
+                documentUrls.add(documentUrlsRepository.save(urls));
             }
 //            documentUrlsRepository.saveAll(documentUrls);
             claimDocuments.setDocumentUrls(documentUrls);
@@ -548,7 +563,7 @@ public class AgentServiceImpl implements AgentService {
             log.info("AgentServiceImpl :: uploadDocumentOnS3 uploaded agentDocType - {}, ClaimId - {}, multipartFiles - {}", agentDocType, claimsData.getId(), multipartFiles.length);
             return claimDocumentsRepository.save(claimDocuments);
         } catch (Exception e) {
-            log.error("EXCEPTION WHILE AgentServiceImpl :: uploadFiles ", e);
+            log.error("EXCEPTION WHILE AgentServiceImpl :: uploadDocumentOnS3 ", e);
             return null;
         }
     }

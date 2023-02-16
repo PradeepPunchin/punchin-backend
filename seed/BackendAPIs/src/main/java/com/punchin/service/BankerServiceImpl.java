@@ -334,13 +334,14 @@ public class BankerServiceImpl implements BankerService {
                     log.info("VERIFIER mapped id-{}", verifierId);
                 }
                 ClaimsData updatedClaimData = claimsDataRepository.save(claimsData);
-
+                log.info("CLAIM DATA SAVED SUCCESSFULLY IN CLAIMS DATA");
                 claimsDataList.add(updatedClaimData);
             }
             List<ClaimHistory> claimHistories = new ArrayList<>();
             for (ClaimsData claimsData : claimsDataList) {
                 claimHistories.add(new ClaimHistory(claimsData.getId(), ClaimStatus.CLAIM_INTIMATED, "Claim Intimation"));
             }
+            log.info("CLAIM DATA SAVED SUCCESSFULLY IN CLAIMS DATA HISTORY");
             claimHistoryRepository.saveAll(claimHistories);
             String url = misExportService.exportRejectedClaimsData(GenericUtils.getLoggedInUser().getUserId());
             claimDraftDataRepository.deleteByPunchinBankerId(GenericUtils.getLoggedInUser().getUserId());
